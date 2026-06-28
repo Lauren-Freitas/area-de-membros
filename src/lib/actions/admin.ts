@@ -153,6 +153,75 @@ export async function deleteUser(userId: string) {
   revalidatePath('/admin/usuarios')
 }
 
+// ─── Módulos ─────────────────────────────────────────────────────────────────
+
+export async function saveModule(
+  prevState: AdminActionState,
+  formData: FormData
+): Promise<AdminActionState> {
+  const supabase = await requireAdmin()
+  const id = formData.get('id') as string | null
+  const product_id = formData.get('product_id') as string
+  const title = (formData.get('title') as string)?.trim()
+  const description = (formData.get('description') as string)?.trim() || null
+  const sort_order = parseInt(formData.get('sort_order') as string) || 0
+
+  if (!title) return { error: 'O título é obrigatório.' }
+
+  const isNew = !id
+  const { error } = isNew
+    ? await supabase.from('modules').insert({ product_id, title, description, sort_order })
+    : await supabase.from('modules').update({ title, description, sort_order }).eq('id', id)
+
+  if (error) return { error: error.message }
+  revalidatePath(`/admin/produtos/${product_id}`)
+  redirect(`/admin/produtos/${product_id}`)
+}
+
+export async function deleteModule(moduleId: string, productId: string) {
+  const supabase = await requireAdmin()
+  await supabase.from('modules').delete().eq('id', moduleId)
+  revalidatePath(`/admin/produtos/${productId}`)
+}
+
+// ─── Aulas ───────────────────────────────────────────────────────────────────
+
+export async function saveLesson(
+  prevState: AdminActionState,
+  formData: FormData
+): Promise<AdminActionState> {
+  const supabase = await requireAdmin()
+  const id = formData.get('id') as string | null
+  const module_id = formData.get('module_id') as string
+  const product_id = formData.get('product_id') as string
+  const title = (formData.get('title') as string)?.trim()
+  const description = (formData.get('description') as string)?.trim() || null
+  const lesson_type = formData.get('lesson_type') as string
+  const content_url = (formData.get('content_url') as string)?.trim() || null
+  const content_text = (formData.get('content_text') as string)?.trim() || null
+  const sort_order = parseInt(formData.get('sort_order') as string) || 0
+  const is_published = formData.get('is_published') === 'on'
+
+  if (!title) return { error: 'O título é obrigatório.' }
+  if (!lesson_type) return { error: 'O tipo é obrigatório.' }
+
+  const payload = { module_id, title, description, lesson_type, content_url, content_text, sort_order, is_published }
+  const isNew = !id
+  const { error } = isNew
+    ? await supabase.from('lessons').insert(payload)
+    : await supabase.from('lessons').update(payload).eq('id', id)
+
+  if (error) return { error: error.message }
+  revalidatePath(`/admin/produtos/${product_id}/modulos/${module_id}`)
+  redirect(`/admin/produtos/${product_id}/modulos/${module_id}`)
+}
+
+export async function deleteLesson(lessonId: string, moduleId: string, productId: string) {
+  const supabase = await requireAdmin()
+  await supabase.from('lessons').delete().eq('id', lessonId)
+  revalidatePath(`/admin/produtos/${productId}/modulos/${moduleId}`)
+}
+
 // ─── Perfil ──────────────────────────────────────────────────────────────────
 
 export async function updateProfile(
