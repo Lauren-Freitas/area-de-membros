@@ -69,8 +69,8 @@ export default async function AdminUsuariosPage() {
                         title={hasAccess ? 'Clique para revogar acesso' : 'Clique para liberar acesso'}
                         className={`text-xs font-medium px-3 py-1.5 rounded-full border transition ${
                           hasAccess
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200'
-                            : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200'
+                            ? 'bg-gold-50 text-gold-700 border-gold-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200'
+                            : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gold-50 hover:text-gold-700 hover:border-gold-200'
                         }`}
                       >
                         {hasAccess ? '✓ ' : '+ '}

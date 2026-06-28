@@ -26,7 +26,7 @@ export function ProductForm({ product }: { product?: Product }) {
             name="title"
             defaultValue={product?.title}
             required
-            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent"
             placeholder="Ex: Cardápio Semanal Personalizado"
           />
         </div>
@@ -38,7 +38,7 @@ export function ProductForm({ product }: { product?: Product }) {
           <select
             name="content_type"
             defaultValue={product?.content_type ?? 'file'}
-            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent"
           >
             <option value="file">Download (PDF, Excel, etc.)</option>
             <option value="video">Vídeo (YouTube ou Vimeo)</option>
@@ -52,7 +52,7 @@ export function ProductForm({ product }: { product?: Product }) {
           name="description"
           defaultValue={product?.description}
           rows={3}
-          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent resize-none"
           placeholder="Descreva brevemente o conteúdo..."
         />
       </div>
@@ -67,7 +67,7 @@ export function ProductForm({ product }: { product?: Product }) {
         <input
           name="content_url"
           defaultValue={product?.content_url ?? ''}
-          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent"
           placeholder="https://youtube.com/watch?v=..."
         />
       </div>
@@ -80,7 +80,7 @@ export function ProductForm({ product }: { product?: Product }) {
         <input
           name="banner_url"
           defaultValue={product?.banner_url ?? ''}
-          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent"
           placeholder="https://..."
         />
       </div>
@@ -93,7 +93,7 @@ export function ProductForm({ product }: { product?: Product }) {
             type="number"
             min="0"
             defaultValue={product?.sort_order ?? 0}
-            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent"
           />
         </div>
 
@@ -130,7 +130,7 @@ export function ProductForm({ product }: { product?: Product }) {
         <button
           type="submit"
           disabled={isPending}
-          className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white text-sm font-semibold rounded-lg transition"
+          className="px-6 py-2.5 bg-gold-500 hover:bg-gold-600 disabled:bg-gold-400 text-white text-sm font-semibold rounded-lg transition"
         >
           {isPending ? 'Salvando...' : product ? 'Salvar alterações' : 'Criar produto'}
         </button>

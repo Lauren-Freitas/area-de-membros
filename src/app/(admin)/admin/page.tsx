@@ -37,7 +37,7 @@ export default async function AdminPage() {
       <div className="flex flex-wrap gap-3">
         <Link
           href="/admin/produtos"
-          className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition"
+          className="px-5 py-2.5 bg-gold-500 hover:bg-gold-600 text-white text-sm font-semibold rounded-lg transition"
         >
           Gerenciar produtos
         </Link>

@@ -13,7 +13,7 @@ export default async function AdminProdutosPage() {
         <h1 className="text-2xl font-bold text-gray-900">Produtos</h1>
         <Link
           href="/admin/produtos/novo"
-          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition"
+          className="px-4 py-2 bg-gold-500 hover:bg-gold-600 text-white text-sm font-semibold rounded-lg transition"
         >
           + Novo produto
         </Link>
@@ -52,8 +52,8 @@ export default async function AdminProdutosPage() {
                         type="submit"
                         className={`text-xs font-medium px-2.5 py-1 rounded-full transition ${
                           product.is_active
-                            ? 'bg-emerald-50 text-emerald-700 hover:bg-yellow-50 hover:text-yellow-700'
-                            : 'bg-gray-100 text-gray-500 hover:bg-emerald-50 hover:text-emerald-700'
+                            ? 'bg-gold-50 text-gold-700 hover:bg-yellow-50 hover:text-yellow-700'
+                            : 'bg-gray-100 text-gray-500 hover:bg-gold-50 hover:text-gold-700'
                         }`}
                       >
                         {product.is_active ? 'Ativo' : 'Inativo'}
@@ -64,7 +64,7 @@ export default async function AdminProdutosPage() {
                     <div className="flex items-center gap-3 justify-end">
                       <Link
                         href={`/admin/produtos/${product.id}`}
-                        className="text-sm text-emerald-600 hover:text-emerald-800 font-medium transition"
+                        className="text-sm text-gold-600 hover:text-gold-800 font-medium transition"
                       >
                         Editar
                       </Link>

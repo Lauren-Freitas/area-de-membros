@@ -22,7 +22,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <Link href="/admin" className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
+              <div className="w-9 h-9 rounded-full bg-gold-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
                 TC
               </div>
               <div className="hidden sm:block">
@@ -44,7 +44,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <div className="flex items-center gap-3">
             <Link
               href="/dashboard"
-              className="hidden sm:inline-flex text-xs font-medium text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full hover:bg-emerald-100 transition"
+              className="hidden sm:inline-flex text-xs font-medium text-gold-700 bg-gold-50 px-3 py-1.5 rounded-full hover:bg-gold-100 transition"
             >
               Ver área de membros
             </Link>
