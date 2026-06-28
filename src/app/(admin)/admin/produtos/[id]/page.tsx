@@ -1,7 +1,12 @@
-export default function AdminProdutoEditPage({ params }: { params: { id: string } }) {
+export default async function AdminProdutoEditPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
   return (
     <div>
-      <h1>Editar Produto {params.id}</h1>
+      <h1>Editar Produto {id}</h1>
     </div>
   )
 }
