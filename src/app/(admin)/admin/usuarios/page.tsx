@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { grantAccess, revokeAccess } from '@/lib/actions/admin'
+import { DeleteUserButton } from '@/components/admin/DeleteUserButton'
 import { Profile, Product } from '@/types'
+import Link from 'next/link'
 
 export default async function AdminUsuariosPage() {
   const supabase = await createClient()
@@ -23,7 +25,16 @@ export default async function AdminUsuariosPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Usuários</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Usuários</h1>
+        <Link
+          href="/admin/usuarios/novo"
+          className="px-4 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
+          style={{ backgroundColor: '#c9a84c' }}
+        >
+          + Novo usuário
+        </Link>
+      </div>
 
       {profiles?.length ? (
         <div className="space-y-4">
@@ -37,15 +48,20 @@ export default async function AdminUsuariosPage() {
                     Desde {new Date(profile.created_at).toLocaleDateString('pt-BR')}
                   </p>
                 </div>
-                <span
-                  className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-                    profile.role === 'admin'
-                      ? 'bg-purple-50 text-purple-700'
-                      : 'bg-gray-100 text-gray-600'
-                  }`}
-                >
-                  {profile.role === 'admin' ? 'Admin' : 'Membro'}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                      profile.role === 'admin'
+                        ? 'bg-purple-50 text-purple-700'
+                        : 'bg-gray-100 text-gray-600'
+                    }`}
+                  >
+                    {profile.role === 'admin' ? 'Admin' : 'Membro'}
+                  </span>
+                  {profile.role !== 'admin' && (
+                    <DeleteUserButton userId={profile.id} userName={profile.name || profile.email} />
+                  )}
+                </div>
               </div>
 
               <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">
@@ -90,6 +106,9 @@ export default async function AdminUsuariosPage() {
       ) : (
         <div className="text-center py-16 text-gray-400 bg-white rounded-2xl border border-gray-100">
           <p className="font-medium">Nenhum usuário cadastrado ainda.</p>
+          <p className="text-sm mt-1">
+            <Link href="/admin/usuarios/novo" className="underline">Criar o primeiro usuário</Link>
+          </p>
         </div>
       )}
     </div>

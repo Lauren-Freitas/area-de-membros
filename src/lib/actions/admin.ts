@@ -1,8 +1,10 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { sendWelcomeEmail, sendAccessGrantedEmail } from '@/lib/resend'
 
 async function requireAdmin() {
   const supabase = await createClient()
@@ -21,6 +23,8 @@ async function requireAdmin() {
 }
 
 export type AdminActionState = { error?: string } | undefined
+
+// ─── Produtos ───────────────────────────────────────────────────────────────
 
 export async function saveProduct(
   prevState: AdminActionState,
@@ -68,6 +72,88 @@ export async function deleteProduct(id: string) {
   revalidatePath('/admin/produtos')
   revalidatePath('/dashboard')
 }
+
+// ─── Usuários ────────────────────────────────────────────────────────────────
+
+export async function createUser(
+  prevState: AdminActionState,
+  formData: FormData
+): Promise<AdminActionState> {
+  await requireAdmin()
+  const admin = createAdminClient()
+
+  const name = (formData.get('name') as string)?.trim()
+  const email = (formData.get('email') as string)?.trim().toLowerCase()
+  const productIds = formData.getAll('products') as string[]
+
+  if (!name) return { error: 'O nome é obrigatório.' }
+  if (!email) return { error: 'O email é obrigatório.' }
+
+  const { data: existing } = await admin
+    .from('profiles')
+    .select('id')
+    .eq('email', email)
+    .maybeSingle()
+
+  let userId: string
+  let isNewUser = false
+  let inviteLink: string | null = null
+
+  if (existing) {
+    userId = existing.id
+  } else {
+    const { data: created, error: createError } = await admin.auth.admin.createUser({
+      email,
+      email_confirm: false,
+      user_metadata: { name },
+    })
+    if (createError || !created.user) return { error: createError?.message ?? 'Erro ao criar usuário.' }
+    userId = created.user.id
+    isNewUser = true
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL!
+    const { data: linkData } = await admin.auth.admin.generateLink({
+      type: 'invite',
+      email,
+      options: {
+        redirectTo: `${appUrl}/auth/callback?next=/criar-senha`,
+        data: { name },
+      },
+    })
+    inviteLink = linkData?.properties?.action_link ?? null
+  }
+
+  if (productIds.length > 0) {
+    const rows = productIds.map((productId) => ({
+      user_id: userId,
+      product_id: productId,
+      granted_by: 'manual' as const,
+    }))
+    await admin.from('user_products').upsert(rows, { onConflict: 'user_id,product_id', ignoreDuplicates: true })
+  }
+
+  const productTitle = productIds.length === 1
+    ? (await admin.from('products').select('title').eq('id', productIds[0]).single()).data?.title ?? 'Área de Membros'
+    : productIds.length > 1 ? 'seus produtos' : 'Área de Membros'
+
+  if (isNewUser && inviteLink) {
+    await sendWelcomeEmail({ email, name, productTitle, inviteLink }).catch(() => null)
+  } else if (productIds.length > 0) {
+    await sendAccessGrantedEmail({ email, name, productTitle }).catch(() => null)
+  }
+
+  revalidatePath('/admin/usuarios')
+  redirect('/admin/usuarios')
+}
+
+export async function deleteUser(userId: string) {
+  await requireAdmin()
+  const admin = createAdminClient()
+  await admin.auth.admin.deleteUser(userId)
+  revalidatePath('/admin/usuarios')
+}
+
+// ─── Acesso ──────────────────────────────────────────────────────────────────
 
 export async function grantAccess(userId: string, productId: string) {
   const supabase = await requireAdmin()
