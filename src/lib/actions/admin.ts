@@ -22,7 +22,7 @@ async function requireAdmin() {
   return supabase
 }
 
-export type AdminActionState = { error?: string } | undefined
+export type AdminActionState = { error?: string; success?: boolean } | undefined
 
 // ─── Produtos ───────────────────────────────────────────────────────────────
 
@@ -151,6 +151,40 @@ export async function deleteUser(userId: string) {
   const admin = createAdminClient()
   await admin.auth.admin.deleteUser(userId)
   revalidatePath('/admin/usuarios')
+}
+
+// ─── Perfil ──────────────────────────────────────────────────────────────────
+
+export async function updateProfile(
+  prevState: AdminActionState,
+  formData: FormData
+): Promise<AdminActionState> {
+  const supabase = await requireAdmin()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Não autenticado.' }
+
+  const name = (formData.get('name') as string)?.trim()
+  const email = (formData.get('email') as string)?.trim().toLowerCase()
+
+  if (!name) return { error: 'O nome é obrigatório.' }
+  if (!email) return { error: 'O email é obrigatório.' }
+
+  const admin = createAdminClient()
+
+  if (email !== user.email) {
+    const { error: authError } = await admin.auth.admin.updateUserById(user.id, { email })
+    if (authError) return { error: authError.message }
+  }
+
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({ name, email })
+    .eq('id', user.id)
+
+  if (profileError) return { error: profileError.message }
+
+  revalidatePath('/admin/configuracoes')
+  return { success: true }
 }
 
 // ─── Acesso ──────────────────────────────────────────────────────────────────
