@@ -58,7 +58,14 @@ export default function LoginPage() {
       </div>
 
       <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-6">
-        Problemas para acessar? Entre em contato com o suporte.
+        Problemas para acessar?{' '}
+        <a href="https://wa.me/5561991900589" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600 dark:hover:text-gray-300 transition">
+          WhatsApp
+        </a>
+        {' '}ou{' '}
+        <a href="mailto:nutri@thiagocantalovo.com" className="underline hover:text-gray-600 dark:hover:text-gray-300 transition">
+          nutri@thiagocantalovo.com
+        </a>
       </p>
     </div>
   )
