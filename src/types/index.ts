@@ -20,6 +20,7 @@ export interface Product {
   content_type: ContentType
   content_url: string | null
   asaas_product_id: string | null
+  buy_url: string | null
   is_active: boolean
   is_pack: boolean
   sort_order: number

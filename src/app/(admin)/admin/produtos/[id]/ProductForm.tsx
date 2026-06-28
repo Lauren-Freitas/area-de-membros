@@ -85,6 +85,19 @@ export function ProductForm({ product }: { product?: Product }) {
         />
       </div>
 
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Link de compra
+          <span className="text-gray-400 font-normal ml-1 text-xs">(aparece na vitrine para quem ainda não tem acesso)</span>
+        </label>
+        <input
+          name="buy_url"
+          defaultValue={product?.buy_url ?? ''}
+          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent"
+          placeholder="https://www.asaas.com/c/... ou link do WhatsApp"
+        />
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Ordem de exibição</label>

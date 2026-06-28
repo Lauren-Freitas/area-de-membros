@@ -45,7 +45,8 @@ export async function saveProduct(
   if (!title) return { error: 'O título é obrigatório.' }
   if (!content_type) return { error: 'O tipo de conteúdo é obrigatório.' }
 
-  const payload = { title, description: description || '', content_type, content_url, banner_url, is_pack, sort_order, is_active }
+  const buy_url = (formData.get('buy_url') as string)?.trim() || null
+  const payload = { title, description: description || '', content_type, content_url, banner_url, buy_url, is_pack, sort_order, is_active }
 
   const isNew = !id || id === 'novo'
   const { error } = isNew

@@ -8,11 +8,9 @@ interface ProductCardProps {
 
 export function ProductCard({ product, unlocked }: ProductCardProps) {
   return (
-    <div
-      className={`bg-white rounded-2xl border overflow-hidden flex flex-col transition-shadow hover:shadow-md ${
-        unlocked ? 'border-gray-100' : 'border-gray-100 opacity-80'
-      }`}
-    >
+    <div className={`bg-white dark:bg-gray-800 rounded-2xl border overflow-hidden flex flex-col transition-shadow hover:shadow-md ${
+      unlocked ? 'border-gray-100 dark:border-gray-700' : 'border-gray-100 dark:border-gray-700 opacity-90'
+    }`}>
       <div className="relative aspect-video overflow-hidden" style={{ background: 'linear-gradient(135deg, #fdf8e6 0%, #f8eecc 100%)' }}>
         {product.banner_url ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -44,9 +42,9 @@ export function ProductCard({ product, unlocked }: ProductCardProps) {
       </div>
 
       <div className="p-4 flex flex-col flex-1">
-        <h3 className="font-semibold text-gray-900 text-sm leading-snug mb-1">{product.title}</h3>
+        <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-snug mb-1">{product.title}</h3>
         {product.description && (
-          <p className="text-xs text-gray-500 line-clamp-2 flex-1">{product.description}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 flex-1">{product.description}</p>
         )}
 
         <div className="mt-4">
@@ -59,9 +57,15 @@ export function ProductCard({ product, unlocked }: ProductCardProps) {
               Acessar conteúdo
             </Link>
           ) : (
-            <div className="block w-full text-center py-2 px-4 bg-gray-100 text-gray-400 text-sm font-semibold rounded-lg cursor-default select-none">
-              Disponível para compra
-            </div>
+            <a
+              href={product.buy_url ?? `https://wa.me/5561991900589?text=Olá! Tenho interesse em: ${encodeURIComponent(product.title)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full text-center py-2 px-4 text-sm font-semibold rounded-lg border-2 transition hover:bg-gold-50 dark:hover:bg-gray-700"
+              style={{ borderColor: '#c9a84c', color: '#c9a84c' }}
+            >
+              Quero adquirir
+            </a>
           )}
         </div>
       </div>

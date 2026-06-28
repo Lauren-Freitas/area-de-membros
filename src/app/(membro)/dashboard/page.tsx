@@ -16,37 +16,57 @@ export default async function DashboardPage() {
 
   const unlockedIds = new Set(accesses?.map((a) => a.product_id) ?? [])
   const allProducts: Product[] = products ?? []
-  const unlockedCount = allProducts.filter((p) => unlockedIds.has(p.id)).length
+  const myProducts = allProducts.filter((p) => unlockedIds.has(p.id))
+  const storeProducts = allProducts.filter((p) => !unlockedIds.has(p.id))
 
   return (
-    <div>
-      {/* Cabeçalho da página */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Meus conteúdos</h1>
-        {allProducts.length > 0 && (
-          <p className="text-sm text-gray-500 mt-1">
-            {unlockedCount === allProducts.length
-              ? 'Você tem acesso a todos os conteúdos.'
-              : `${unlockedCount} de ${allProducts.length} conteúdos desbloqueados.`}
+    <div className="space-y-10">
+      {/* Meus conteúdos */}
+      <section>
+        <div className="mb-5">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Meus conteúdos</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {myProducts.length === 0
+              ? 'Você ainda não tem nenhum conteúdo desbloqueado.'
+              : `${myProducts.length} conteúdo${myProducts.length !== 1 ? 's' : ''} disponível${myProducts.length !== 1 ? 'is' : ''}.`}
           </p>
-        )}
-      </div>
+        </div>
 
-      {/* Grid de produtos */}
-      {allProducts.length === 0 ? (
-        <div className="text-center py-20 text-gray-400">
+        {myProducts.length === 0 ? (
+          <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500">
+            <p className="font-medium">Nenhum conteúdo desbloqueado ainda.</p>
+            <p className="text-sm mt-1">Confira os produtos disponíveis abaixo.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {myProducts.map((product) => (
+              <ProductCard key={product.id} product={product} unlocked={true} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Vitrine — produtos não adquiridos */}
+      {storeProducts.length > 0 && (
+        <section>
+          <div className="mb-5">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Também disponível para você</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Conteúdos que você ainda pode adquirir.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {storeProducts.map((product) => (
+              <ProductCard key={product.id} product={product} unlocked={false} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {allProducts.length === 0 && (
+        <div className="text-center py-20 text-gray-400 dark:text-gray-500">
           <p className="text-lg font-medium">Nenhum conteúdo disponível ainda.</p>
           <p className="text-sm mt-1">Os produtos aparecerão aqui quando forem publicados.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {allProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              unlocked={unlockedIds.has(product.id)}
-            />
-          ))}
         </div>
       )}
     </div>
