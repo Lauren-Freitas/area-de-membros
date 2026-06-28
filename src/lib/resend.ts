@@ -1,8 +1,8 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM = process.env.RESEND_FROM_EMAIL!
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL!
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY!)
+}
 
 export async function sendWelcomeEmail({
   email,
@@ -16,9 +16,11 @@ export async function sendWelcomeEmail({
   inviteLink: string
 }) {
   const firstName = name.split(' ')[0]
+  const from = process.env.RESEND_FROM_EMAIL!
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL!
 
-  await resend.emails.send({
-    from: FROM,
+  await getResend().emails.send({
+    from,
     to: email,
     subject: `Seu acesso ao "${productTitle}" está pronto!`,
     html: `<!DOCTYPE html>
@@ -63,7 +65,7 @@ export async function sendWelcomeEmail({
         <tr>
           <td style="padding:20px 40px 32px;border-top:1px solid #f3f4f6;text-align:center">
             <p style="margin:0;font-size:12px;color:#9ca3af">
-              Thiago Cantalovo Nutricionista · <a href="${APP_URL}" style="color:#059669;text-decoration:none">${APP_URL.replace(/^https?:\/\//, '')}</a>
+              Thiago Cantalovo Nutricionista · <a href="${appUrl}" style="color:#059669;text-decoration:none">${appUrl.replace(/^https?:\/\//, '')}</a>
             </p>
           </td>
         </tr>
@@ -85,9 +87,11 @@ export async function sendAccessGrantedEmail({
   productTitle: string
 }) {
   const firstName = name.split(' ')[0]
+  const from = process.env.RESEND_FROM_EMAIL!
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL!
 
-  await resend.emails.send({
-    from: FROM,
+  await getResend().emails.send({
+    from,
     to: email,
     subject: `Novo conteúdo liberado: "${productTitle}"`,
     html: `<!DOCTYPE html>
@@ -113,7 +117,7 @@ export async function sendAccessGrantedEmail({
               <p style="margin:0;font-size:16px;font-weight:600;color:#065f46">📄 ${productTitle}</p>
             </div>
             <table cellpadding="0" cellspacing="0"><tr><td>
-              <a href="${APP_URL}/dashboard" style="display:inline-block;background:#059669;color:#fff;font-size:15px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:10px">
+              <a href="${appUrl}/dashboard" style="display:inline-block;background:#059669;color:#fff;font-size:15px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:10px">
                 Acessar minha área de membros
               </a>
             </td></tr></table>
@@ -122,7 +126,7 @@ export async function sendAccessGrantedEmail({
         <tr>
           <td style="padding:20px 40px 32px;border-top:1px solid #f3f4f6;text-align:center">
             <p style="margin:0;font-size:12px;color:#9ca3af">
-              Thiago Cantalovo Nutricionista · <a href="${APP_URL}" style="color:#059669;text-decoration:none">${APP_URL.replace(/^https?:\/\//, '')}</a>
+              Thiago Cantalovo Nutricionista · <a href="${appUrl}" style="color:#059669;text-decoration:none">${appUrl.replace(/^https?:\/\//, '')}</a>
             </p>
           </td>
         </tr>
