@@ -27,19 +27,21 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // Rotas protegidas: membro e admin
-  const isProtectedRoute = pathname.startsWith('/dashboard') ||
+  // Rotas que exigem login (usuário sem sessão é redirecionado para /login)
+  const isProtectedRoute =
+    pathname.startsWith('/dashboard') ||
     pathname.startsWith('/produto') ||
-    pathname.startsWith('/admin')
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/criar-senha')
 
-  // Rotas públicas de auth
-  const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/criar-senha')
+  // Só a página de login redireciona usuário já logado para o dashboard
+  const isLoginPage = pathname === '/login'
 
   if (isProtectedRoute && !user) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  if (isAuthRoute && user) {
+  if (isLoginPage && user) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
@@ -47,5 +49,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/|auth/).*)'],
 }
