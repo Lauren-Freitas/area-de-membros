@@ -8,7 +8,7 @@ const geist = Geist({
 })
 
 export const metadata: Metadata = {
-  title: 'Área de Membros — Thiago Cantalolvo Nutricionista',
+  title: 'Área de Membros — Thiago Cantalovo Nutricionista',
   description: 'Acesse seus conteúdos exclusivos.',
 }
 
