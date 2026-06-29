@@ -299,6 +299,42 @@ export async function deleteBanner(id: string) {
   revalidatePath('/dashboard')
 }
 
+// ─── Convites ────────────────────────────────────────────────────────────────
+
+export async function createInvite(
+  prevState: AdminActionState,
+  formData: FormData
+): Promise<AdminActionState> {
+  await requireAdmin()
+  const admin = createAdminClient()
+
+  const note = (formData.get('note') as string)?.trim() || null
+  const product_ids = formData.getAll('products') as string[]
+  const max_uses = parseInt(formData.get('max_uses') as string) || null
+  const expires_at = (formData.get('expires_at') as string)?.trim() || null
+
+  const code = Math.random().toString(36).slice(2, 10).toUpperCase()
+
+  const { error } = await admin.from('invites').insert({
+    code,
+    note,
+    product_ids,
+    max_uses,
+    expires_at: expires_at || null,
+  })
+
+  if (error) return { error: error.message }
+  revalidatePath('/admin/convites')
+  redirect('/admin/convites')
+}
+
+export async function deleteInvite(id: string) {
+  await requireAdmin()
+  const admin = createAdminClient()
+  await admin.from('invites').delete().eq('id', id)
+  revalidatePath('/admin/convites')
+}
+
 // ─── Acesso ──────────────────────────────────────────────────────────────────
 
 export async function grantAccess(userId: string, productId: string) {

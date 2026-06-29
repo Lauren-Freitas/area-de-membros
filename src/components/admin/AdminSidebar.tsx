@@ -25,6 +25,7 @@ const nav = [
     section: 'Comunicação',
     items: [
       { label: 'Banners', href: '/admin/banners' },
+      { label: 'Convites', href: '/admin/convites' },
     ],
   },
   {
