@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { logout } from '@/lib/actions/auth'
 import Image from 'next/image'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { SearchBar } from '@/components/SearchBar'
 
 export default async function MemberLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -26,6 +27,7 @@ export default async function MemberLayout({ children }: { children: React.React
           </div>
 
           <div className="flex items-center gap-2">
+            <SearchBar />
             {profile?.role === 'admin' && (
               <a
                 href="/admin"
