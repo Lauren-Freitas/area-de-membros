@@ -1,7 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { ProductCard } from '@/components/ProductCard'
-import { Product } from '@/types'
+import { BannerList } from '@/components/BannerList'
+import { Product, Banner } from '@/types'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -9,10 +11,16 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: products }, { data: accesses }] = await Promise.all([
+  const adminClient = createAdminClient()
+  const now = new Date().toISOString()
+
+  const [{ data: products }, { data: accesses }, { data: bannersData }] = await Promise.all([
     supabase.from('products').select('*').eq('is_active', true).order('sort_order'),
     supabase.from('user_products').select('product_id').eq('user_id', user.id),
+    adminClient.from('banners').select('*').eq('is_active', true).or(`expires_at.is.null,expires_at.gt.${now}`).order('sort_order'),
   ])
+
+  const banners = (bannersData ?? []) as Banner[]
 
   const unlockedIds = new Set(accesses?.map((a) => a.product_id) ?? [])
   const allProducts: Product[] = products ?? []
@@ -52,6 +60,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-10">
+      <BannerList banners={banners} />
       {/* Meus conteúdos */}
       <section>
         <div className="mb-5">

@@ -51,6 +51,21 @@ export interface Lesson {
   created_at: string
 }
 
+export type BannerType = 'info' | 'success' | 'warning' | 'promo'
+
+export interface Banner {
+  id: string
+  title: string
+  body: string | null
+  link: string | null
+  link_label: string | null
+  type: BannerType
+  is_active: boolean
+  expires_at: string | null
+  sort_order: number
+  created_at: string
+}
+
 export interface LessonComment {
   id: string
   lesson_id: string

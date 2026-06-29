@@ -257,6 +257,48 @@ export async function updateProfile(
   return { success: true }
 }
 
+// ─── Banners ─────────────────────────────────────────────────────────────────
+
+export async function saveBanner(
+  prevState: AdminActionState,
+  formData: FormData
+): Promise<AdminActionState> {
+  await requireAdmin()
+  const admin = createAdminClient()
+
+  const id = formData.get('id') as string | null
+  const title = (formData.get('title') as string)?.trim()
+  const body = (formData.get('body') as string)?.trim() || null
+  const link = (formData.get('link') as string)?.trim() || null
+  const link_label = (formData.get('link_label') as string)?.trim() || null
+  const type = (formData.get('type') as string) || 'info'
+  const is_active = formData.get('is_active') === 'on'
+  const expires_at = (formData.get('expires_at') as string)?.trim() || null
+  const sort_order = parseInt(formData.get('sort_order') as string) || 0
+
+  if (!title) return { error: 'O título é obrigatório.' }
+
+  const payload = { title, body, link, link_label, type, is_active, expires_at, sort_order }
+  const isNew = !id || id === 'novo'
+  const { error } = isNew
+    ? await admin.from('banners').insert(payload)
+    : await admin.from('banners').update(payload).eq('id', id)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/admin/banners')
+  revalidatePath('/dashboard')
+  redirect('/admin/banners')
+}
+
+export async function deleteBanner(id: string) {
+  await requireAdmin()
+  const admin = createAdminClient()
+  await admin.from('banners').delete().eq('id', id)
+  revalidatePath('/admin/banners')
+  revalidatePath('/dashboard')
+}
+
 // ─── Acesso ──────────────────────────────────────────────────────────────────
 
 export async function grantAccess(userId: string, productId: string) {

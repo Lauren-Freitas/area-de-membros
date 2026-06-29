@@ -22,6 +22,12 @@ const nav = [
     ],
   },
   {
+    section: 'Comunicação',
+    items: [
+      { label: 'Banners', href: '/admin/banners' },
+    ],
+  },
+  {
     section: 'Integrações',
     items: [
       { label: 'Webhooks & API', href: '/admin/integracoes' },
