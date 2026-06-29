@@ -51,6 +51,15 @@ export interface Lesson {
   created_at: string
 }
 
+export interface LessonComment {
+  id: string
+  lesson_id: string
+  user_id: string
+  content: string
+  created_at: string
+  profiles: { name: string } | null
+}
+
 export interface LessonProgress {
   id: string
   user_id: string

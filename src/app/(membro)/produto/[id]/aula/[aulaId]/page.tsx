@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Lesson } from '@/types'
 import { LessonCompleteButton } from '@/components/LessonCompleteButton'
+import { LessonComments } from '@/components/LessonComments'
+import { LessonComment } from '@/types'
 
 export default async function AulaPage({
   params,
@@ -35,7 +37,7 @@ export default async function AulaPage({
 
   const l = lesson as Lesson & { modules: { title: string; product_id: string } }
 
-  const [{ data: siblings }, { data: progressRow }] = await Promise.all([
+  const [{ data: siblings }, { data: progressRow }, { data: profile }, { data: commentsData }] = await Promise.all([
     supabase
       .from('lessons')
       .select('id, title, sort_order')
@@ -48,9 +50,17 @@ export default async function AulaPage({
       .eq('user_id', user.id)
       .eq('lesson_id', aulaId)
       .maybeSingle(),
+    supabase.from('profiles').select('role').eq('id', user.id).single(),
+    supabase
+      .from('lesson_comments')
+      .select('*, profiles(name)')
+      .eq('lesson_id', aulaId)
+      .order('created_at', { ascending: true }),
   ])
 
   const isCompleted = !!progressRow
+  const isAdmin = profile?.role === 'admin'
+  const comments = (commentsData ?? []) as LessonComment[]
   const currentIdx = siblings?.findIndex(s => s.id === aulaId) ?? -1
   const prevLesson = currentIdx > 0 ? siblings![currentIdx - 1] : null
   const nextLesson = siblings && currentIdx < siblings.length - 1 ? siblings[currentIdx + 1] : null
@@ -85,6 +95,17 @@ export default async function AulaPage({
         {l.lesson_type === 'text' && <TextLesson content={l.content_text} />}
         {l.lesson_type === 'file' && <FileLesson url={l.content_url} title={l.title} />}
         {l.lesson_type === 'link' && <LinkLesson url={l.content_url} title={l.title} />}
+      </div>
+
+      {/* Comentários */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 mb-6">
+        <LessonComments
+          lessonId={aulaId}
+          productId={id}
+          currentUserId={user.id}
+          isAdmin={isAdmin}
+          initialComments={comments}
+        />
       </div>
 
       {/* Rodapé: botão de conclusão + navegação */}
