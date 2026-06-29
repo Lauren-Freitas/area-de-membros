@@ -4,9 +4,10 @@ import { Product } from '@/types'
 interface ProductCardProps {
   product: Product
   unlocked: boolean
+  progress?: { total: number; completed: number } | null
 }
 
-export function ProductCard({ product, unlocked }: ProductCardProps) {
+export function ProductCard({ product, unlocked, progress }: ProductCardProps) {
   return (
     <div className={`bg-white dark:bg-gray-800 rounded-2xl border overflow-hidden flex flex-col transition-shadow hover:shadow-md ${
       unlocked ? 'border-gray-100 dark:border-gray-700' : 'border-gray-100 dark:border-gray-700 opacity-90'
@@ -47,6 +48,22 @@ export function ProductCard({ product, unlocked }: ProductCardProps) {
           <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 flex-1">{product.description}</p>
         )}
 
+        {/* Barra de progresso para produtos desbloqueados com aulas */}
+        {unlocked && progress && progress.total > 0 && (
+          <div className="mt-3 mb-1">
+            <div className="flex items-center justify-between text-xs text-gray-400 dark:text-gray-500 mb-1">
+              <span>{progress.completed}/{progress.total} aulas</span>
+              <span style={{ color: '#c9a84c' }}>{Math.round((progress.completed / progress.total) * 100)}%</span>
+            </div>
+            <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${Math.round((progress.completed / progress.total) * 100)}%`, backgroundColor: '#c9a84c' }}
+              />
+            </div>
+          </div>
+        )}
+
         <div className="mt-4">
           {unlocked ? (
             <Link
@@ -54,7 +71,7 @@ export function ProductCard({ product, unlocked }: ProductCardProps) {
               className="block w-full text-center py-2 px-4 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
               style={{ backgroundColor: '#c9a84c' }}
             >
-              Acessar conteúdo
+              {progress && progress.completed > 0 ? 'Continuar' : 'Acessar conteúdo'}
             </Link>
           ) : (
             <a

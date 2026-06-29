@@ -19,6 +19,37 @@ export default async function DashboardPage() {
   const myProducts = allProducts.filter((p) => unlockedIds.has(p.id))
   const storeProducts = allProducts.filter((p) => !unlockedIds.has(p.id))
 
+  // Calcula progresso para produtos desbloqueados
+  const progressByProduct: Record<string, { total: number; completed: number }> = {}
+  if (myProducts.length > 0) {
+    const myProductIds = myProducts.map(p => p.id)
+
+    const [{ data: allModules }, { data: userProgress }] = await Promise.all([
+      supabase.from('modules').select('id, product_id').in('product_id', myProductIds),
+      supabase.from('lesson_progress').select('lesson_id').eq('user_id', user.id),
+    ])
+
+    const moduleIds = allModules?.map(m => m.id) ?? []
+    if (moduleIds.length > 0) {
+      const { data: allLessons } = await supabase
+        .from('lessons')
+        .select('id, module_id')
+        .in('module_id', moduleIds)
+        .eq('is_published', true)
+
+      const completedSet = new Set(userProgress?.map(p => p.lesson_id) ?? [])
+      const moduleToProduct = Object.fromEntries(allModules?.map(m => [m.id, m.product_id]) ?? [])
+
+      for (const pid of myProductIds) {
+        const lessons = allLessons?.filter(l => moduleToProduct[l.module_id] === pid) ?? []
+        progressByProduct[pid] = {
+          total: lessons.length,
+          completed: lessons.filter(l => completedSet.has(l.id)).length,
+        }
+      }
+    }
+  }
+
   return (
     <div className="space-y-10">
       {/* Meus conteúdos */}
@@ -40,7 +71,12 @@ export default async function DashboardPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {myProducts.map((product) => (
-              <ProductCard key={product.id} product={product} unlocked={true} />
+              <ProductCard
+                key={product.id}
+                product={product}
+                unlocked={true}
+                progress={progressByProduct[product.id] ?? null}
+              />
             ))}
           </div>
         )}

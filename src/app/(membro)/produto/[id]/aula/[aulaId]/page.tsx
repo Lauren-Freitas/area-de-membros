@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Lesson } from '@/types'
+import { LessonCompleteButton } from '@/components/LessonCompleteButton'
 
 export default async function AulaPage({
   params,
@@ -14,7 +15,6 @@ export default async function AulaPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // Verifica acesso ao produto
   const { data: access } = await supabase
     .from('user_products')
     .select('id')
@@ -35,11 +35,31 @@ export default async function AulaPage({
 
   const l = lesson as Lesson & { modules: { title: string; product_id: string } }
 
+  const [{ data: siblings }, { data: progressRow }] = await Promise.all([
+    supabase
+      .from('lessons')
+      .select('id, title, sort_order')
+      .eq('module_id', l.module_id)
+      .eq('is_published', true)
+      .order('sort_order'),
+    supabase
+      .from('lesson_progress')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('lesson_id', aulaId)
+      .maybeSingle(),
+  ])
+
+  const isCompleted = !!progressRow
+  const currentIdx = siblings?.findIndex(s => s.id === aulaId) ?? -1
+  const prevLesson = currentIdx > 0 ? siblings![currentIdx - 1] : null
+  const nextLesson = siblings && currentIdx < siblings.length - 1 ? siblings[currentIdx + 1] : null
+
   return (
     <div className="max-w-3xl mx-auto">
       <Link
         href={`/produto/${id}`}
-        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition mb-2"
+        className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition mb-2"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -48,14 +68,54 @@ export default async function AulaPage({
       </Link>
 
       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{l.modules?.title}</p>
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">{l.title}</h1>
-      {l.description && <p className="text-gray-500 text-sm mb-6">{l.description}</p>}
+      <div className="flex items-start gap-3 mb-2">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex-1">{l.title}</h1>
+        {isCompleted && (
+          <span className="mt-1 shrink-0 w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: '#22c55e' }}>
+            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </span>
+        )}
+      </div>
+      {l.description && <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">{l.description}</p>}
 
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden mb-6">
         {l.lesson_type === 'video' && <VideoLesson url={l.content_url} />}
         {l.lesson_type === 'text' && <TextLesson content={l.content_text} />}
         {l.lesson_type === 'file' && <FileLesson url={l.content_url} title={l.title} />}
         {l.lesson_type === 'link' && <LinkLesson url={l.content_url} title={l.title} />}
+      </div>
+
+      {/* Rodapé: botão de conclusão + navegação */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <LessonCompleteButton lessonId={aulaId} productId={id} completed={isCompleted} />
+
+        <div className="flex items-center gap-2 ml-auto">
+          {prevLesson && (
+            <Link
+              href={`/produto/${id}/aula/${prevLesson.id}`}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+              Anterior
+            </Link>
+          )}
+          {nextLesson && (
+            <Link
+              href={`/produto/${id}/aula/${nextLesson.id}`}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition hover:opacity-90"
+              style={{ backgroundColor: '#c9a84c' }}
+            >
+              Próxima aula
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -63,7 +123,7 @@ export default async function AulaPage({
 
 function VideoLesson({ url }: { url: string | null }) {
   if (!url) return (
-    <div className="aspect-video flex items-center justify-center bg-gray-50 text-gray-400">Vídeo não configurado.</div>
+    <div className="aspect-video flex items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-400">Vídeo não configurado.</div>
   )
   const embedUrl = url
     .replace('watch?v=', 'embed/')
@@ -79,9 +139,9 @@ function VideoLesson({ url }: { url: string | null }) {
 function TextLesson({ content }: { content: string | null }) {
   if (!content) return <div className="p-8 text-gray-400 text-center">Conteúdo não disponível.</div>
   return (
-    <div className="p-6 sm:p-8 prose prose-gray max-w-none text-sm leading-relaxed">
+    <div className="p-6 sm:p-8 prose prose-gray dark:prose-invert max-w-none text-sm leading-relaxed">
       {content.split('\n').map((line, i) => (
-        <p key={i} className="mb-3 text-gray-700">{line || ' '}</p>
+        <p key={i} className="mb-3 text-gray-700 dark:text-gray-300">{line || ' '}</p>
       ))}
     </div>
   )
@@ -97,7 +157,7 @@ function FileLesson({ url, title }: { url: string | null; title: string }) {
         </svg>
       </div>
       <div>
-        <p className="font-semibold text-gray-900">{title}</p>
+        <p className="font-semibold text-gray-900 dark:text-white">{title}</p>
         <p className="text-sm text-gray-500 mt-1">Clique para baixar</p>
       </div>
       <a href={url} download target="_blank" rel="noopener noreferrer"
@@ -120,7 +180,7 @@ function LinkLesson({ url, title }: { url: string | null; title: string }) {
         </svg>
       </div>
       <div>
-        <p className="font-semibold text-gray-900">{title}</p>
+        <p className="font-semibold text-gray-900 dark:text-white">{title}</p>
         <p className="text-sm text-gray-500 mt-1 break-all">{url}</p>
       </div>
       <a href={url} target="_blank" rel="noopener noreferrer"
