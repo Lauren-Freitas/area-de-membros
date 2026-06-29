@@ -3,15 +3,23 @@ import { logout } from '@/lib/actions/auth'
 import Image from 'next/image'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { SearchBar } from '@/components/SearchBar'
+import { NotificationBell } from '@/components/NotificationBell'
 
 export default async function MemberLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('name, role')
-    .eq('id', user?.id ?? '')
-    .single()
+  const [{ data: profile }, { data: notifData }] = await Promise.all([
+    supabase.from('profiles').select('name, role').eq('id', user?.id ?? '').single(),
+    supabase
+      .from('notifications')
+      .select('id, title, body, link, read, created_at')
+      .eq('user_id', user?.id ?? '')
+      .order('created_at', { ascending: false })
+      .limit(20),
+  ])
+
+  const notifications = notifData ?? []
+  const unreadCount = notifications.filter(n => !n.read).length
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
@@ -28,6 +36,7 @@ export default async function MemberLayout({ children }: { children: React.React
 
           <div className="flex items-center gap-2">
             <SearchBar />
+            <NotificationBell notifications={notifications} unreadCount={unreadCount} />
             {profile?.role === 'admin' && (
               <a
                 href="/admin"
