@@ -26,6 +26,7 @@ const nav = [
     items: [
       { label: 'Banners', href: '/admin/banners' },
       { label: 'Convites', href: '/admin/convites' },
+      { label: 'Turmas', href: '/admin/turmas' },
     ],
   },
   {

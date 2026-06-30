@@ -14,15 +14,19 @@ export default async function DashboardPage() {
   const adminClient = createAdminClient()
   const now = new Date().toISOString()
 
-  const [{ data: products }, { data: accesses }, { data: bannersData }, { data: certsData }] = await Promise.all([
+  const [{ data: products }, { data: accesses }, { data: bannersData }, { data: certsData }, { data: cohortMembership }] = await Promise.all([
     supabase.from('products').select('*').eq('is_active', true).order('sort_order'),
     supabase.from('user_products').select('product_id').eq('user_id', user.id),
     adminClient.from('banners').select('*').eq('is_active', true).or(`expires_at.is.null,expires_at.gt.${now}`).order('sort_order'),
     supabase.from('certificates').select('id, product_id').eq('user_id', user.id),
+    adminClient.from('cohort_members').select('cohorts(id, name, description, starts_at, ends_at, products(title))').eq('user_id', user.id).limit(1).maybeSingle(),
   ])
 
   const banners = (bannersData ?? []) as Banner[]
   const certByProduct = Object.fromEntries((certsData ?? []).map(c => [c.product_id, c.id]))
+  const cohort = cohortMembership
+    ? (Array.isArray(cohortMembership.cohorts) ? cohortMembership.cohorts[0] : cohortMembership.cohorts)
+    : null
 
   const unlockedIds = new Set(accesses?.map((a) => a.product_id) ?? [])
   const allProducts: Product[] = products ?? []
@@ -63,6 +67,25 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-10">
       <BannerList banners={banners} />
+
+      {/* Card de turma */}
+      {cohort && (
+        <div className="flex items-start gap-4 px-5 py-4 rounded-xl border" style={{ backgroundColor: '#f0f7ff', borderColor: '#bfdbfe' }}>
+          <span className="text-2xl mt-0.5">🏫</span>
+          <div>
+            <p className="font-semibold text-sm text-blue-900">Você faz parte da turma: <strong>{cohort.name}</strong></p>
+            {cohort.description && <p className="text-xs text-blue-700 mt-0.5">{cohort.description}</p>}
+            {(cohort.starts_at || cohort.ends_at) && (
+              <p className="text-xs text-blue-500 mt-1">
+                {cohort.starts_at && `Início: ${new Date(cohort.starts_at).toLocaleDateString('pt-BR')}`}
+                {cohort.starts_at && cohort.ends_at && ' · '}
+                {cohort.ends_at && `Encerramento: ${new Date(cohort.ends_at).toLocaleDateString('pt-BR')}`}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Meus conteúdos */}
       <section>
         <div className="mb-5">
