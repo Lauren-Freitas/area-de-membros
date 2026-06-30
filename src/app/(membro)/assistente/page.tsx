@@ -19,7 +19,7 @@ export default async function AssistentePage() {
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Assistente IA</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Proteíno</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Tire suas dúvidas sobre nutrição com ajuda da inteligência artificial.</p>
         </div>
         <NewConversationButton userId={user.id} />
@@ -28,7 +28,7 @@ export default async function AssistentePage() {
       {!conversations?.length ? (
         <div className="text-center py-20 bg-white dark:bg-[#0d1020] rounded-2xl border border-dashed border-gray-200 dark:border-[#1e2030] text-gray-400">
           <p className="text-5xl mb-4">🤖</p>
-          <p className="font-medium text-gray-600 dark:text-gray-300">Converse com o Assistente de Nutrição</p>
+          <p className="font-medium text-gray-600 dark:text-gray-300">Converse com o Proteíno</p>
           <p className="text-sm mt-2 max-w-xs mx-auto">Tire dúvidas sobre alimentos, dietas, receitas e hábitos saudáveis — a qualquer hora.</p>
           <div className="mt-6">
             <NewConversationButton userId={user.id} primary />

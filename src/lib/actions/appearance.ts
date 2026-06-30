@@ -4,7 +4,11 @@ import { revalidatePath } from 'next/cache'
 
 export async function saveAppearance(formData: FormData) {
   const adminClient = createAdminClient()
-  const fields = ['platform_name', 'primary_color', 'welcome_message', 'support_whatsapp', 'support_email']
+  const fields = [
+    'platform_name', 'primary_color', 'brand_light',
+    'bg_light', 'bg_dark', 'card_bg_light', 'card_bg_dark',
+    'welcome_message', 'support_whatsapp', 'support_email',
+  ]
 
   for (const key of fields) {
     const value = (formData.get(key) as string).trim()

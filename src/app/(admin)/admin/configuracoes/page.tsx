@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { ConfiguracoesForm } from './ConfiguracoesForm'
+import { ThemeSection } from './ThemeSection'
 
 const faq = [
   {
@@ -46,15 +47,8 @@ export default async function ConfiguracoesPage() {
       {/* Tema */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6">
         <h2 className="font-semibold text-gray-900 mb-1">Tema</h2>
-        <p className="text-sm text-gray-500 mb-4">O modo escuro estará disponível em breve.</p>
-        <div className="flex gap-3">
-          <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 border-gray-900 bg-white text-sm font-medium text-gray-900 cursor-default">
-            ☀️ Claro (ativo)
-          </div>
-          <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-900 text-sm font-medium text-gray-400 cursor-not-allowed opacity-50">
-            🌙 Escuro (em breve)
-          </div>
-        </div>
+        <p className="text-sm text-gray-500 mb-4">Escolha entre modo claro e escuro.</p>
+        <ThemeSection />
       </div>
 
       {/* Suporte */}

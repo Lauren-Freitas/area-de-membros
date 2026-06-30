@@ -106,7 +106,7 @@ export function ChatInterface({
         </Link>
         <div>
           <h1 className="text-base font-bold text-gray-900 dark:text-white">{title}</h1>
-          <p className="text-xs text-gray-400">Assistente de Nutrição</p>
+          <p className="text-xs text-gray-400">Proteíno</p>
         </div>
       </div>
 

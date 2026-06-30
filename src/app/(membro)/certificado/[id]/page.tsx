@@ -28,6 +28,7 @@ export default async function CertificadoPage({ params }: { params: Promise<{ id
   return (
     <>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap');
         @media print {
           body * { visibility: hidden; }
           #cert, #cert * { visibility: visible; }
@@ -91,9 +92,13 @@ export default async function CertificadoPage({ params }: { params: Promise<{ id
 
           <div className="flex items-end justify-center gap-16">
             <div className="text-center">
-              <div className="w-40 h-px bg-gray-300 mb-2" />
+              {/* Assinatura cursiva */}
+              <p className="text-3xl mb-1" style={{ fontFamily: "'Dancing Script', cursive", color: '#b48840', lineHeight: 1.2 }}>
+                Thiago Cantalovo
+              </p>
+              <div className="w-48 h-px bg-gray-300 mb-2 mx-auto" />
               <p className="text-sm font-semibold text-gray-700">Thiago Cantalovo</p>
-              <p className="text-xs text-gray-400">Nutricionista</p>
+              <p className="text-xs text-gray-400">Nutricionista · CRN-1 7985</p>
             </div>
           </div>
 

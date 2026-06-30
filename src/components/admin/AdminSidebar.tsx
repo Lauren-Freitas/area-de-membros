@@ -8,17 +8,28 @@ import { logout } from '@/lib/actions/auth'
 
 const nav = [
   {
-    section: 'Membros',
+    section: 'Conteúdo',
     items: [
-      { label: 'Criar usuário', href: '/admin/usuarios/novo' },
-      { label: 'Gerenciar usuários', href: '/admin/usuarios' },
+      { label: 'Gerenciar produtos', href: '/admin/produtos' },
+      { label: 'Criar produto', href: '/admin/produtos/novo', exact: true },
+      { label: 'Turmas', href: '/admin/turmas' },
+      { label: 'Certificados', href: '/admin/certificados' },
     ],
   },
   {
-    section: 'Produtos',
+    section: 'Membros',
     items: [
-      { label: 'Criar produto', href: '/admin/produtos/novo' },
-      { label: 'Gerenciar produtos', href: '/admin/produtos' },
+      { label: 'Gerenciar usuários', href: '/admin/usuarios' },
+      { label: 'Criar usuário', href: '/admin/usuarios/novo', exact: true },
+      { label: 'Convites', href: '/admin/convites' },
+    ],
+  },
+  {
+    section: 'Cobrança',
+    items: [
+      { label: 'Assinatura', href: '/admin/cobranca/assinatura' },
+      { label: 'Vendas', href: '/admin/cobranca/vendas' },
+      { label: 'Faturas pagas', href: '/admin/cobranca/faturas' },
     ],
   },
   {
@@ -26,8 +37,6 @@ const nav = [
     items: [
       { label: 'Banners', href: '/admin/banners' },
       { label: 'Ofertas', href: '/admin/ofertas' },
-      { label: 'Convites', href: '/admin/convites' },
-      { label: 'Turmas', href: '/admin/turmas' },
     ],
   },
   {
@@ -37,16 +46,11 @@ const nav = [
     ],
   },
   {
-    section: 'Integrações',
-    items: [
-      { label: 'Webhooks & API', href: '/admin/integracoes' },
-    ],
-  },
-  {
     section: 'Configurações',
     items: [
       { label: 'Aparência', href: '/admin/aparencia' },
-      { label: 'Meu perfil', href: '/admin/configuracoes' },
+      { label: 'Integrações', href: '/admin/integracoes' },
+      { label: 'Meu perfil', href: '/admin/configuracoes', exact: true },
       { label: 'Suporte & FAQ', href: '/admin/configuracoes#suporte' },
     ],
   },
@@ -61,10 +65,19 @@ export function AdminSidebar({ userName, userEmail }: Props) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  function isActive(href: string) {
-    const base = href.split('#')[0]
-    if (base === '/admin') return pathname === '/admin'
-    return pathname === base || pathname.startsWith(base + '/')
+  function isActive(href: string, exact?: boolean) {
+    // Hash links (same-page anchors) are never "active"
+    if (href.includes('#')) return false
+    // Dashboard exact match
+    if (href === '/admin') return pathname === '/admin'
+    // Exact-match items (create pages, specific routes)
+    if (exact) return pathname === href
+    // List/section pages: active if on the page OR a sub-page, but NOT if sub-page is "novo"
+    return pathname === href || (
+      pathname.startsWith(href + '/') &&
+      !pathname.endsWith('/novo') &&
+      !pathname.endsWith('/nova')
+    )
   }
 
   const SidebarInner = () => (
@@ -86,9 +99,7 @@ export function AdminSidebar({ userName, userEmail }: Props) {
           href="/admin"
           onClick={() => setMobileOpen(false)}
           className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition mb-1 ${
-            pathname === '/admin'
-              ? 'text-white'
-              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+            pathname === '/admin' ? 'text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
           }`}
           style={pathname === '/admin' ? { backgroundColor: '#b48840' } : {}}
         >
@@ -106,21 +117,22 @@ export function AdminSidebar({ userName, userEmail }: Props) {
             <p className="px-3 mb-1 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
               {section}
             </p>
-            {items.map(({ label, href }) => (
-              <Link
-                key={href}
-                href={href}
-                onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition mb-0.5 ${
-                  isActive(href)
-                    ? 'text-white'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }`}
-                style={isActive(href) ? { backgroundColor: '#b48840' } : {}}
-              >
-                {label}
-              </Link>
-            ))}
+            {items.map(({ label, href, exact }) => {
+              const active = isActive(href, exact)
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition mb-0.5 ${
+                    active ? 'text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  }`}
+                  style={active ? { backgroundColor: '#b48840' } : {}}
+                >
+                  {label}
+                </Link>
+              )
+            })}
           </div>
         ))}
       </nav>
@@ -161,30 +173,16 @@ export function AdminSidebar({ userName, userEmail }: Props) {
           <Image src="/iav_1024.png" alt="Logo" width={30} height={30} className="rounded-full" />
           <span className="text-sm font-bold text-gray-900">Painel Admin</span>
         </Link>
-        <button
-          onClick={() => setMobileOpen(true)}
-          className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition"
-        >
+        <button onClick={() => setMobileOpen(true)} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
       </div>
 
-      {/* Mobile overlay */}
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-30 lg:hidden"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
+      {mobileOpen && <div className="fixed inset-0 bg-black/40 z-30 lg:hidden" onClick={() => setMobileOpen(false)} />}
 
-      {/* Sidebar — desktop fixed, mobile slide-in */}
-      <aside
-        className={`fixed top-0 left-0 h-full w-60 bg-white border-r border-gray-100 z-40 transition-transform duration-200 ${
-          mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}
-      >
+      <aside className={`fixed top-0 left-0 h-full w-60 bg-white border-r border-gray-100 z-40 transition-transform duration-200 ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <SidebarInner />
       </aside>
     </>
