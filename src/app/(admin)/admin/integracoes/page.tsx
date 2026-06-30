@@ -63,9 +63,9 @@ const apps = [
   {
     id: 'asaas',
     name: 'Asaas',
-    desc: 'Pagamentos e cobranças',
-    href: 'https://asaas.com',
-    external: true,
+    desc: 'Webhook + endpoints da API',
+    href: '/admin/integracoes/asaas',
+    external: false,
     icon: null,
     label: 'Asaas',
     labelColor: '#00b1e4',
