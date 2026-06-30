@@ -154,6 +154,30 @@ export async function deleteUser(userId: string) {
   revalidatePath('/admin/usuarios')
 }
 
+export async function updateUser(
+  userId: string,
+  prevState: AdminActionState,
+  formData: FormData
+): Promise<AdminActionState> {
+  await requireAdmin()
+  const admin = createAdminClient()
+
+  const name = (formData.get('name') as string)?.trim()
+  const role = (formData.get('role') as string) as 'admin' | 'membro'
+
+  if (!name) return { error: 'O nome é obrigatório.' }
+
+  const { error } = await admin
+    .from('profiles')
+    .update({ name, role })
+    .eq('id', userId)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/admin/usuarios')
+  redirect('/admin/usuarios')
+}
+
 // ─── Módulos ─────────────────────────────────────────────────────────────────
 
 export async function saveModule(

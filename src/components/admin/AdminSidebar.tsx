@@ -185,7 +185,11 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail }: Props
                 <Link
                   key={href}
                   href={href}
-                  onClick={() => setMobileOpen(false)}
+                  onClick={() => {
+                    setMobileOpen(false)
+                    if (href.includes('#')) setHash('#' + href.split('#')[1])
+                    else setHash('')
+                  }}
                   className={`flex items-center rounded-lg transition mb-0.5 relative ${
                     collapsed && !mobile
                       ? 'w-10 h-10 justify-center mx-auto'

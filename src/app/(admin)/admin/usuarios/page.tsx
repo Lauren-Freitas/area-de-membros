@@ -48,7 +48,7 @@ export default async function AdminUsuariosPage() {
                     Desde {new Date(profile.created_at).toLocaleDateString('pt-BR')}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap justify-end">
                   <span
                     className={`text-xs font-medium px-2.5 py-1 rounded-full ${
                       profile.role === 'admin'
@@ -58,13 +58,19 @@ export default async function AdminUsuariosPage() {
                   >
                     {profile.role === 'admin' ? 'Admin' : 'Membro'}
                   </span>
+                  <Link
+                    href={`/admin/usuarios/${profile.id}`}
+                    className="text-xs font-medium px-2.5 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition"
+                  >
+                    Editar
+                  </Link>
                   {profile.role !== 'admin' && (
                     <DeleteUserButton userId={profile.id} userName={profile.name || profile.email} />
                   )}
                 </div>
               </div>
 
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
                 Acesso aos produtos
               </p>
 
@@ -83,11 +89,35 @@ export default async function AdminUsuariosPage() {
                       <button
                         type="submit"
                         title={hasAccess ? 'Clique para revogar acesso' : 'Clique para liberar acesso'}
-                        className={`text-xs font-medium px-3 py-1.5 rounded-full border transition ${
-                          hasAccess
-                            ? 'bg-gold-50 text-gold-700 border-gold-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200'
-                            : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gold-50 hover:text-gold-700 hover:border-gold-200'
-                        }`}
+                        className="text-xs font-medium px-3 py-1.5 rounded-full border transition"
+                        style={hasAccess
+                          ? { backgroundColor: '#fdf6e8', color: '#7a5c10', borderColor: '#e8d5a3' }
+                          : { backgroundColor: '#f9fafb', color: '#6b7280', borderColor: '#e5e7eb' }
+                        }
+                        onMouseOver={e => {
+                          const el = e.currentTarget
+                          if (hasAccess) {
+                            el.style.backgroundColor = '#fef2f2'
+                            el.style.color = '#dc2626'
+                            el.style.borderColor = '#fecaca'
+                          } else {
+                            el.style.backgroundColor = '#fdf6e8'
+                            el.style.color = '#7a5c10'
+                            el.style.borderColor = '#e8d5a3'
+                          }
+                        }}
+                        onMouseOut={e => {
+                          const el = e.currentTarget
+                          if (hasAccess) {
+                            el.style.backgroundColor = '#fdf6e8'
+                            el.style.color = '#7a5c10'
+                            el.style.borderColor = '#e8d5a3'
+                          } else {
+                            el.style.backgroundColor = '#f9fafb'
+                            el.style.color = '#6b7280'
+                            el.style.borderColor = '#e5e7eb'
+                          }
+                        }}
                       >
                         {hasAccess ? '✓ ' : '+ '}
                         {product.title}
