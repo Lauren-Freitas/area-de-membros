@@ -172,7 +172,7 @@ export function ApiKeysClient({ keys }: { keys: ApiKey[] }) {
                 <td className="px-5 py-3.5 text-gray-500">{fmt(k.created_at)}</td>
                 <td className="px-5 py-3.5 text-gray-400">{fmt(k.last_used_at)}</td>
                 <td className="px-5 py-3.5 text-right">
-                  <form action={async () => { 'use server'; await deleteApiKey(k.id) }}>
+                  <form action={deleteApiKey.bind(null, k.id)}>
                     <button type="submit" className="text-xs text-red-400 hover:text-red-600 transition font-medium">
                       Excluir
                     </button>

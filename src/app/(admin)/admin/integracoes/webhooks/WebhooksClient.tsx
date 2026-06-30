@@ -183,12 +183,12 @@ export function WebhooksClient({ webhooks, products }: { webhooks: Webhook[]; pr
                 <td className="px-5 py-3.5"><StatusBadge status={w.last_status} /></td>
                 <td className="px-5 py-3.5">
                   <div className="flex items-center gap-3 justify-end">
-                    <form action={async () => { 'use server'; await toggleOutboundWebhook(w.id, w.is_active) }}>
+                    <form action={toggleOutboundWebhook.bind(null, w.id, w.is_active)}>
                       <button type="submit" className="text-xs text-gray-400 hover:text-gray-700 transition">
                         {w.is_active ? 'Pausar' : 'Ativar'}
                       </button>
                     </form>
-                    <form action={async () => { 'use server'; await deleteOutboundWebhook(w.id) }}>
+                    <form action={deleteOutboundWebhook.bind(null, w.id)}>
                       <button type="submit" className="text-xs text-red-400 hover:text-red-600 transition font-medium">
                         Excluir
                       </button>
