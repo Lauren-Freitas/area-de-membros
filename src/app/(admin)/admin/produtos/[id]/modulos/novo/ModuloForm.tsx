@@ -57,7 +57,7 @@ export function ModuloForm({ productId, module }: Props) {
           type="submit"
           disabled={isPending}
           className="px-6 py-2.5 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 disabled:opacity-60"
-          style={{ backgroundColor: '#c9a84c' }}
+          style={{ backgroundColor: '#b48840' }}
         >
           {isPending ? 'Salvando...' : module ? 'Salvar alterações' : 'Criar módulo'}
         </button>

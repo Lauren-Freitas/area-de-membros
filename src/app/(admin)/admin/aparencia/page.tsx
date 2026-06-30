@@ -3,7 +3,7 @@ import { saveAppearance } from '@/lib/actions/appearance'
 
 const DEFAULTS: Record<string, string> = {
   platform_name: 'Thiago Cantalovo',
-  primary_color: '#c9a84c',
+  primary_color: '#b48840',
   welcome_message: 'Bem-vindo à área de membros!',
   support_whatsapp: '5561991900589',
   support_email: 'contato@thiagocantalovo.com',
@@ -90,7 +90,7 @@ export default async function AparenciaPage() {
           <button
             type="submit"
             className="px-5 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-            style={{ backgroundColor: '#c9a84c' }}
+            style={{ backgroundColor: '#b48840' }}
           >
             Salvar alterações
           </button>

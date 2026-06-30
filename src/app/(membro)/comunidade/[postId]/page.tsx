@@ -48,11 +48,11 @@ export default async function PostPage({ params }: { params: Promise<{ postId: s
       </div>
 
       {/* Post principal */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-4"
-        style={post.pinned ? { borderColor: '#f0d98c' } : {}}>
+      <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6 space-y-4"
+        style={post.pinned ? { borderColor: '#dfc99a' } : {}}>
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0" style={{ backgroundColor: '#fdf8e6', color: '#92710a' }}>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0" style={{ backgroundColor: '#f5efe3', color: '#7a5c10' }}>
               {initials(postAuthor?.name ?? '?')}
             </div>
             <div>
@@ -96,7 +96,7 @@ export default async function PostPage({ params }: { params: Promise<{ postId: s
           const author = Array.isArray(reply.profiles) ? reply.profiles[0] : reply.profiles
           const isMyReply = reply.user_id === user.id
           return (
-            <div key={reply.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 px-5 py-4">
+            <div key={reply.id} className="bg-white dark:bg-[#0d1020] rounded-xl border border-gray-100 dark:border-[#1e2030] px-5 py-4">
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300">
                   {initials(author?.name ?? '?')}

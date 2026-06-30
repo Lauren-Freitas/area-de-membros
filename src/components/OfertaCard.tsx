@@ -49,7 +49,7 @@ function CopyButton({ code }: { code: string }) {
     <button
       onClick={copy}
       className="inline-flex items-center gap-1.5 text-xs font-mono px-3 py-1.5 rounded-lg border transition"
-      style={{ borderColor: '#c9a84c', color: copied ? '#22c55e' : '#92710a', backgroundColor: '#fdf8e6' }}
+      style={{ borderColor: '#b48840', color: copied ? '#22c55e' : '#7a5c10', backgroundColor: '#f5efe3' }}
     >
       {copied ? '✓ Copiado!' : `🏷️ ${code}`}
     </button>
@@ -70,7 +70,7 @@ export function OfertaCard({ offer }: { offer: Offer }) {
     : null
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border-2 p-5" style={{ borderColor: '#c9a84c', background: 'linear-gradient(135deg, #fdf8e6 0%, #fff9ea 100%)' }}>
+    <div className="relative overflow-hidden rounded-2xl border-2 p-5" style={{ borderColor: '#b48840', background: 'linear-gradient(135deg, #f5efe3 0%, #fff9ea 100%)' }}>
       {/* Faixa de desconto */}
       {discount && (
         <div className="absolute top-3 right-3 w-12 h-12 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: '#e53e3e' }}>
@@ -82,7 +82,7 @@ export function OfertaCard({ offer }: { offer: Offer }) {
         <span className="text-2xl">⚡</span>
         <div className="flex-1 min-w-0 pr-10">
           <h3 className="font-bold text-gray-900">{offer.title}</h3>
-          {product && <p className="text-xs font-medium mt-0.5" style={{ color: '#92710a' }}>{product.title}</p>}
+          {product && <p className="text-xs font-medium mt-0.5" style={{ color: '#7a5c10' }}>{product.title}</p>}
           {offer.description && <p className="text-sm text-gray-600 mt-1">{offer.description}</p>}
         </div>
       </div>
@@ -121,7 +121,7 @@ export function OfertaCard({ offer }: { offer: Offer }) {
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 px-5 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-          style={{ backgroundColor: '#c9a84c' }}
+          style={{ backgroundColor: '#b48840' }}
         >
           Aproveitar oferta →
         </a>

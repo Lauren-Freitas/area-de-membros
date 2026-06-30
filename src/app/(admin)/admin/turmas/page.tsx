@@ -24,7 +24,7 @@ export default async function TurmasPage() {
         <Link
           href="/admin/turmas/nova"
           className="inline-flex items-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-          style={{ backgroundColor: '#c9a84c' }}
+          style={{ backgroundColor: '#b48840' }}
         >
           + Nova turma
         </Link>
@@ -56,7 +56,7 @@ export default async function TurmasPage() {
                 return (
                   <tr key={c.id} className="hover:bg-gray-50 transition">
                     <td className="px-5 py-3.5 font-medium text-gray-900">
-                      <Link href={`/admin/turmas/${c.id}`} className="hover:underline" style={{ color: '#92710a' }}>
+                      <Link href={`/admin/turmas/${c.id}`} className="hover:underline" style={{ color: '#7a5c10' }}>
                         {c.name}
                       </Link>
                       {c.description && <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{c.description}</p>}
@@ -71,7 +71,7 @@ export default async function TurmasPage() {
                         <Link
                           href={`/admin/turmas/${c.id}`}
                           className="text-xs px-3 py-1.5 rounded-lg border transition hover:bg-gray-50"
-                          style={{ borderColor: '#c9a84c', color: '#92710a' }}
+                          style={{ borderColor: '#b48840', color: '#7a5c10' }}
                         >
                           Gerenciar
                         </Link>

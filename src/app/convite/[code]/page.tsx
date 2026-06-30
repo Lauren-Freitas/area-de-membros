@@ -35,7 +35,7 @@ export default function ConvitePage({ params }: { params: Promise<{ code: string
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen bg-[#e4e4e4] flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <Image src="/iav_1024.png" alt="Thiago Cantalovo" width={56} height={56} className="mx-auto rounded-full mb-3" />
@@ -56,7 +56,7 @@ export default function ConvitePage({ params }: { params: Promise<{ code: string
               required
               placeholder="Nome completo"
               className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
-              style={{ '--tw-ring-color': '#c9a84c' } as React.CSSProperties}
+              style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
             />
           </div>
 
@@ -69,7 +69,7 @@ export default function ConvitePage({ params }: { params: Promise<{ code: string
               required
               placeholder="seu@email.com"
               className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
-              style={{ '--tw-ring-color': '#c9a84c' } as React.CSSProperties}
+              style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
             />
           </div>
 
@@ -82,7 +82,7 @@ export default function ConvitePage({ params }: { params: Promise<{ code: string
               required
               placeholder="Mínimo 6 caracteres"
               className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
-              style={{ '--tw-ring-color': '#c9a84c' } as React.CSSProperties}
+              style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
             />
           </div>
 
@@ -95,7 +95,7 @@ export default function ConvitePage({ params }: { params: Promise<{ code: string
               required
               placeholder="Repita a senha"
               className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
-              style={{ '--tw-ring-color': '#c9a84c' } as React.CSSProperties}
+              style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
             />
           </div>
 
@@ -103,14 +103,14 @@ export default function ConvitePage({ params }: { params: Promise<{ code: string
             type="submit"
             disabled={isPending}
             className="w-full py-2.5 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 disabled:opacity-50 mt-2"
-            style={{ backgroundColor: '#c9a84c' }}
+            style={{ backgroundColor: '#b48840' }}
           >
             {isPending ? 'Criando conta...' : 'Criar conta e acessar'}
           </button>
 
           <p className="text-center text-xs text-gray-400">
             Já tem conta?{' '}
-            <Link href="/login" className="font-medium" style={{ color: '#c9a84c' }}>
+            <Link href="/login" className="font-medium" style={{ color: '#b48840' }}>
               Fazer login
             </Link>
           </p>

@@ -78,7 +78,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-10">
       {welcomeMessage && (
-        <p className="text-sm text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 px-5 py-3 rounded-xl border border-gray-100 dark:border-gray-700">
+        <p className="text-sm text-gray-600 dark:text-gray-300 bg-white dark:bg-[#0d1020] px-5 py-3 rounded-xl border border-gray-100 dark:border-[#1e2030]">
           {welcomeMessage}
         </p>
       )}
@@ -114,7 +114,7 @@ export default async function DashboardPage() {
         </div>
 
         {myProducts.length === 0 ? (
-          <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500">
+          <div className="text-center py-12 bg-white dark:bg-[#0d1020] rounded-2xl border border-dashed border-gray-200 dark:border-[#1e2030] text-gray-400 dark:text-gray-500">
             <p className="font-medium">Nenhum conteúdo desbloqueado ainda.</p>
             <p className="text-sm mt-1">Confira os produtos disponíveis abaixo.</p>
           </div>

@@ -50,7 +50,7 @@ export default async function EditModuloPage({
           <Link
             href={`/admin/produtos/${id}/modulos/${modId}/aulas/novo`}
             className="px-4 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-            style={{ backgroundColor: '#c9a84c' }}
+            style={{ backgroundColor: '#b48840' }}
           >
             + Nova aula
           </Link>

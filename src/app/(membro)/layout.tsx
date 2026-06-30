@@ -23,8 +23,8 @@ export default async function MemberLayout({ children }: { children: React.React
   const unreadCount = notifications.filter(n => !n.read).length
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 sticky top-0 z-10">
+    <div className="min-h-screen bg-[#e4e4e4] dark:bg-[#00060f] transition-colors duration-200">
+      <header className="bg-white dark:bg-[#0d1020] border-b border-gray-100 dark:border-[#1e2030] sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Image src="/iav_1024.png" alt="Thiago Cantalovo" width={36} height={36} className="rounded-full dark:hidden shrink-0" />
@@ -42,7 +42,7 @@ export default async function MemberLayout({ children }: { children: React.React
               <a
                 href="/admin"
                 className="hidden sm:inline-flex text-xs font-medium px-3 py-1.5 rounded-full transition"
-                style={{ color: '#9c7a2c', backgroundColor: '#fdf8e6' }}
+                style={{ color: '#7a5c10', backgroundColor: '#f5efe3' }}
               >
                 Admin
               </a>
@@ -58,7 +58,7 @@ export default async function MemberLayout({ children }: { children: React.React
         </div>
       </header>
 
-      <nav className="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+      <nav className="bg-white dark:bg-[#0d1020] border-b border-gray-100 dark:border-[#1e2030]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center gap-1 h-10 overflow-x-auto">
           <NavLink href="/dashboard" label="Início" />
           <NavLink href="/comunidade" label="💬 Comunidade" />

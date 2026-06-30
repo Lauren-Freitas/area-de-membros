@@ -51,11 +51,11 @@ export default async function CertificadoPage({ params }: { params: Promise<{ id
       <div
         id="cert"
         className="relative max-w-3xl mx-auto bg-white rounded-2xl overflow-hidden"
-        style={{ boxShadow: '0 0 0 8px #c9a84c, 0 0 0 12px #f0d98c' }}
+        style={{ boxShadow: '0 0 0 8px #b48840, 0 0 0 12px #dfc99a' }}
       >
         {/* Fundo decorativo */}
         <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: 'repeating-linear-gradient(45deg, #c9a84c 0, #c9a84c 1px, transparent 0, transparent 50%)',
+          backgroundImage: 'repeating-linear-gradient(45deg, #b48840 0, #b48840 1px, transparent 0, transparent 50%)',
           backgroundSize: '20px 20px',
         }} />
 
@@ -66,13 +66,13 @@ export default async function CertificadoPage({ params }: { params: Promise<{ id
           </div>
 
           {/* Título */}
-          <p className="text-xs font-bold tracking-[0.3em] uppercase mb-2" style={{ color: '#c9a84c' }}>
+          <p className="text-xs font-bold tracking-[0.3em] uppercase mb-2" style={{ color: '#b48840' }}>
             Thiago Cantalovo · Nutricionista
           </p>
           <h1 className="text-3xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Georgia, serif' }}>
             Certificado de Conclusão
           </h1>
-          <div className="w-24 h-0.5 mx-auto my-6" style={{ backgroundColor: '#c9a84c' }} />
+          <div className="w-24 h-0.5 mx-auto my-6" style={{ backgroundColor: '#b48840' }} />
 
           {/* Texto principal */}
           <p className="text-base text-gray-500 mb-3">Certificamos que</p>
@@ -80,7 +80,7 @@ export default async function CertificadoPage({ params }: { params: Promise<{ id
             {memberName}
           </p>
           <p className="text-base text-gray-500 mb-2">concluiu com êxito o curso</p>
-          <p className="text-2xl font-bold mb-8" style={{ color: '#c9a84c', fontFamily: 'Georgia, serif' }}>
+          <p className="text-2xl font-bold mb-8" style={{ color: '#b48840', fontFamily: 'Georgia, serif' }}>
             {productTitle}
           </p>
 

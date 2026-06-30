@@ -65,7 +65,7 @@ export function LessonComments({ lessonId, productId, currentUserId, isAdmin, in
 
       {/* Form */}
       <div className="flex gap-3 mb-6">
-        <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: '#c9a84c' }}>
+        <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: '#b48840' }}>
           EU
         </div>
         <div className="flex-1">
@@ -75,8 +75,8 @@ export function LessonComments({ lessonId, productId, currentUserId, isAdmin, in
             onKeyDown={handleKeyDown}
             placeholder="Escreva um comentário... (Cmd+Enter para enviar)"
             rows={3}
-            className="w-full text-sm border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent"
-            style={{ '--tw-ring-color': '#c9a84c' } as React.CSSProperties}
+            className="w-full text-sm border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 resize-none bg-white dark:bg-[#0d1020] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent"
+            style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
             maxLength={1000}
           />
           <div className="flex items-center justify-between mt-2">
@@ -85,7 +85,7 @@ export function LessonComments({ lessonId, productId, currentUserId, isAdmin, in
               onClick={handlePost}
               disabled={!text.trim() || isPending}
               className="px-4 py-1.5 text-sm font-semibold text-white rounded-lg transition disabled:opacity-40 hover:opacity-90"
-              style={{ backgroundColor: '#c9a84c' }}
+              style={{ backgroundColor: '#b48840' }}
             >
               {isPending ? 'Enviando...' : 'Enviar'}
             </button>

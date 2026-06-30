@@ -10,7 +10,7 @@ interface RankingRow {
 
 const medals = ['🥇', '🥈', '🥉']
 const podiumColors = [
-  { bg: '#fdf8e6', border: '#c9a84c', text: '#92710a', height: 'h-28' },  // 1st
+  { bg: '#f5efe3', border: '#b48840', text: '#7a5c10', height: 'h-28' },  // 1st
   { bg: '#f8f8f8', border: '#9ca3af', text: '#6b7280', height: 'h-20' },  // 2nd
   { bg: '#fdf3e6', border: '#d97706', text: '#92400e', height: 'h-16' },  // 3rd
 ]
@@ -93,12 +93,12 @@ export default async function RankingPage() {
           {myPosition >= 10 && (
             <div
               className="flex items-center gap-4 px-5 py-3 rounded-xl border"
-              style={{ backgroundColor: '#fdf8e6', borderColor: '#f0d98c' }}
+              style={{ backgroundColor: '#f5efe3', borderColor: '#dfc99a' }}
             >
-              <span className="text-sm font-bold w-8 text-center" style={{ color: '#c9a84c' }}>
+              <span className="text-sm font-bold w-8 text-center" style={{ color: '#b48840' }}>
                 {myPosition + 1}º
               </span>
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style={{ backgroundColor: '#fdf8e6', border: '2px solid #c9a84c', color: '#92710a' }}>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style={{ backgroundColor: '#f5efe3', border: '2px solid #b48840', color: '#7a5c10' }}>
                 {initials(ranking[myPosition].name)}
               </div>
               <span className="text-sm font-semibold text-gray-800 flex-1">Você</span>
@@ -107,7 +107,7 @@ export default async function RankingPage() {
           )}
 
           {/* Lista completa */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
             <div className="divide-y divide-gray-50 dark:divide-gray-700">
               {ranking.slice(0, 50).map((member, idx) => {
                 const isMe = member.user_id === user.id
@@ -116,24 +116,24 @@ export default async function RankingPage() {
                   <div
                     key={member.user_id}
                     className={`flex items-center gap-4 px-5 py-3.5 ${isMe ? '' : 'hover:bg-gray-50 dark:hover:bg-gray-700'} transition`}
-                    style={isMe ? { backgroundColor: '#fdf8e6' } : {}}
+                    style={isMe ? { backgroundColor: '#f5efe3' } : {}}
                   >
                     <span className={`text-sm font-bold w-8 text-center shrink-0 ${isMe ? '' : 'text-gray-400'}`}
-                      style={isMe ? { color: '#c9a84c' } : {}}>
+                      style={isMe ? { color: '#b48840' } : {}}>
                       {medal ?? `${idx + 1}º`}
                     </span>
                     <div
                       className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
                       style={{
-                        backgroundColor: isMe ? '#fdf8e6' : '#f3f4f6',
-                        border: isMe ? '2px solid #c9a84c' : '2px solid #e5e7eb',
-                        color: isMe ? '#92710a' : '#6b7280',
+                        backgroundColor: isMe ? '#f5efe3' : '#f3f4f6',
+                        border: isMe ? '2px solid #b48840' : '2px solid #e5e7eb',
+                        color: isMe ? '#7a5c10' : '#6b7280',
                       }}
                     >
                       {initials(member.name)}
                     </div>
                     <span className={`text-sm font-medium flex-1 ${isMe ? '' : 'text-gray-800 dark:text-gray-200'}`}
-                      style={isMe ? { color: '#92710a', fontWeight: 600 } : {}}>
+                      style={isMe ? { color: '#7a5c10', fontWeight: 600 } : {}}>
                       {member.name}{isMe ? ' (você)' : ''}
                     </span>
                     <span className="text-sm text-gray-400 shrink-0">

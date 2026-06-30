@@ -26,7 +26,7 @@ export default async function AssistentePage() {
       </div>
 
       {!conversations?.length ? (
-        <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 text-gray-400">
+        <div className="text-center py-20 bg-white dark:bg-[#0d1020] rounded-2xl border border-dashed border-gray-200 dark:border-[#1e2030] text-gray-400">
           <p className="text-5xl mb-4">🤖</p>
           <p className="font-medium text-gray-600 dark:text-gray-300">Converse com o Assistente de Nutrição</p>
           <p className="text-sm mt-2 max-w-xs mx-auto">Tire dúvidas sobre alimentos, dietas, receitas e hábitos saudáveis — a qualquer hora.</p>
@@ -40,7 +40,7 @@ export default async function AssistentePage() {
             <Link
               key={conv.id}
               href={`/assistente/${conv.id}`}
-              className="flex items-center gap-3 px-5 py-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 hover:shadow-sm transition group"
+              className="flex items-center gap-3 px-5 py-4 bg-white dark:bg-[#0d1020] rounded-xl border border-gray-100 dark:border-[#1e2030] hover:shadow-sm transition group"
             >
               <span className="text-xl shrink-0">💬</span>
               <div className="flex-1 min-w-0">

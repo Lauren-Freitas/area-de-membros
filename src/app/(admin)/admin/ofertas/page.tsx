@@ -30,7 +30,7 @@ export default async function OfertasAdminPage() {
         <Link
           href="/admin/ofertas/nova"
           className="inline-flex items-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-          style={{ backgroundColor: '#c9a84c' }}
+          style={{ backgroundColor: '#b48840' }}
         >
           + Nova oferta
         </Link>
@@ -85,7 +85,7 @@ export default async function OfertasAdminPage() {
                         <Link
                           href={`/admin/ofertas/${offer.id}`}
                           className="text-xs px-3 py-1.5 rounded-lg border transition hover:bg-gray-50"
-                          style={{ borderColor: '#c9a84c', color: '#92710a' }}
+                          style={{ borderColor: '#b48840', color: '#7a5c10' }}
                         >
                           Editar
                         </Link>

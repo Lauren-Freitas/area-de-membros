@@ -77,7 +77,7 @@ export default async function BuscaPage({
     <div className="max-w-2xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Resultados para <span style={{ color: '#c9a84c' }}>&ldquo;{query}&rdquo;</span>
+          Resultados para <span style={{ color: '#b48840' }}>&ldquo;{query}&rdquo;</span>
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
           {totalResults === 0 ? 'Nenhum resultado encontrado.' : `${totalResults} resultado${totalResults !== 1 ? 's' : ''} encontrado${totalResults !== 1 ? 's' : ''}.`}
@@ -85,10 +85,10 @@ export default async function BuscaPage({
       </div>
 
       {totalResults === 0 ? (
-        <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
+        <div className="text-center py-16 bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030]">
           <p className="text-gray-400 dark:text-gray-500 font-medium">Nenhum conteúdo encontrado.</p>
           <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Tente buscar por outro termo.</p>
-          <Link href="/dashboard" className="inline-block mt-4 text-sm font-semibold" style={{ color: '#c9a84c' }}>
+          <Link href="/dashboard" className="inline-block mt-4 text-sm font-semibold" style={{ color: '#b48840' }}>
             Voltar ao dashboard
           </Link>
         </div>
@@ -103,13 +103,13 @@ export default async function BuscaPage({
                   <Link
                     key={p.id}
                     href={`/produto/${p.id}`}
-                    className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-yellow-300 dark:hover:border-yellow-700 transition group"
+                    className="flex items-center gap-4 p-4 bg-white dark:bg-[#0d1020] rounded-xl border border-gray-100 dark:border-[#1e2030] hover:border-yellow-300 dark:hover:border-yellow-700 transition group"
                   >
-                    <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #fdf8e6, #f8eecc)' }}>
+                    <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #f5efe3, #ede0c8)' }}>
                       {p.banner_url
                         // eslint-disable-next-line @next/next/no-img-element
                         ? <img src={p.banner_url} alt="" className="w-full h-full object-cover" />
-                        : <span style={{ color: '#c9a84c' }}>{p.content_type === 'video' ? '▶' : '📄'}</span>
+                        : <span style={{ color: '#b48840' }}>{p.content_type === 'video' ? '▶' : '📄'}</span>
                       }
                     </div>
                     <div className="flex-1 min-w-0">
@@ -136,9 +136,9 @@ export default async function BuscaPage({
                     <Link
                       key={m.id}
                       href={`/produto/${m.product_id}`}
-                      className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-yellow-300 dark:hover:border-yellow-700 transition group"
+                      className="flex items-center gap-4 p-4 bg-white dark:bg-[#0d1020] rounded-xl border border-gray-100 dark:border-[#1e2030] hover:border-yellow-300 dark:hover:border-yellow-700 transition group"
                     >
-                      <div className="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center text-lg" style={{ backgroundColor: '#fdf8e6' }}>
+                      <div className="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center text-lg" style={{ backgroundColor: '#f5efe3' }}>
                         📚
                       </div>
                       <div className="flex-1 min-w-0">
@@ -167,9 +167,9 @@ export default async function BuscaPage({
                     <Link
                       key={l.id}
                       href={`/produto/${productId}/aula/${l.id}`}
-                      className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-yellow-300 dark:hover:border-yellow-700 transition group"
+                      className="flex items-center gap-4 p-4 bg-white dark:bg-[#0d1020] rounded-xl border border-gray-100 dark:border-[#1e2030] hover:border-yellow-300 dark:hover:border-yellow-700 transition group"
                     >
-                      <div className="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center text-lg" style={{ backgroundColor: '#fdf8e6' }}>
+                      <div className="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center text-lg" style={{ backgroundColor: '#f5efe3' }}>
                         {l.lesson_type === 'video' ? '▶' : l.lesson_type === 'text' ? '📝' : l.lesson_type === 'file' ? '📄' : '🔗'}
                       </div>
                       <div className="flex-1 min-w-0">

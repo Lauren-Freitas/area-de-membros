@@ -18,7 +18,7 @@ export function ReplyForm({ postId }: { postId: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 space-y-3">
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5 space-y-3">
       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Sua resposta</label>
       <textarea
         ref={ref}
@@ -35,7 +35,7 @@ export function ReplyForm({ postId }: { postId: string }) {
           type="submit"
           disabled={pending || !body.trim()}
           className="px-4 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 disabled:opacity-50"
-          style={{ backgroundColor: '#c9a84c' }}
+          style={{ backgroundColor: '#b48840' }}
         >
           {pending ? 'Enviando...' : 'Responder'}
         </button>

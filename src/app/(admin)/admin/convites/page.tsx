@@ -32,7 +32,7 @@ export default async function ConvitesPage() {
         <Link
           href="/admin/convites/novo"
           className="inline-flex items-center gap-2 px-4 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-          style={{ backgroundColor: '#c9a84c' }}
+          style={{ backgroundColor: '#b48840' }}
         >
           + Novo convite
         </Link>

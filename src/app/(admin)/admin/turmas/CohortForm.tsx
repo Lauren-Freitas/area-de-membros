@@ -75,7 +75,7 @@ export function CohortForm({ cohort, products }: { cohort?: Cohort; products: Pr
         <button
           type="submit"
           className="px-5 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-          style={{ backgroundColor: '#c9a84c' }}
+          style={{ backgroundColor: '#b48840' }}
         >
           {cohort ? 'Salvar alterações' : 'Criar turma'}
         </button>

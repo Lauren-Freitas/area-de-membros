@@ -54,18 +54,18 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
 
       {/* Banner de certificado */}
       {certificate && (
-        <div className="mb-6 flex items-center justify-between gap-4 px-5 py-4 rounded-xl border" style={{ backgroundColor: '#fdf8e6', borderColor: '#f0d98c' }}>
+        <div className="mb-6 flex items-center justify-between gap-4 px-5 py-4 rounded-xl border" style={{ backgroundColor: '#f5efe3', borderColor: '#dfc99a' }}>
           <div className="flex items-center gap-3">
             <span className="text-2xl">🎓</span>
             <div>
-              <p className="font-semibold text-sm" style={{ color: '#92710a' }}>Curso concluído! Parabéns!</p>
-              <p className="text-xs" style={{ color: '#b08c2a' }}>Seu certificado está disponível.</p>
+              <p className="font-semibold text-sm" style={{ color: '#7a5c10' }}>Curso concluído! Parabéns!</p>
+              <p className="text-xs" style={{ color: '#9a7230' }}>Seu certificado está disponível.</p>
             </div>
           </div>
           <a
             href={`/certificado/${certificate.id}`}
             className="shrink-0 px-4 py-2 text-sm font-semibold text-white rounded-lg transition hover:opacity-90"
-            style={{ backgroundColor: '#c9a84c' }}
+            style={{ backgroundColor: '#b48840' }}
           >
             Ver certificado
           </a>
@@ -77,12 +77,12 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
         <div className="mb-6">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1.5">
             <span>{completedLessons} de {totalLessons} aulas concluídas</span>
-            <span className="font-semibold" style={{ color: '#c9a84c' }}>{overallPct}%</span>
+            <span className="font-semibold" style={{ color: '#b48840' }}>{overallPct}%</span>
           </div>
           <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${overallPct}%`, backgroundColor: '#c9a84c' }}
+              style={{ width: `${overallPct}%`, backgroundColor: '#b48840' }}
             />
           </div>
         </div>
@@ -96,8 +96,8 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
             const modPct = lessons.length > 0 ? Math.round((modCompleted / lessons.length) * 100) : 0
 
             return (
-              <div key={mod.id} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-                <div className="px-5 py-4 border-b border-gray-50 dark:border-gray-700">
+              <div key={mod.id} className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
+                <div className="px-5 py-4 border-b border-gray-50 dark:border-[#1e2030]">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div>
                       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Módulo {idx + 1}</p>
@@ -114,7 +114,7 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
                     <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${modPct}%`, backgroundColor: '#c9a84c' }}
+                        style={{ width: `${modPct}%`, backgroundColor: '#b48840' }}
                       />
                     </div>
                   )}
@@ -158,7 +158,7 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
           })}
         </div>
       ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
           {p.content_type === 'video' ? (
             <VideoContent url={p.content_url} />
           ) : (
@@ -172,7 +172,7 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
 
 function VideoContent({ url }: { url: string | null }) {
   if (!url) return (
-    <div className="aspect-video flex items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-400">Vídeo não configurado.</div>
+    <div className="aspect-video flex items-center justify-center bg-[#e4e4e4] dark:bg-[#00060f] text-gray-400">Vídeo não configurado.</div>
   )
   const embedUrl = url
     .replace('watch?v=', 'embed/')
@@ -190,8 +190,8 @@ async function FileContent({ productId, title }: { productId: string; title: str
   const { data } = await supabase.storage.from('produtos').createSignedUrl(`${productId}/arquivo`, 3600)
   return (
     <div className="p-8 flex flex-col items-center text-center gap-4">
-      <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: '#fdf8e6' }}>
-        <svg className="w-8 h-8" style={{ color: '#c9a84c' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f5efe3' }}>
+        <svg className="w-8 h-8" style={{ color: '#b48840' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
         </svg>
       </div>
@@ -200,7 +200,7 @@ async function FileContent({ productId, title }: { productId: string; title: str
         <p className="text-sm text-gray-500 mt-1">Clique para baixar o arquivo</p>
       </div>
       {data?.signedUrl ? (
-        <a href={data.signedUrl} download className="inline-flex items-center gap-2 px-6 py-3 text-white text-sm font-semibold rounded-lg transition hover:opacity-90" style={{ backgroundColor: '#c9a84c' }}>
+        <a href={data.signedUrl} download className="inline-flex items-center gap-2 px-6 py-3 text-white text-sm font-semibold rounded-lg transition hover:opacity-90" style={{ backgroundColor: '#b48840' }}>
           Baixar arquivo
         </a>
       ) : (

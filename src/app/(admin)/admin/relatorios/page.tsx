@@ -107,7 +107,7 @@ export default async function RelatoriosPage() {
                     <span className="text-xs font-bold text-gray-500 ml-3 shrink-0">{item.count} {item.count === 1 ? 'vez' : 'vezes'}</span>
                   </div>
                   <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: '#c9a84c' }} />
+                    <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: '#b48840' }} />
                   </div>
                 </div>
               )
@@ -150,7 +150,7 @@ export default async function RelatoriosPage() {
                         ) : (
                           <div className="flex flex-wrap gap-1">
                             {userProducts.map(t => (
-                              <span key={t} className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#fdf8e6', color: '#92710a' }}>{t}</span>
+                              <span key={t} className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#f5efe3', color: '#7a5c10' }}>{t}</span>
                             ))}
                           </div>
                         )}

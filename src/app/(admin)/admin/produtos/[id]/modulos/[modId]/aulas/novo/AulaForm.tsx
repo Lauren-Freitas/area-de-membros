@@ -121,7 +121,7 @@ export function AulaForm({ productId, moduleId, lesson }: Props) {
               name="is_published"
               defaultChecked={lesson?.is_published ?? true}
               className="w-4 h-4 rounded"
-              style={{ accentColor: '#c9a84c' }}
+              style={{ accentColor: '#b48840' }}
             />
             <span className="text-sm font-medium text-gray-700">Publicada</span>
           </label>
@@ -133,7 +133,7 @@ export function AulaForm({ productId, moduleId, lesson }: Props) {
           type="submit"
           disabled={isPending}
           className="px-6 py-2.5 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 disabled:opacity-60"
-          style={{ backgroundColor: '#c9a84c' }}
+          style={{ backgroundColor: '#b48840' }}
         >
           {isPending ? 'Salvando...' : lesson ? 'Salvar alterações' : 'Criar aula'}
         </button>

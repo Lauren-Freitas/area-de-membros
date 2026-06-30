@@ -10,7 +10,7 @@ const typeColor: Record<string, string> = {
   info: '#3b82f6',
   success: '#22c55e',
   warning: '#f59e0b',
-  promo: '#c9a84c',
+  promo: '#b48840',
 }
 
 export default async function BannersPage() {
@@ -33,7 +33,7 @@ export default async function BannersPage() {
         <Link
           href="/admin/banners/novo"
           className="inline-flex items-center gap-2 px-4 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-          style={{ backgroundColor: '#c9a84c' }}
+          style={{ backgroundColor: '#b48840' }}
         >
           + Novo banner
         </Link>

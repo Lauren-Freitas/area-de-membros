@@ -90,7 +90,7 @@ export function AdminSidebar({ userName, userEmail }: Props) {
               ? 'text-white'
               : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
           }`}
-          style={pathname === '/admin' ? { backgroundColor: '#c9a84c' } : {}}
+          style={pathname === '/admin' ? { backgroundColor: '#b48840' } : {}}
         >
           <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -116,7 +116,7 @@ export function AdminSidebar({ userName, userEmail }: Props) {
                     ? 'text-white'
                     : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                 }`}
-                style={isActive(href) ? { backgroundColor: '#c9a84c' } : {}}
+                style={isActive(href) ? { backgroundColor: '#b48840' } : {}}
               >
                 {label}
               </Link>
@@ -131,7 +131,7 @@ export function AdminSidebar({ userName, userEmail }: Props) {
           href="/dashboard"
           onClick={() => setMobileOpen(false)}
           className="flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-lg transition"
-          style={{ color: '#9c7a2c', backgroundColor: '#fdf8e6' }}
+          style={{ color: '#7a5c10', backgroundColor: '#f5efe3' }}
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />

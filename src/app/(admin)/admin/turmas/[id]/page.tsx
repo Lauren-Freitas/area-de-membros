@@ -38,7 +38,7 @@ export default async function GerenciarTurmaPage({ params }: { params: Promise<{
       {/* Info rápida */}
       <div className="flex flex-wrap gap-4">
         {product && (
-          <span className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-medium" style={{ backgroundColor: '#fdf8e6', color: '#92710a' }}>
+          <span className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-medium" style={{ backgroundColor: '#f5efe3', color: '#7a5c10' }}>
             📚 {product.title}
           </span>
         )}
@@ -82,7 +82,7 @@ export default async function GerenciarTurmaPage({ params }: { params: Promise<{
                 <button
                   type="submit"
                   className="px-4 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 shrink-0"
-                  style={{ backgroundColor: '#c9a84c' }}
+                  style={{ backgroundColor: '#b48840' }}
                 >
                   Adicionar
                 </button>

@@ -18,7 +18,7 @@ export default function LoginPage() {
         <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Nutricionista</p>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-8">
+      <div className="bg-white dark:bg-[#0d1020] rounded-2xl shadow-sm border border-gray-100 dark:border-[#1e2030] p-8">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">Acessar minha área</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Bem-vindo(a) de volta. Entre com seu email e senha.</p>
 
@@ -50,7 +50,7 @@ export default function LoginPage() {
           <button
             type="submit" disabled={isPending}
             className="w-full py-2.5 px-4 hover:opacity-90 disabled:opacity-60 text-white text-sm font-semibold rounded-lg transition"
-            style={{ backgroundColor: '#c9a84c' }}
+            style={{ backgroundColor: '#b48840' }}
           >
             {isPending ? 'Entrando...' : 'Entrar'}
           </button>

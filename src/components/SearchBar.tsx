@@ -40,7 +40,7 @@ export function SearchBar() {
             onBlur={() => { if (!q) setOpen(false) }}
             placeholder="Pesquisar conteúdo..."
             className="w-48 sm:w-64 text-sm border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2"
-            style={{ '--tw-ring-color': '#c9a84c' } as React.CSSProperties}
+            style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
           />
           <button type="submit" className="ml-2 p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

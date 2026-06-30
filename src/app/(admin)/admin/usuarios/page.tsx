@@ -30,7 +30,7 @@ export default async function AdminUsuariosPage() {
         <Link
           href="/admin/usuarios/novo"
           className="px-4 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-          style={{ backgroundColor: '#c9a84c' }}
+          style={{ backgroundColor: '#b48840' }}
         >
           + Novo usuário
         </Link>

@@ -8,7 +8,7 @@ const colors: Record<string, { bg: string; border: string; text: string; btn: st
   info:    { bg: '#eff6ff', border: '#bfdbfe', text: '#1d4ed8', btn: '#3b82f6' },
   success: { bg: '#f0fdf4', border: '#bbf7d0', text: '#15803d', btn: '#22c55e' },
   warning: { bg: '#fffbeb', border: '#fde68a', text: '#b45309', btn: '#f59e0b' },
-  promo:   { bg: '#fdf8e6', border: '#f0d98c', text: '#92710a', btn: '#c9a84c' },
+  promo:   { bg: '#f5efe3', border: '#dfc99a', text: '#7a5c10', btn: '#b48840' },
 }
 
 export function BannerList({ banners }: { banners: Banner[] }) {

@@ -3,30 +3,43 @@
 @variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f9fafb;
-  --foreground: #111827;
+  --background: #e4e4e4;
+  --foreground: #202020;
+  --brand: #b48840;
+  --brand-light: #d2b17b;
+  --brand-bg: #f5efe3;
+  --brand-border: #dfc99a;
+  --brand-text: #7a5c10;
 }
 
 .dark {
-  --background: #111827;
-  --foreground: #f9fafb;
+  --background: #00060f;
+  --foreground: #e4e4e4;
+  --brand: #d2b17b;
+  --brand-light: #e8d4aa;
+  --brand-bg: #12100a;
+  --brand-border: #2a2010;
+  --brand-text: #d2b17b;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-brand: #C9A84C;
-  --color-brand-dark: #A8893A;
-  --color-gold-50: #fdf8e6;
-  --color-gold-100: #f8eecc;
-  --color-gold-200: #f0d98a;
-  --color-gold-300: #e8c44a;
-  --color-gold-400: #d4a940;
-  --color-gold-500: #c9a84c;
-  --color-gold-600: #b8960c;
-  --color-gold-700: #9c7a2c;
-  --color-gold-800: #7d5f1c;
-  --color-gold-900: #5c440f;
+  --color-brand: var(--brand);
+  --color-brand-light: var(--brand-light);
+  --color-brand-bg: var(--brand-bg);
+  --color-brand-border: var(--brand-border);
+  --color-brand-text: var(--brand-text);
+  --color-gold-50: #f5efe3;
+  --color-gold-100: #ede0c8;
+  --color-gold-200: #dfc99a;
+  --color-gold-300: #d2b17b;
+  --color-gold-400: #c4a060;
+  --color-gold-500: #b48840;
+  --color-gold-600: #9a7230;
+  --color-gold-700: #7a5c10;
+  --color-gold-800: #5c4410;
+  --color-gold-900: #3a2c08;
   --font-sans: var(--font-geist-sans);
 }
 

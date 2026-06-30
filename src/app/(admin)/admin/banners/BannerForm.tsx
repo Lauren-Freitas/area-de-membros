@@ -109,7 +109,7 @@ export function BannerForm({ banner }: { banner: Banner | null }) {
           type="submit"
           disabled={pending}
           className="px-6 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 disabled:opacity-50"
-          style={{ backgroundColor: '#c9a84c' }}
+          style={{ backgroundColor: '#b48840' }}
         >
           {pending ? 'Salvando...' : banner ? 'Salvar alterações' : 'Criar banner'}
         </button>

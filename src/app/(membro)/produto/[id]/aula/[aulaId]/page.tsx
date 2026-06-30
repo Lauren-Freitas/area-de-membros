@@ -90,7 +90,7 @@ export default async function AulaPage({
       </div>
       {l.description && <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">{l.description}</p>}
 
-      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden mb-6">
+      <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden mb-6">
         {l.lesson_type === 'video' && <VideoLesson url={l.content_url} />}
         {l.lesson_type === 'text' && <TextLesson content={l.content_text} />}
         {l.lesson_type === 'file' && <FileLesson url={l.content_url} title={l.title} />}
@@ -98,7 +98,7 @@ export default async function AulaPage({
       </div>
 
       {/* Comentários */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 mb-6">
+      <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6 mb-6">
         <LessonComments
           lessonId={aulaId}
           productId={id}
@@ -128,7 +128,7 @@ export default async function AulaPage({
             <Link
               href={`/produto/${id}/aula/${nextLesson.id}`}
               className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition hover:opacity-90"
-              style={{ backgroundColor: '#c9a84c' }}
+              style={{ backgroundColor: '#b48840' }}
             >
               Próxima aula
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -144,7 +144,7 @@ export default async function AulaPage({
 
 function VideoLesson({ url }: { url: string | null }) {
   if (!url) return (
-    <div className="aspect-video flex items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-400">Vídeo não configurado.</div>
+    <div className="aspect-video flex items-center justify-center bg-[#e4e4e4] dark:bg-[#00060f] text-gray-400">Vídeo não configurado.</div>
   )
   const embedUrl = url
     .replace('watch?v=', 'embed/')
@@ -172,8 +172,8 @@ function FileLesson({ url, title }: { url: string | null; title: string }) {
   if (!url) return <div className="p-8 text-gray-400 text-center">Arquivo não disponível.</div>
   return (
     <div className="p-8 flex flex-col items-center text-center gap-4">
-      <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: '#fdf8e6' }}>
-        <svg className="w-8 h-8" style={{ color: '#c9a84c' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f5efe3' }}>
+        <svg className="w-8 h-8" style={{ color: '#b48840' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
         </svg>
       </div>
@@ -183,7 +183,7 @@ function FileLesson({ url, title }: { url: string | null; title: string }) {
       </div>
       <a href={url} download target="_blank" rel="noopener noreferrer"
         className="inline-flex items-center gap-2 px-6 py-3 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-        style={{ backgroundColor: '#c9a84c' }}
+        style={{ backgroundColor: '#b48840' }}
       >
         Baixar arquivo
       </a>
@@ -195,8 +195,8 @@ function LinkLesson({ url, title }: { url: string | null; title: string }) {
   if (!url) return <div className="p-8 text-gray-400 text-center">Link não disponível.</div>
   return (
     <div className="p-8 flex flex-col items-center text-center gap-4">
-      <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: '#fdf8e6' }}>
-        <svg className="w-8 h-8" style={{ color: '#c9a84c' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f5efe3' }}>
+        <svg className="w-8 h-8" style={{ color: '#b48840' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
         </svg>
       </div>
@@ -206,7 +206,7 @@ function LinkLesson({ url, title }: { url: string | null; title: string }) {
       </div>
       <a href={url} target="_blank" rel="noopener noreferrer"
         className="inline-flex items-center gap-2 px-6 py-3 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-        style={{ backgroundColor: '#c9a84c' }}
+        style={{ backgroundColor: '#b48840' }}
       >
         Acessar link
       </a>

@@ -110,7 +110,7 @@ export function OfertaForm({ offer, products }: { offer?: Offer; products: Produ
         <button
           type="submit"
           className="px-5 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-          style={{ backgroundColor: '#c9a84c' }}
+          style={{ backgroundColor: '#b48840' }}
         >
           {offer ? 'Salvar alterações' : 'Criar oferta'}
         </button>

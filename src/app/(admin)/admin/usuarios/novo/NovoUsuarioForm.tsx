@@ -55,7 +55,7 @@ export function NovoUsuarioForm({ products }: { products: Product[] }) {
                   name="products"
                   value={p.id}
                   className="w-4 h-4 rounded"
-                  style={{ accentColor: '#c9a84c' }}
+                  style={{ accentColor: '#b48840' }}
                 />
                 <span className="text-sm text-gray-700">{p.title}</span>
               </label>
@@ -69,7 +69,7 @@ export function NovoUsuarioForm({ products }: { products: Product[] }) {
           type="submit"
           disabled={isPending}
           className="px-6 py-2.5 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 disabled:opacity-60"
-          style={{ backgroundColor: '#c9a84c' }}
+          style={{ backgroundColor: '#b48840' }}
         >
           {isPending ? 'Criando...' : 'Criar usuário e enviar convite'}
         </button>
