@@ -32,7 +32,12 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/produto') ||
     pathname.startsWith('/admin') ||
-    pathname.startsWith('/criar-senha')
+    pathname.startsWith('/criar-senha') ||
+    pathname.startsWith('/comunidade') ||
+    pathname.startsWith('/assistente') ||
+    pathname.startsWith('/ranking') ||
+    pathname.startsWith('/certificado') ||
+    pathname.startsWith('/busca')
 
   // Só a página de login redireciona usuário já logado para o dashboard
   const isLoginPage = pathname === '/login'

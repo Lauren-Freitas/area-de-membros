@@ -48,7 +48,32 @@ export async function createReply(postId: string, body: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user || !body.trim()) return
 
+  const adminClient = createAdminClient()
+
   await supabase.from('community_replies').insert({ post_id: postId, user_id: user.id, body: body.trim() })
+
+  // Notificar o autor do post (se for outra pessoa)
+  const { data: post } = await adminClient
+    .from('community_posts')
+    .select('user_id, title')
+    .eq('id', postId)
+    .single()
+
+  if (post && post.user_id !== user.id) {
+    const { data: replier } = await adminClient
+      .from('profiles')
+      .select('name')
+      .eq('id', user.id)
+      .single()
+
+    await adminClient.from('notifications').insert({
+      user_id: post.user_id,
+      title: `${replier?.name ?? 'Alguém'} respondeu sua publicação`,
+      body: `"${post.title.slice(0, 60)}${post.title.length > 60 ? '...' : ''}"`,
+      link: `/comunidade/${postId}`,
+    })
+  }
+
   revalidatePath(`/comunidade/${postId}`)
 }
 

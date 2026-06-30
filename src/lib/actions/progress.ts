@@ -30,7 +30,6 @@ async function maybeIssueCertificate(
   userId: string,
   productId: string
 ) {
-  // Total de aulas publicadas do produto
   const { data: modules } = await supabase
     .from('modules')
     .select('id')
@@ -48,7 +47,6 @@ async function maybeIssueCertificate(
   const total = allLessons?.length ?? 0
   if (total === 0) return
 
-  // Aulas concluídas pelo usuário neste produto
   const lessonIds = allLessons!.map(l => l.id)
   const { data: done } = await supabase
     .from('lesson_progress')
@@ -57,10 +55,32 @@ async function maybeIssueCertificate(
     .in('lesson_id', lessonIds)
 
   if ((done?.length ?? 0) >= total) {
-    await supabase.from('certificates').upsert(
-      { user_id: userId, product_id: productId },
-      { onConflict: 'user_id,product_id' }
-    )
+    // Emitir certificado apenas se ainda não existe
+    const { data: existing } = await supabase
+      .from('certificates')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('product_id', productId)
+      .maybeSingle()
+
+    if (!existing) {
+      await supabase.from('certificates').insert({ user_id: userId, product_id: productId })
+
+      // Notificar o membro
+      const { data: product } = await supabase
+        .from('products')
+        .select('title')
+        .eq('id', productId)
+        .single()
+
+      await supabase.from('notifications').insert({
+        user_id: userId,
+        title: '🎓 Certificado disponível!',
+        body: `Você concluiu "${product?.title}". Seu certificado está pronto para download.`,
+        link: '/dashboard',
+      })
+    }
+
     revalidatePath('/dashboard')
     revalidatePath(`/produto/${productId}`)
   }
