@@ -5,6 +5,7 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 import { SearchBar } from '@/components/SearchBar'
 import { NotificationBell } from '@/components/NotificationBell'
 import { NavLink } from '@/components/NavLink'
+import { ProteinoFAB } from '@/components/ProteinoFAB'
 
 export default async function MemberLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -70,6 +71,8 @@ export default async function MemberLayout({ children }: { children: React.React
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         {children}
       </main>
+
+      {user && <ProteinoFAB userId={user.id} />}
     </div>
   )
 }

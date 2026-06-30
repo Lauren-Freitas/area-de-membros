@@ -10,8 +10,8 @@ const nav = [
   {
     section: 'Conteúdo',
     items: [
-      { label: 'Gerenciar produtos', href: '/admin/produtos' },
       { label: 'Criar produto', href: '/admin/produtos/novo', exact: true },
+      { label: 'Gerenciar produtos', href: '/admin/produtos' },
       { label: 'Turmas', href: '/admin/turmas' },
       { label: 'Certificados', href: '/admin/certificados' },
     ],
@@ -19,8 +19,8 @@ const nav = [
   {
     section: 'Membros',
     items: [
-      { label: 'Gerenciar usuários', href: '/admin/usuarios' },
       { label: 'Criar usuário', href: '/admin/usuarios/novo', exact: true },
+      { label: 'Gerenciar usuários', href: '/admin/usuarios' },
       { label: 'Convites', href: '/admin/convites' },
     ],
   },
