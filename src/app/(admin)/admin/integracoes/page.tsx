@@ -62,8 +62,8 @@ const apps = [
   },
   {
     id: 'asaas',
-    name: 'Asaas',
-    desc: 'Webhook + endpoints da API',
+    name: 'Asaas & API Docs',
+    desc: 'Chave de API, endpoints, webhook',
     href: '/admin/integracoes/asaas',
     external: false,
     icon: null,
