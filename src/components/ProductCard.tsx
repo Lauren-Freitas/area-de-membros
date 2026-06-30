@@ -5,9 +5,13 @@ interface ProductCardProps {
   product: Product
   unlocked: boolean
   progress?: { total: number; completed: number } | null
+  certificateId?: string | null
 }
 
-export function ProductCard({ product, unlocked, progress }: ProductCardProps) {
+export function ProductCard({ product, unlocked, progress, certificateId }: ProductCardProps) {
+  const pct = progress && progress.total > 0 ? Math.round((progress.completed / progress.total) * 100) : 0
+  const completed = pct === 100
+
   return (
     <div className={`bg-white dark:bg-gray-800 rounded-2xl border overflow-hidden flex flex-col transition-shadow hover:shadow-md ${
       unlocked ? 'border-gray-100 dark:border-gray-700' : 'border-gray-100 dark:border-gray-700 opacity-90'
@@ -35,6 +39,11 @@ export function ProductCard({ product, unlocked, progress }: ProductCardProps) {
           </div>
         )}
 
+        {/* Badge de certificado */}
+        {certificateId && (
+          <div className="absolute top-2 right-2 text-lg" title="Certificado disponível">🎓</div>
+        )}
+
         <div className="absolute top-3 left-3">
           <span className="text-xs font-medium px-2 py-1 rounded-full bg-white/90 text-gray-700">
             {product.content_type === 'video' ? 'Vídeo' : 'Download'}
@@ -48,41 +57,49 @@ export function ProductCard({ product, unlocked, progress }: ProductCardProps) {
           <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 flex-1">{product.description}</p>
         )}
 
-        {/* Barra de progresso para produtos desbloqueados com aulas */}
         {unlocked && progress && progress.total > 0 && (
           <div className="mt-3 mb-1">
             <div className="flex items-center justify-between text-xs text-gray-400 dark:text-gray-500 mb-1">
               <span>{progress.completed}/{progress.total} aulas</span>
-              <span style={{ color: '#c9a84c' }}>{Math.round((progress.completed / progress.total) * 100)}%</span>
+              <span style={{ color: completed ? '#22c55e' : '#c9a84c' }}>{pct}%</span>
             </div>
             <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${Math.round((progress.completed / progress.total) * 100)}%`, backgroundColor: '#c9a84c' }}
+                style={{ width: `${pct}%`, backgroundColor: completed ? '#22c55e' : '#c9a84c' }}
               />
             </div>
           </div>
         )}
 
-        <div className="mt-4">
+        <div className="mt-4 flex flex-col gap-2">
           {unlocked ? (
             <Link
               href={`/produto/${product.id}`}
               className="block w-full text-center py-2 px-4 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
               style={{ backgroundColor: '#c9a84c' }}
             >
-              {progress && progress.completed > 0 ? 'Continuar' : 'Acessar conteúdo'}
+              {completed ? 'Rever conteúdo' : progress && progress.completed > 0 ? 'Continuar' : 'Acessar conteúdo'}
             </Link>
           ) : (
             <a
               href={product.buy_url ?? `https://wa.me/5561991900589?text=Olá! Tenho interesse em: ${encodeURIComponent(product.title)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="block w-full text-center py-2 px-4 text-sm font-semibold rounded-lg border-2 transition hover:bg-gold-50 dark:hover:bg-gray-700"
+              className="block w-full text-center py-2 px-4 text-sm font-semibold rounded-lg border-2 transition dark:hover:bg-gray-700"
               style={{ borderColor: '#c9a84c', color: '#c9a84c' }}
             >
               Quero adquirir
             </a>
+          )}
+          {certificateId && (
+            <Link
+              href={`/certificado/${certificateId}`}
+              className="block w-full text-center py-1.5 px-4 text-xs font-semibold rounded-lg transition hover:opacity-90"
+              style={{ backgroundColor: '#fdf8e6', color: '#92710a' }}
+            >
+              🎓 Ver certificado
+            </Link>
           )}
         </div>
       </div>

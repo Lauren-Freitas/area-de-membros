@@ -10,11 +10,12 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: product }, { data: access }, { data: modules }, { data: progressRows }] = await Promise.all([
+  const [{ data: product }, { data: access }, { data: modules }, { data: progressRows }, { data: certificate }] = await Promise.all([
     supabase.from('products').select('*').eq('id', id).eq('is_active', true).single(),
     supabase.from('user_products').select('id').eq('user_id', user.id).eq('product_id', id).single(),
     supabase.from('modules').select('*, lessons(*)').eq('product_id', id).order('sort_order'),
     supabase.from('lesson_progress').select('lesson_id').eq('user_id', user.id),
+    supabase.from('certificates').select('id').eq('user_id', user.id).eq('product_id', id).maybeSingle(),
   ])
 
   if (!product || !access) redirect('/dashboard')
@@ -50,6 +51,26 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
 
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{p.title}</h1>
       {p.description && <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">{p.description}</p>}
+
+      {/* Banner de certificado */}
+      {certificate && (
+        <div className="mb-6 flex items-center justify-between gap-4 px-5 py-4 rounded-xl border" style={{ backgroundColor: '#fdf8e6', borderColor: '#f0d98c' }}>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🎓</span>
+            <div>
+              <p className="font-semibold text-sm" style={{ color: '#92710a' }}>Curso concluído! Parabéns!</p>
+              <p className="text-xs" style={{ color: '#b08c2a' }}>Seu certificado está disponível.</p>
+            </div>
+          </div>
+          <a
+            href={`/certificado/${certificate.id}`}
+            className="shrink-0 px-4 py-2 text-sm font-semibold text-white rounded-lg transition hover:opacity-90"
+            style={{ backgroundColor: '#c9a84c' }}
+          >
+            Ver certificado
+          </a>
+        </div>
+      )}
 
       {/* Barra de progresso geral */}
       {totalLessons > 0 && (

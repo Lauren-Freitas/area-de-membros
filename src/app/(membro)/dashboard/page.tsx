@@ -14,13 +14,15 @@ export default async function DashboardPage() {
   const adminClient = createAdminClient()
   const now = new Date().toISOString()
 
-  const [{ data: products }, { data: accesses }, { data: bannersData }] = await Promise.all([
+  const [{ data: products }, { data: accesses }, { data: bannersData }, { data: certsData }] = await Promise.all([
     supabase.from('products').select('*').eq('is_active', true).order('sort_order'),
     supabase.from('user_products').select('product_id').eq('user_id', user.id),
     adminClient.from('banners').select('*').eq('is_active', true).or(`expires_at.is.null,expires_at.gt.${now}`).order('sort_order'),
+    supabase.from('certificates').select('id, product_id').eq('user_id', user.id),
   ])
 
   const banners = (bannersData ?? []) as Banner[]
+  const certByProduct = Object.fromEntries((certsData ?? []).map(c => [c.product_id, c.id]))
 
   const unlockedIds = new Set(accesses?.map((a) => a.product_id) ?? [])
   const allProducts: Product[] = products ?? []
@@ -85,6 +87,7 @@ export default async function DashboardPage() {
                 product={product}
                 unlocked={true}
                 progress={progressByProduct[product.id] ?? null}
+                certificateId={certByProduct[product.id] ?? null}
               />
             ))}
           </div>

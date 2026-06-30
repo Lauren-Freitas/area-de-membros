@@ -51,6 +51,13 @@ export interface Lesson {
   created_at: string
 }
 
+export interface Certificate {
+  id: string
+  user_id: string
+  product_id: string
+  issued_at: string
+}
+
 export type BannerType = 'info' | 'success' | 'warning' | 'promo'
 
 export interface Banner {
