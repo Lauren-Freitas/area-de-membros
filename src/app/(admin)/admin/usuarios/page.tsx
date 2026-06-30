@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { grantAccess, revokeAccess } from '@/lib/actions/admin'
 import { DeleteUserButton } from '@/components/admin/DeleteUserButton'
+import { ProductPill } from '@/components/admin/ProductPill'
 import { Profile, Product } from '@/types'
 import Link from 'next/link'
 
@@ -78,51 +79,16 @@ export default async function AdminUsuariosPage() {
                 {(products as Product[])?.map((product) => {
                   const hasAccess = accessMap.get(profile.id)?.has(product.id) ?? false
                   return (
-                    <form
+                    <ProductPill
                       key={product.id}
+                      title={product.title}
+                      hasAccess={hasAccess}
                       action={
                         hasAccess
                           ? revokeAccess.bind(null, profile.id, product.id)
                           : grantAccess.bind(null, profile.id, product.id)
                       }
-                    >
-                      <button
-                        type="submit"
-                        title={hasAccess ? 'Clique para revogar acesso' : 'Clique para liberar acesso'}
-                        className="text-xs font-medium px-3 py-1.5 rounded-full border transition"
-                        style={hasAccess
-                          ? { backgroundColor: '#fdf6e8', color: '#7a5c10', borderColor: '#e8d5a3' }
-                          : { backgroundColor: '#f9fafb', color: '#6b7280', borderColor: '#e5e7eb' }
-                        }
-                        onMouseOver={e => {
-                          const el = e.currentTarget
-                          if (hasAccess) {
-                            el.style.backgroundColor = '#fef2f2'
-                            el.style.color = '#dc2626'
-                            el.style.borderColor = '#fecaca'
-                          } else {
-                            el.style.backgroundColor = '#fdf6e8'
-                            el.style.color = '#7a5c10'
-                            el.style.borderColor = '#e8d5a3'
-                          }
-                        }}
-                        onMouseOut={e => {
-                          const el = e.currentTarget
-                          if (hasAccess) {
-                            el.style.backgroundColor = '#fdf6e8'
-                            el.style.color = '#7a5c10'
-                            el.style.borderColor = '#e8d5a3'
-                          } else {
-                            el.style.backgroundColor = '#f9fafb'
-                            el.style.color = '#6b7280'
-                            el.style.borderColor = '#e5e7eb'
-                          }
-                        }}
-                      >
-                        {hasAccess ? '✓ ' : '+ '}
-                        {product.title}
-                      </button>
-                    </form>
+                    />
                   )
                 })}
 
