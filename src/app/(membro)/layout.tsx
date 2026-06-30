@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { SearchBar } from '@/components/SearchBar'
 import { NotificationBell } from '@/components/NotificationBell'
+import { NavLink } from '@/components/NavLink'
 
 export default async function MemberLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -56,6 +57,13 @@ export default async function MemberLayout({ children }: { children: React.React
           </div>
         </div>
       </header>
+
+      <nav className="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center gap-1 h-10 overflow-x-auto">
+          <NavLink href="/dashboard" label="Início" />
+          <NavLink href="/ranking" label="🏆 Ranking" />
+        </div>
+      </nav>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         {children}
