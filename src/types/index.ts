@@ -9,6 +9,7 @@ export interface Profile {
   email: string
   role: UserRole
   asaas_customer_id: string | null
+  is_active?: boolean
   created_at: string
 }
 

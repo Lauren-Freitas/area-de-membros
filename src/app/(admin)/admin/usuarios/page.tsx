@@ -45,20 +45,25 @@ export default async function AdminUsuariosPage() {
                 <div>
                   <p className="font-semibold text-gray-900">{profile.name || '(sem nome)'}</p>
                   <p className="text-sm text-gray-500">{profile.email}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <div className="flex items-center gap-2 mt-1.5">
+                    {/* Tipo */}
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                      profile.role === 'admin' ? 'bg-purple-50 text-purple-700' : 'bg-blue-50 text-blue-700'
+                    }`}>
+                      Tipo: {profile.role === 'admin' ? 'Admin' : 'Membro'}
+                    </span>
+                    {/* Status */}
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                      profile.is_active === false ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'
+                    }`}>
+                      Status: {profile.is_active === false ? 'Inativo' : 'Ativo'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">
                     Desde {new Date(profile.created_at).toLocaleDateString('pt-BR')}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap justify-end">
-                  <span
-                    className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-                      profile.role === 'admin'
-                        ? 'bg-purple-50 text-purple-700'
-                        : 'bg-gray-100 text-gray-600'
-                    }`}
-                  >
-                    {profile.role === 'admin' ? 'Admin' : 'Membro'}
-                  </span>
                   <Link
                     href={`/admin/usuarios/${profile.id}`}
                     className="text-xs font-medium px-2.5 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition"

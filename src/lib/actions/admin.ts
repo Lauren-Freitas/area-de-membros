@@ -164,12 +164,13 @@ export async function updateUser(
 
   const name = (formData.get('name') as string)?.trim()
   const role = (formData.get('role') as string) as 'admin' | 'membro'
+  const is_active = formData.get('is_active') === 'on'
 
   if (!name) return { error: 'O nome é obrigatório.' }
 
   const { error } = await admin
     .from('profiles')
-    .update({ name, role })
+    .update({ name, role, is_active })
     .eq('id', userId)
 
   if (error) return { error: error.message }

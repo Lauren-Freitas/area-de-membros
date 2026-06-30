@@ -1,9 +1,9 @@
 'use client'
 
-import { useActionState, useEffect } from 'react'
+import { useActionState, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ProductPill } from '@/components/admin/ProductPill'
+import { ProductAccessPill } from '@/components/admin/ProductAccessPill'
 import type { AdminActionState } from '@/lib/actions/admin'
 
 interface Profile {
@@ -11,6 +11,7 @@ interface Profile {
   name: string
   email: string
   role: string
+  is_active: boolean
   created_at: string
 }
 
@@ -18,18 +19,19 @@ interface ProductItem {
   id: string
   title: string
   hasAccess: boolean
-  action: () => Promise<void>
 }
 
 interface Props {
   profile: Profile
   action: (prevState: AdminActionState, formData: FormData) => Promise<AdminActionState>
   products: ProductItem[]
+  userId: string
 }
 
-export function EditarUsuarioForm({ profile, action, products }: Props) {
+export function EditarUsuarioForm({ profile, action, products, userId }: Props) {
   const router = useRouter()
   const [state, formAction, isPending] = useActionState(action, undefined)
+  const [isActive, setIsActive] = useState(profile.is_active)
 
   useEffect(() => {
     if (state?.success) router.push('/admin/usuarios')
@@ -54,13 +56,8 @@ export function EditarUsuarioForm({ profile, action, products }: Props) {
               {state.error}
             </div>
           )}
-          {state?.success && (
-            <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-sm text-green-700">
-              Alterações salvas com sucesso.
-            </div>
-          )}
 
-          {/* Nome + Tipo */}
+          {/* Nome + Tipo de conta */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -98,16 +95,36 @@ export function EditarUsuarioForm({ profile, action, products }: Props) {
             <p className="text-xs text-gray-400 mt-1">O email não pode ser alterado por este painel.</p>
           </div>
 
-          {/* Status ativo */}
+          {/* Toggle usuário ativo */}
           <div className="flex items-start gap-3 pt-1">
-            <div className="w-4 h-4 rounded border-2 border-green-500 bg-green-500 flex items-center justify-center shrink-0 mt-0.5">
-              <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
+            <div className="relative mt-0.5">
+              <input
+                type="checkbox"
+                name="is_active"
+                id="is_active"
+                checked={isActive}
+                onChange={e => setIsActive(e.target.checked)}
+                className="sr-only"
+              />
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isActive}
+                onClick={() => setIsActive(v => !v)}
+                className="w-11 h-6 rounded-full transition-colors duration-200 relative focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-400"
+                style={{ backgroundColor: isActive ? '#22c55e' : '#d1d5db' }}
+              >
+                <span
+                  className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"
+                  style={{ transform: isActive ? 'translateX(20px)' : 'translateX(0)' }}
+                />
+              </button>
+              {/* hidden checkbox to send value */}
+              {isActive && <input type="hidden" name="is_active" value="on" />}
             </div>
             <div>
               <p className="text-sm font-medium text-gray-900">Usuário ativo</p>
-              <p className="text-xs text-gray-400">Com acesso à plataforma</p>
+              <p className="text-xs text-gray-400">{isActive ? 'Com acesso à plataforma' : 'Acesso suspenso'}</p>
             </div>
           </div>
 
@@ -139,19 +156,19 @@ export function EditarUsuarioForm({ profile, action, products }: Props) {
       <div className="bg-white rounded-2xl border border-gray-100 p-6">
         <h2 className="font-semibold text-gray-900 mb-1">Acesso aos produtos</h2>
         <p className="text-sm text-gray-500 mb-4">
-          Clique num produto para liberar <span className="text-green-600 font-medium">+</span> ou revogar <span className="text-red-500 font-medium">✕</span> o acesso. A alteração é imediata.
+          Clique para liberar ou revogar o acesso. A alteração é imediata.
         </p>
-
         {products.length === 0 ? (
           <p className="text-sm text-gray-400">Nenhum produto ativo cadastrado.</p>
         ) : (
           <div className="flex flex-wrap gap-2">
             {products.map(p => (
-              <ProductPill
+              <ProductAccessPill
                 key={p.id}
                 title={p.title}
                 hasAccess={p.hasAccess}
-                action={p.action}
+                userId={userId}
+                productId={p.id}
               />
             ))}
           </div>
