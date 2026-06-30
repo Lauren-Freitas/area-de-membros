@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { updateUser } from '@/lib/actions/admin'
+import { updateUser, grantAccess, revokeAccess } from '@/lib/actions/admin'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { EditarUsuarioForm } from './EditarUsuarioForm'
@@ -11,23 +11,38 @@ export default async function EditarUsuarioPage({ params }: { params: Promise<{ 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
+  const { data: me } = await supabase
     .from('profiles')
     .select('role')
     .eq('id', user.id)
     .single()
-  if (profile?.role !== 'admin') redirect('/dashboard')
+  if (me?.role !== 'admin') redirect('/dashboard')
 
   const admin = createAdminClient()
-  const { data: target } = await admin
-    .from('profiles')
-    .select('id, name, email, role, created_at')
-    .eq('id', id)
-    .single()
+  const [{ data: target }, { data: products }, { data: accesses }] = await Promise.all([
+    admin.from('profiles').select('id, name, email, role, created_at').eq('id', id).single(),
+    admin.from('products').select('id, title').eq('is_active', true).order('sort_order'),
+    admin.from('user_products').select('product_id').eq('user_id', id),
+  ])
 
   if (!target) redirect('/admin/usuarios')
 
-  const action = updateUser.bind(null, id)
+  const accessSet = new Set((accesses ?? []).map(a => a.product_id))
 
-  return <EditarUsuarioForm profile={target} action={action} />
+  const productList = (products ?? []).map(p => ({
+    id: p.id,
+    title: p.title,
+    hasAccess: accessSet.has(p.id),
+    action: accessSet.has(p.id)
+      ? revokeAccess.bind(null, id, p.id)
+      : grantAccess.bind(null, id, p.id),
+  }))
+
+  return (
+    <EditarUsuarioForm
+      profile={target}
+      action={updateUser.bind(null, id)}
+      products={productList}
+    />
+  )
 }
