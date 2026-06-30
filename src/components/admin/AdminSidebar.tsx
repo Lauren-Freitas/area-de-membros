@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { logout } from '@/lib/actions/auth'
@@ -100,9 +100,26 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail }: Props
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [tooltip, setTooltip] = useState<{ label: string; y: number } | null>(null)
+  const [hash, setHash] = useState('')
+
+  useEffect(() => {
+    const update = () => setHash(window.location.hash)
+    update()
+    window.addEventListener('hashchange', update)
+    return () => window.removeEventListener('hashchange', update)
+  }, [])
 
   function isActive(href: string, exact?: boolean) {
-    if (href.includes('#')) return false
+    if (href.includes('#')) {
+      const [hrefPath, hrefHash] = href.split('#')
+      return pathname === hrefPath && hash === `#${hrefHash}`
+    }
+    // Se o hash atual corresponde a um item de nav, não ativa o item pai do mesmo path
+    if (hash && pathname === href) {
+      const allItems = nav.flatMap(s => s.items)
+      const hashTaken = allItems.some(item => item.href === `${href}${hash}`)
+      if (hashTaken) return false
+    }
     if (href === '/admin') return pathname === '/admin'
     if (exact) return pathname === href
     return pathname === href || (
