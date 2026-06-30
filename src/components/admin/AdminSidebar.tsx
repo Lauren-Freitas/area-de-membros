@@ -83,7 +83,7 @@ const nav = [
       { label: 'Aparência', href: '/admin/aparencia', icon: I.brush },
       { label: 'Integrações', href: '/admin/integracoes', icon: I.puzzle },
       { label: 'Meu perfil', href: '/admin/configuracoes', exact: true, icon: I.user },
-      { label: 'Suporte & FAQ', href: '/admin/configuracoes#suporte', icon: I.question },
+      { label: 'Suporte & FAQ', href: '/admin/suporte', icon: I.question },
     ],
   },
 ]
