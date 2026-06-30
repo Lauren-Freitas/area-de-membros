@@ -27,6 +27,7 @@ jobs:
           echo "NEXT_PUBLIC_SUPABASE_URL=https://yakncmxiastulmmzodgp.supabase.co" >> .vercel/.env.production.local
           echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlha25jbXhpYXN0dWxtbXpvZGdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1MDc3MjUsImV4cCI6MjA5ODA4MzcyNX0.kBf_xLbQwYHOZ7gW3ZA7C9WzLVKau0Hntud12XanPbM" >> .vercel/.env.production.local
           echo "NEXT_PUBLIC_APP_URL=https://membros.thiagocantalovo.com" >> .vercel/.env.production.local
+          echo "ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}" >> .vercel/.env.production.local
 
       - name: Build
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
