@@ -27,7 +27,17 @@ export default async function AssistentePage() {
 
       {!conversations?.length ? (
         <div className="text-center py-20 bg-white dark:bg-[#0d1020] rounded-2xl border border-dashed border-gray-200 dark:border-[#1e2030] text-gray-400">
-          <p className="text-5xl mb-4">🤖</p>
+          <div className="flex justify-center mb-4">
+            <svg className="w-16 h-16" style={{ color: '#b48840' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.4}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 2.25V5" />
+              <circle cx="12" cy="2" r="1" fill="currentColor" stroke="none" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 5h15A1.5 1.5 0 0121 6.5v10A1.5 1.5 0 0119.5 18h-15A1.5 1.5 0 013 16.5v-10A1.5 1.5 0 014.5 5z" />
+              <rect x="7.5" y="8.5" width="3" height="3" rx="0.75" stroke="currentColor" strokeWidth={1.4} />
+              <rect x="13.5" y="8.5" width="3" height="3" rx="0.75" stroke="currentColor" strokeWidth={1.4} />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 14.5h6" />
+              <path strokeLinecap="round" d="M3 11H1.5M22.5 11H21" />
+            </svg>
+          </div>
           <p className="font-medium text-gray-600 dark:text-gray-300">Converse com o Proteíno</p>
           <p className="text-sm mt-2 max-w-xs mx-auto">Tire dúvidas sobre alimentos, dietas, receitas e hábitos saudáveis — a qualquer hora.</p>
           <div className="mt-6">
