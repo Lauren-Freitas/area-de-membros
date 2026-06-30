@@ -63,7 +63,6 @@ export default async function MemberLayout({ children }: { children: React.React
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center gap-1 h-10 overflow-x-auto">
           <NavLink href="/dashboard" label="Início" />
           <NavLink href="/comunidade" label="💬 Comunidade" />
-          <NavLink href="/assistente" label="🤖 Proteíno" />
           <NavLink href="/ranking" label="🏆 Ranking" />
         </div>
       </nav>
