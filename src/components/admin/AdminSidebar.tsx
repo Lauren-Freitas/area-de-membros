@@ -25,6 +25,7 @@ const nav = [
     section: 'Comunicação',
     items: [
       { label: 'Banners', href: '/admin/banners' },
+      { label: 'Ofertas', href: '/admin/ofertas' },
       { label: 'Convites', href: '/admin/convites' },
       { label: 'Turmas', href: '/admin/turmas' },
     ],
@@ -44,6 +45,7 @@ const nav = [
   {
     section: 'Configurações',
     items: [
+      { label: 'Aparência', href: '/admin/aparencia' },
       { label: 'Meu perfil', href: '/admin/configuracoes' },
       { label: 'Suporte & FAQ', href: '/admin/configuracoes#suporte' },
     ],

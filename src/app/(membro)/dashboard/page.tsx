@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { ProductCard } from '@/components/ProductCard'
 import { BannerList } from '@/components/BannerList'
+import { OfertaCard } from '@/components/OfertaCard'
 import { Product, Banner } from '@/types'
 
 export default async function DashboardPage() {
@@ -14,12 +15,14 @@ export default async function DashboardPage() {
   const adminClient = createAdminClient()
   const now = new Date().toISOString()
 
-  const [{ data: products }, { data: accesses }, { data: bannersData }, { data: certsData }, { data: cohortMembership }] = await Promise.all([
+  const [{ data: products }, { data: accesses }, { data: bannersData }, { data: certsData }, { data: cohortMembership }, { data: offersData }, { data: siteConfigData }] = await Promise.all([
     supabase.from('products').select('*').eq('is_active', true).order('sort_order'),
     supabase.from('user_products').select('product_id').eq('user_id', user.id),
     adminClient.from('banners').select('*').eq('is_active', true).or(`expires_at.is.null,expires_at.gt.${now}`).order('sort_order'),
     supabase.from('certificates').select('id, product_id').eq('user_id', user.id),
     adminClient.from('cohort_members').select('cohorts(id, name, description, starts_at, ends_at, products(title))').eq('user_id', user.id).limit(1).maybeSingle(),
+    adminClient.from('offers').select('id, title, description, original_price, promo_price, coupon_code, ends_at, product_id, products(title, buy_url)').eq('is_active', true).or(`ends_at.is.null,ends_at.gt.${now}`).order('sort_order'),
+    adminClient.from('site_config').select('key, value').in('key', ['welcome_message']),
   ])
 
   const banners = (bannersData ?? []) as Banner[]
@@ -28,7 +31,15 @@ export default async function DashboardPage() {
     ? (Array.isArray(cohortMembership.cohorts) ? cohortMembership.cohorts[0] : cohortMembership.cohorts)
     : null
 
+  const siteConfig = Object.fromEntries((siteConfigData ?? []).map(r => [r.key, r.value]))
+  const welcomeMessage = siteConfig['welcome_message'] ?? ''
+
   const unlockedIds = new Set(accesses?.map((a) => a.product_id) ?? [])
+
+  // Mostrar ofertas apenas para produtos que o membro ainda não tem
+  const visibleOffers = (offersData ?? []).filter(o =>
+    !o.product_id || !unlockedIds.has(o.product_id)
+  )
   const allProducts: Product[] = products ?? []
   const myProducts = allProducts.filter((p) => unlockedIds.has(p.id))
   const storeProducts = allProducts.filter((p) => !unlockedIds.has(p.id))
@@ -66,6 +77,11 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-10">
+      {welcomeMessage && (
+        <p className="text-sm text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 px-5 py-3 rounded-xl border border-gray-100 dark:border-gray-700">
+          {welcomeMessage}
+        </p>
+      )}
       <BannerList banners={banners} />
 
       {/* Card de turma */}
@@ -116,6 +132,24 @@ export default async function DashboardPage() {
           </div>
         )}
       </section>
+
+      {/* Ofertas relâmpago */}
+      {visibleOffers.length > 0 && (
+        <section>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">⚡ Ofertas especiais</h2>
+          <div className="space-y-4">
+            {visibleOffers.map((offer) => {
+              const product = Array.isArray(offer.products) ? offer.products[0] : offer.products
+              return (
+                <OfertaCard
+                  key={offer.id}
+                  offer={{ ...offer, products: product ?? null }}
+                />
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       {/* Vitrine — produtos não adquiridos */}
       {storeProducts.length > 0 && (
