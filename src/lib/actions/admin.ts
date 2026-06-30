@@ -365,10 +365,12 @@ export async function grantAccess(userId: string, productId: string) {
   const supabase = await requireAdmin()
   await supabase.from('user_products').insert({ user_id: userId, product_id: productId, granted_by: 'manual' })
   revalidatePath('/admin/usuarios')
+  revalidatePath(`/admin/usuarios/${userId}`)
 }
 
 export async function revokeAccess(userId: string, productId: string) {
   const supabase = await requireAdmin()
   await supabase.from('user_products').delete().eq('user_id', userId).eq('product_id', productId)
   revalidatePath('/admin/usuarios')
+  revalidatePath(`/admin/usuarios/${userId}`)
 }
