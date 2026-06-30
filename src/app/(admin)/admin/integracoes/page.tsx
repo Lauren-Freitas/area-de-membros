@@ -1,121 +1,162 @@
-import { CopyButton } from '@/components/admin/CopyButton'
+import Link from 'next/link'
+
+const apps = [
+  {
+    id: 'webhooks',
+    name: 'Webhooks',
+    desc: 'Envie eventos para qualquer URL',
+    href: '/admin/integracoes/webhooks',
+    external: false,
+    icon: (
+      <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+      </svg>
+    ),
+    color: '#1a1a2e',
+  },
+  {
+    id: 'api',
+    name: 'API',
+    desc: 'HTTP Request — n8n, Make, código',
+    href: '/admin/integracoes/api',
+    external: false,
+    icon: (
+      <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
+      </svg>
+    ),
+    color: '#1a1a1a',
+  },
+  {
+    id: 'n8n',
+    name: 'n8n',
+    desc: 'Automação open source',
+    href: 'https://n8n.io',
+    external: true,
+    icon: null,
+    label: 'n8n',
+    labelColor: '#ea4b71',
+    color: '#fff',
+  },
+  {
+    id: 'make',
+    name: 'Make',
+    desc: 'Anteriormente Integromat',
+    href: 'https://make.com',
+    external: true,
+    icon: null,
+    label: 'Make',
+    labelColor: '#6d00cc',
+    color: '#fff',
+  },
+  {
+    id: 'zapier',
+    name: 'Zapier',
+    desc: 'Conecte seus apps',
+    href: 'https://zapier.com',
+    external: true,
+    icon: null,
+    label: 'zapier',
+    labelColor: '#ff4a00',
+    color: '#fff',
+  },
+  {
+    id: 'asaas',
+    name: 'Asaas',
+    desc: 'Pagamentos e cobranças',
+    href: 'https://asaas.com',
+    external: true,
+    icon: null,
+    label: 'Asaas',
+    labelColor: '#00b1e4',
+    color: '#fff',
+  },
+  {
+    id: 'activecampaign',
+    name: 'ActiveCampaign',
+    desc: 'E-mail marketing',
+    href: 'https://activecampaign.com',
+    external: true,
+    icon: null,
+    label: 'ActiveCampaign',
+    labelColor: '#004cff',
+    color: '#fff',
+    soon: true,
+  },
+  {
+    id: 'mailchimp',
+    name: 'Mailchimp',
+    desc: 'E-mail marketing',
+    href: 'https://mailchimp.com',
+    external: true,
+    icon: null,
+    label: 'Mailchimp',
+    labelColor: '#ffe01b',
+    labelTextColor: '#333',
+    color: '#fff',
+    soon: true,
+  },
+]
 
 export default function IntegracoesPage() {
-  const apiKey = process.env.ADMIN_API_KEY ?? '(não configurado)'
-  const webhookToken = process.env.ASAAS_WEBHOOK_TOKEN ?? '(não configurado)'
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://membros.thiagocantalovo.com'
-
-  const endpoints = [
-    { method: 'POST',   path: '/api/admin/usuarios',       desc: 'Criar usuário' },
-    { method: 'GET',    path: '/api/admin/usuarios',       desc: 'Listar usuários' },
-    { method: 'DELETE', path: '/api/admin/usuarios/:id',   desc: 'Excluir usuário' },
-    { method: 'POST',   path: '/api/admin/produtos',       desc: 'Criar produto' },
-    { method: 'GET',    path: '/api/admin/produtos',       desc: 'Listar produtos' },
-    { method: 'DELETE', path: '/api/admin/produtos/:id',   desc: 'Excluir produto' },
-    { method: 'POST',   path: '/api/admin/acesso',         desc: 'Liberar acesso' },
-    { method: 'DELETE', path: '/api/admin/acesso',         desc: 'Revogar acesso' },
-  ]
-
-  const methodColor: Record<string, string> = {
-    GET: 'bg-blue-50 text-blue-700',
-    POST: 'bg-green-50 text-green-700',
-    DELETE: 'bg-red-50 text-red-600',
-  }
-
   return (
-    <div className="space-y-8">
-      <h1 className="text-2xl font-bold text-gray-900">Integrações</h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-xl font-bold text-gray-900">Integrações</h1>
+        <p className="text-sm text-gray-500 mt-0.5">Conecte a plataforma com suas ferramentas favoritas.</p>
+      </div>
 
-      {/* API Key */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <h2 className="font-semibold text-gray-900 mb-1">Chave de API (Admin)</h2>
-        <p className="text-sm text-gray-500 mb-4">
-          Use este header em todas as chamadas à API: <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">x-api-key: &lt;chave&gt;</code>
-        </p>
-        <div className="flex items-center gap-3 bg-gray-50 rounded-lg px-4 py-3 border border-gray-200">
-          <code className="flex-1 text-sm text-gray-700 font-mono break-all select-all">{apiKey}</code>
-          <CopyButton text={apiKey} />
+      <div>
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Apps</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {apps.map((app) => {
+            const cardClass = "relative bg-white rounded-2xl border border-gray-200 p-6 flex flex-col items-center justify-center gap-3 hover:shadow-md hover:border-gray-300 transition group min-h-[130px]"
+            const inner = (
+              <>
+                {app.external && (
+                  <svg className="absolute top-3 right-3 w-3.5 h-3.5 text-gray-300 group-hover:text-gray-500 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                )}
+                {app.soon && (
+                  <span className="absolute top-3 left-3 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-gray-100 text-gray-400 uppercase tracking-wide">
+                    Em breve
+                  </span>
+                )}
+                {app.icon ? (
+                  <div className="text-gray-700">{app.icon}</div>
+                ) : (
+                  <span className="text-xl font-black tracking-tight" style={{ color: app.labelColor }}>
+                    {app.label}
+                  </span>
+                )}
+                <div className="text-center">
+                  <p className="text-sm font-semibold text-gray-900">{app.name}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{app.desc}</p>
+                </div>
+              </>
+            )
+            return app.external ? (
+              <a key={app.id} href={app.href} target="_blank" rel="noopener noreferrer" className={cardClass}>{inner}</a>
+            ) : (
+              <Link key={app.id} href={app.href} className={cardClass}>{inner}</Link>
+            )
+          })}
         </div>
       </div>
 
-      {/* Endpoints */}
+      {/* HTTP Request guide */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <h2 className="font-semibold text-gray-900 mb-1">Endpoints da API</h2>
-        <p className="text-sm text-gray-500 mb-4">Base URL: <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">{baseUrl}</code></p>
-        <div className="space-y-2">
-          {endpoints.map(({ method, path, desc }) => (
-            <div key={method + path} className="flex items-center gap-3 text-sm">
-              <span className={`text-xs font-bold px-2 py-0.5 rounded font-mono shrink-0 ${methodColor[method]}`}>
-                {method}
-              </span>
-              <code className="text-gray-700 font-mono">{path}</code>
-              <span className="text-gray-400 hidden sm:block">— {desc}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Exemplo */}
-        <div className="mt-6">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Exemplo — Criar usuário</p>
-          <pre className="bg-gray-900 text-gray-100 rounded-xl p-4 text-xs overflow-x-auto leading-relaxed">{`curl -X POST ${baseUrl}/api/admin/usuarios \\
-  -H "x-api-key: ${apiKey}" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "name": "João Silva",
-    "email": "joao@email.com",
-    "products": ["uuid-do-produto"]
-  }'`}</pre>
-        </div>
-      </div>
-
-      {/* Webhook Asaas */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <h2 className="font-semibold text-gray-900 mb-1">Webhook Asaas</h2>
+        <h2 className="font-semibold text-gray-900 mb-2">Usar com n8n / Make / Zapier</h2>
         <p className="text-sm text-gray-500 mb-4">
-          Configure este endpoint no painel do Asaas para processar pagamentos automaticamente.
+          Use um nó <strong>HTTP Request</strong> em qualquer plataforma de automação para liberar acesso, criar usuários e mais.
         </p>
-        <div className="space-y-3">
-          <div>
-            <p className="text-xs font-medium text-gray-500 mb-1">URL do Webhook</p>
-            <div className="flex items-center gap-3 bg-gray-50 rounded-lg px-4 py-3 border border-gray-200">
-              <code className="flex-1 text-sm text-gray-700 font-mono break-all">{baseUrl}/api/webhook/asaas</code>
-              <CopyButton text={`${baseUrl}/api/webhook/asaas`} />
-            </div>
-          </div>
-          <div>
-            <p className="text-xs font-medium text-gray-500 mb-1">Token de Acesso (header: asaas-access-token)</p>
-            <div className="flex items-center gap-3 bg-gray-50 rounded-lg px-4 py-3 border border-gray-200">
-              <code className="flex-1 text-sm text-gray-700 font-mono break-all">{webhookToken}</code>
-              <CopyButton text={webhookToken} />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* n8n / Automações */}
-      <div id="automacoes" className="bg-white rounded-2xl border border-gray-100 p-6">
-        <h2 className="font-semibold text-gray-900 mb-1">n8n & Automações</h2>
-        <p className="text-sm text-gray-500 mb-4">
-          Conecte com n8n, Make, Zapier ou qualquer plataforma de automação usando a API REST acima.
-        </p>
-        <div className="space-y-3 text-sm text-gray-600">
-          <div className="flex items-start gap-3">
-            <span className="text-lg mt-0.5">1.</span>
-            <p>No n8n, crie um nó <strong>HTTP Request</strong></p>
-          </div>
-          <div className="flex items-start gap-3">
-            <span className="text-lg mt-0.5">2.</span>
-            <p>Defina a URL do endpoint desejado acima e o método (POST, GET, DELETE)</p>
-          </div>
-          <div className="flex items-start gap-3">
-            <span className="text-lg mt-0.5">3.</span>
-            <p>Adicione o header <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">x-api-key</code> com o valor da chave acima</p>
-          </div>
-          <div className="flex items-start gap-3">
-            <span className="text-lg mt-0.5">4.</span>
-            <p>Envie o body em JSON conforme o endpoint</p>
-          </div>
-        </div>
+        <ol className="space-y-2 text-sm text-gray-600">
+          <li className="flex gap-2"><span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: '#b48840' }}>1</span> Crie uma API Key em <Link href="/admin/integracoes/api" className="underline" style={{ color: '#b48840' }}>Integrações → API</Link></li>
+          <li className="flex gap-2"><span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: '#b48840' }}>2</span> No n8n, adicione um nó <strong>HTTP Request</strong> com método POST</li>
+          <li className="flex gap-2"><span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: '#b48840' }}>3</span> Header: <code className="bg-gray-100 px-1 rounded">x-api-key: sua-chave</code> · URL: <code className="bg-gray-100 px-1 rounded">/api/admin/acesso</code></li>
+          <li className="flex gap-2"><span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: '#b48840' }}>4</span> Ou configure um <Link href="/admin/integracoes/webhooks" className="underline" style={{ color: '#b48840' }}>Webhook de saída</Link> para receber eventos da plataforma no n8n</li>
+        </ol>
       </div>
     </div>
   )
