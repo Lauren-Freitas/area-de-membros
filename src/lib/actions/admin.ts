@@ -175,7 +175,8 @@ export async function updateUser(
   if (error) return { error: error.message }
 
   revalidatePath('/admin/usuarios')
-  redirect('/admin/usuarios')
+  revalidatePath(`/admin/usuarios/${userId}`)
+  return { success: true }
 }
 
 // ─── Módulos ─────────────────────────────────────────────────────────────────

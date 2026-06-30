@@ -1,6 +1,7 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ProductPill } from '@/components/admin/ProductPill'
 import type { AdminActionState } from '@/lib/actions/admin'
@@ -27,9 +28,12 @@ interface Props {
 }
 
 export function EditarUsuarioForm({ profile, action, products }: Props) {
+  const router = useRouter()
   const [state, formAction, isPending] = useActionState(action, undefined)
 
-  const isAdmin = profile.role === 'admin'
+  useEffect(() => {
+    if (state?.success) router.push('/admin/usuarios')
+  }, [state?.success, router])
 
   return (
     <div className="space-y-6">
@@ -94,35 +98,16 @@ export function EditarUsuarioForm({ profile, action, products }: Props) {
             <p className="text-xs text-gray-400 mt-1">O email não pode ser alterado por este painel.</p>
           </div>
 
-          {/* Status + Data */}
-          <div className="flex flex-wrap items-center gap-6 pt-1">
-            <div className="flex items-start gap-3">
-              <div className="relative flex items-center mt-0.5">
-                <div className="w-4 h-4 rounded border-2 border-green-500 bg-green-500 flex items-center justify-center shrink-0">
-                  <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">Usuário ativo</p>
-                <p className="text-xs text-gray-400">Com acesso à plataforma</p>
-              </div>
+          {/* Status ativo */}
+          <div className="flex items-start gap-3 pt-1">
+            <div className="w-4 h-4 rounded border-2 border-green-500 bg-green-500 flex items-center justify-center shrink-0 mt-0.5">
+              <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
             </div>
-            <div className="flex items-start gap-3">
-              <div className="relative flex items-center mt-0.5">
-                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 ${isAdmin ? 'border-purple-500 bg-purple-500' : 'border-gray-300 bg-white'}`}>
-                  {isAdmin && (
-                    <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">Administrador</p>
-                <p className="text-xs text-gray-400">Acesso ao painel admin</p>
-              </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900">Usuário ativo</p>
+              <p className="text-xs text-gray-400">Com acesso à plataforma</p>
             </div>
           </div>
 
