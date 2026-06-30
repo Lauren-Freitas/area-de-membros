@@ -29,6 +29,12 @@ const nav = [
     ],
   },
   {
+    section: 'Análises',
+    items: [
+      { label: 'Relatórios', href: '/admin/relatorios' },
+    ],
+  },
+  {
     section: 'Integrações',
     items: [
       { label: 'Webhooks & API', href: '/admin/integracoes' },
