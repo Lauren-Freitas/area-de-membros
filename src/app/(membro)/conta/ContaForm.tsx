@@ -5,6 +5,48 @@ import { updateMemberProfile, updateMemberPassword } from '@/lib/actions/member'
 import Image from 'next/image'
 import Link from 'next/link'
 
+const COUNTRIES = [
+  { ddi: '+55',  flag: '🇧🇷', name: 'Brasil' },
+  { ddi: '+1',   flag: '🇺🇸', name: 'EUA / Canadá' },
+  { ddi: '+351', flag: '🇵🇹', name: 'Portugal' },
+  { ddi: '+54',  flag: '🇦🇷', name: 'Argentina' },
+  { ddi: '+57',  flag: '🇨🇴', name: 'Colômbia' },
+  { ddi: '+56',  flag: '🇨🇱', name: 'Chile' },
+  { ddi: '+58',  flag: '🇻🇪', name: 'Venezuela' },
+  { ddi: '+51',  flag: '🇵🇪', name: 'Peru' },
+  { ddi: '+593', flag: '🇪🇨', name: 'Equador' },
+  { ddi: '+598', flag: '🇺🇾', name: 'Uruguai' },
+  { ddi: '+595', flag: '🇵🇾', name: 'Paraguai' },
+  { ddi: '+591', flag: '🇧🇴', name: 'Bolívia' },
+  { ddi: '+52',  flag: '🇲🇽', name: 'México' },
+  { ddi: '+44',  flag: '🇬🇧', name: 'Reino Unido' },
+  { ddi: '+34',  flag: '🇪🇸', name: 'Espanha' },
+  { ddi: '+33',  flag: '🇫🇷', name: 'França' },
+  { ddi: '+49',  flag: '🇩🇪', name: 'Alemanha' },
+  { ddi: '+39',  flag: '🇮🇹', name: 'Itália' },
+  { ddi: '+31',  flag: '🇳🇱', name: 'Países Baixos' },
+  { ddi: '+41',  flag: '🇨🇭', name: 'Suíça' },
+  { ddi: '+46',  flag: '🇸🇪', name: 'Suécia' },
+  { ddi: '+244', flag: '🇦🇴', name: 'Angola' },
+  { ddi: '+258', flag: '🇲🇿', name: 'Moçambique' },
+  { ddi: '+238', flag: '🇨🇻', name: 'Cabo Verde' },
+  { ddi: '+61',  flag: '🇦🇺', name: 'Austrália' },
+  { ddi: '+81',  flag: '🇯🇵', name: 'Japão' },
+  { ddi: '+86',  flag: '🇨🇳', name: 'China' },
+]
+
+function parsePhone(fullPhone: string): { ddi: string; number: string } {
+  if (!fullPhone) return { ddi: '+55', number: '' }
+  if (!fullPhone.startsWith('+')) return { ddi: '+55', number: fullPhone }
+  const sorted = [...COUNTRIES].sort((a, b) => b.ddi.length - a.ddi.length)
+  for (const c of sorted) {
+    if (fullPhone.startsWith(c.ddi)) {
+      return { ddi: c.ddi, number: fullPhone.slice(c.ddi.length).trim() }
+    }
+  }
+  return { ddi: '+55', number: fullPhone }
+}
+
 const TIMEZONES = [
   { value: 'America/Sao_Paulo', label: 'Brasília (GMT-3)' },
   { value: 'America/Manaus', label: 'Manaus (GMT-4)' },
@@ -38,6 +80,8 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
   const [passwordState, passwordAction, passwordPending] = useActionState(updateMemberPassword, undefined)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(initialData.avatar_url)
   const fileRef = useRef<HTMLInputElement>(null)
+  const parsedPhone = parsePhone(initialData.phone)
+  const [selectedDdi, setSelectedDdi] = useState(parsedPhone.ddi)
 
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -133,14 +177,29 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Telefone</label>
-              <input
-                name="phone"
-                type="tel"
-                defaultValue={initialData.phone}
-                className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition"
-                style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
-                placeholder="(11) 99999-9999"
-              />
+              <div className="flex gap-2">
+                <select
+                  name="phone_ddi"
+                  value={selectedDdi}
+                  onChange={e => setSelectedDdi(e.target.value)}
+                  className="shrink-0 w-32 px-2 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:border-transparent transition"
+                  style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+                >
+                  {COUNTRIES.map(c => (
+                    <option key={c.ddi + c.name} value={c.ddi}>
+                      {c.flag} {c.ddi}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  name="phone_number"
+                  type="tel"
+                  defaultValue={parsedPhone.number}
+                  className="flex-1 px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition"
+                  style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+                  placeholder="(11) 99999-9999"
+                />
+              </div>
             </div>
           </div>
 

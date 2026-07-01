@@ -14,7 +14,9 @@ export async function updateMemberProfile(
   if (!user) return { error: 'Não autenticado.' }
 
   const name = (formData.get('name') as string)?.trim()
-  const phone = (formData.get('phone') as string)?.trim() || null
+  const phoneDdi = (formData.get('phone_ddi') as string)?.trim() || ''
+  const phoneNumber = (formData.get('phone_number') as string)?.trim() || ''
+  const phone = phoneDdi && phoneNumber ? `${phoneDdi}${phoneNumber}` : (phoneNumber || null)
   const bio = (formData.get('bio') as string)?.trim() || null
   const timezone = (formData.get('timezone') as string)?.trim() || 'America/Sao_Paulo'
 
