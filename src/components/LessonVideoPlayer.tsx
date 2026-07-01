@@ -75,25 +75,6 @@ export function LessonVideoPlayer({ url, progressPct: initialPct, prevHref, next
 
           {/* Botões */}
           <div className="flex items-center gap-1">
-            {/* Grid — scroll para sidebar de aulas no mobile */}
-            <a
-              href="#lesson-sidebar"
-              className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-              title="Ver lista de aulas"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-              </svg>
-            </a>
-            <span
-              className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg text-gray-500 dark:text-gray-400"
-              title="Playlist visível na lateral"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-              </svg>
-            </span>
-
             {/* Expandir vídeo */}
             <button
               onClick={expandVideo}
