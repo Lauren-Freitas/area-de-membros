@@ -6,6 +6,7 @@ import { LessonCompleteButton } from '@/components/LessonCompleteButton'
 import { LessonComments } from '@/components/LessonComments'
 import { LessonSidebar } from '@/components/LessonSidebar'
 import { VideoFocusLesson } from '@/components/VideoFocusLesson'
+import { LessonRating } from '@/components/LessonRating'
 import { LessonComment } from '@/types'
 
 export default async function AulaPage({
@@ -39,7 +40,7 @@ export default async function AulaPage({
 
   const l = lesson as Lesson & { modules: { title: string; product_id: string } }
 
-  const [{ data: siblings }, { data: progressRows }, { data: profile }, { data: commentsData }] = await Promise.all([
+  const [{ data: siblings }, { data: progressRows }, { data: profile }, { data: commentsData }, { data: ratingData }] = await Promise.all([
     supabase
       .from('lessons')
       .select('id, title, sort_order, lesson_type')
@@ -56,11 +57,18 @@ export default async function AulaPage({
       .select('*, profiles(name)')
       .eq('lesson_id', aulaId)
       .order('created_at', { ascending: true }),
+    supabase
+      .from('lesson_ratings')
+      .select('rating')
+      .eq('user_id', user.id)
+      .eq('lesson_id', aulaId)
+      .maybeSingle(),
   ])
 
   const completedSet = new Set(progressRows?.map(p => p.lesson_id) ?? [])
   const isCompleted = completedSet.has(aulaId)
   const isAdmin = profile?.role === 'admin'
+  const myRating = ratingData?.rating ?? null
   const comments = (commentsData ?? []) as LessonComment[]
 
   const currentIdx = siblings?.findIndex(s => s.id === aulaId) ?? -1
@@ -121,9 +129,12 @@ export default async function AulaPage({
             />
           </div>
 
-          {/* Botão de conclusão + navegação */}
+          {/* Botão de conclusão + avaliação + navegação */}
           <div className="flex items-center justify-between gap-4 flex-wrap">
-            <LessonCompleteButton lessonId={aulaId} productId={id} completed={isCompleted} />
+            <div className="flex items-center gap-4 flex-wrap">
+              <LessonCompleteButton lessonId={aulaId} productId={id} completed={isCompleted} />
+              <LessonRating lessonId={aulaId} productId={id} initialRating={myRating} />
+            </div>
 
             <div className="flex items-center gap-2 ml-auto">
               {prevLesson && (
@@ -151,6 +162,7 @@ export default async function AulaPage({
               )}
             </div>
           </div>
+
 
           {/* Comentários */}
           <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
