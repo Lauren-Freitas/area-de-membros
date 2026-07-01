@@ -167,15 +167,14 @@ export function MobileSidebar() {
 
                       {/* Sub-itens */}
                       {conteudosOpen && (
-                        <div className="ml-8 mt-0.5 space-y-0.5 border-l-2 pl-3" style={{ borderColor: '#e5d9c3' }}>
+                        <div className="ml-4 mt-0.5 space-y-0.5">
                           {item.children!.map(child => (
                             <Link
                               key={child.href}
                               href={child.href}
                               onClick={() => setOpen(false)}
-                              className="flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1a1f35] hover:text-gray-900 dark:hover:text-white transition"
+                              className="flex items-center px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1a1f35] hover:text-gray-900 dark:hover:text-white transition"
                             >
-                              <span className="w-1.5 h-1.5 rounded-full bg-current opacity-40 shrink-0" />
                               {child.label}
                             </Link>
                           ))}
