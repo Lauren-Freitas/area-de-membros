@@ -122,7 +122,7 @@ export default async function DashboardPage() {
       )}
 
       {/* Meus conteúdos — apenas produtos desbloqueados */}
-      <section>
+      <section id="meus-conteudos">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-5">Meus conteúdos</h1>
 
         {myProducts.length === 0 ? (
@@ -160,7 +160,7 @@ export default async function DashboardPage() {
 
       {/* Disponíveis para compra — produtos bloqueados */}
       {storeProducts.length > 0 && (
-        <section>
+        <section id="disponiveis">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5">Disponíveis para compra</h2>
           <div className="space-y-8">
             {storeGroups.map(({ label, products: group }) => (
