@@ -33,7 +33,7 @@ export function ProductCard({ product, unlocked, expiresAt, progress, certificat
           <img
             src={product.banner_url}
             alt={product.title}
-            className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 ${!hasAccess ? 'opacity-60' : ''}`}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
@@ -43,13 +43,19 @@ export function ProductCard({ product, unlocked, expiresAt, progress, certificat
           </div>
         )}
 
-        {/* Overlay bloqueado */}
+        {/* Badge cadeado — canto superior direito */}
         {!hasAccess && (
-          <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-1">
-            <svg className="w-9 h-9 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+          <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
+            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
             </svg>
-            {isExpired && <span className="text-xs text-white/70 font-medium">Acesso expirado</span>}
+          </div>
+        )}
+
+        {/* Badge expirado */}
+        {isExpired && (
+          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-sm text-[10px] font-semibold text-white/80">
+            Expirado
           </div>
         )}
 
