@@ -99,30 +99,36 @@ export async function submitTicket(
 
   if (!message) return { error: 'A mensagem é obrigatória.' }
 
-  // Upload de anexo opcional
-  let attachment_url: string | null = null
-  const attachmentFile = formData.get('attachment') as File | null
-  if (attachmentFile && attachmentFile.size > 0) {
+  // Upload de anexos opcionais (múltiplos)
+  const attachmentUrls: string[] = []
+  const attachmentFiles = formData.getAll('attachment') as File[]
+  const filesToUpload = attachmentFiles.filter(f => f && f.size > 0)
+
+  if (filesToUpload.length > 0) {
     try {
       const admin = createAdminClient()
       await admin.storage.createBucket('ticket-files', { public: true }).catch(() => {})
-      const ext = attachmentFile.name.split('.').pop()?.toLowerCase() || 'bin'
-      const path = `${user.id}/${Date.now()}.${ext}`
-      const bytes = await attachmentFile.arrayBuffer()
-      const { error: uploadError } = await admin.storage
-        .from('ticket-files')
-        .upload(path, bytes, { contentType: attachmentFile.type })
-      if (!uploadError) {
-        const { data: { publicUrl } } = admin.storage.from('ticket-files').getPublicUrl(path)
-        attachment_url = publicUrl
-      }
+      const timestamp = Date.now()
+      await Promise.all(filesToUpload.map(async (file, idx) => {
+        const ext = file.name.split('.').pop()?.toLowerCase() || 'bin'
+        const path = `${user.id}/${timestamp}-${idx}.${ext}`
+        const bytes = await file.arrayBuffer()
+        const { error } = await admin.storage
+          .from('ticket-files')
+          .upload(path, bytes, { contentType: file.type })
+        if (!error) {
+          const { data: { publicUrl } } = admin.storage.from('ticket-files').getPublicUrl(path)
+          attachmentUrls.push(publicUrl)
+        }
+      }))
     } catch {
-      // Segue sem o anexo se upload falhar
+      // Segue sem os anexos se upload falhar
     }
   }
 
-  const fullMessage = attachment_url
-    ? `${message}\n\n📎 Anexo: ${attachment_url}`
+  const attachmentLines = attachmentUrls.map((url, i) => `📎 Anexo ${i + 1}: ${url}`).join('\n')
+  const fullMessage = attachmentLines
+    ? `${message}\n\n${attachmentLines}`
     : message
 
   const { error } = await supabase.from('support_tickets').insert({

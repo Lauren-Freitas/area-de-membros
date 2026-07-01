@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 
-type Message = { role: 'user' | 'assistant'; content: string; attachmentName?: string }
+type Message = { role: 'user' | 'assistant'; content: string; attachmentNames?: string[] }
 type Attachment = { type: 'image' | 'document'; data: string; mediaType: string; name: string; previewUrl?: string }
 
 const SUGGESTIONS = [
@@ -28,7 +28,7 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
-  const [attachment, setAttachment] = useState<Attachment | null>(null)
+  const [attachments, setAttachments] = useState<Attachment[]>([])
   const [isRecording, setIsRecording] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -41,43 +41,48 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+  function readFileAsAttachment(file: File): Promise<Attachment | null> {
     const maxSize = file.type === 'application/pdf' ? 20 * 1024 * 1024 : 5 * 1024 * 1024
     if (file.size > maxSize) {
-      alert(file.type === 'application/pdf' ? 'PDF muito grande. Máximo 20MB.' : 'Imagem muito grande. Máximo 5MB.')
-      e.target.value = ''
-      return
+      alert(`${file.name}: muito grande (máx. ${file.type === 'application/pdf' ? '20MB' : '5MB'}).`)
+      return Promise.resolve(null)
     }
-    const reader = new FileReader()
-    reader.onload = () => {
-      const dataUrl = reader.result as string
-      const base64 = dataUrl.split(',')[1]
-      const isImage = file.type.startsWith('image/')
-      setAttachment({
-        type: isImage ? 'image' : 'document',
-        data: base64,
-        mediaType: file.type,
-        name: file.name,
-        previewUrl: isImage ? dataUrl : undefined,
-      })
-    }
-    reader.readAsDataURL(file)
+    return new Promise(resolve => {
+      const reader = new FileReader()
+      reader.onload = () => {
+        const dataUrl = reader.result as string
+        const isImage = file.type.startsWith('image/')
+        resolve({
+          type: isImage ? 'image' : 'document',
+          data: dataUrl.split(',')[1],
+          mediaType: file.type || 'image/jpeg',
+          name: file.name,
+          previewUrl: isImage ? dataUrl : undefined,
+        })
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
+  async function addFiles(fileList: FileList | File[]) {
+    const files = Array.from(fileList)
+    const results = await Promise.all(files.map(readFileAsAttachment))
+    const valid = results.filter(Boolean) as Attachment[]
+    if (valid.length) setAttachments(prev => [...prev, ...valid])
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files) addFiles(e.target.files)
     e.target.value = ''
   }
 
   function handleCameraChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (file.size > 5 * 1024 * 1024) { alert('Imagem muito grande. Máximo 5MB.'); e.target.value = ''; return }
-    const reader = new FileReader()
-    reader.onload = () => {
-      const dataUrl = reader.result as string
-      setAttachment({ type: 'image', data: dataUrl.split(',')[1], mediaType: file.type || 'image/jpeg', name: file.name || 'foto.jpg', previewUrl: dataUrl })
-    }
-    reader.readAsDataURL(file)
+    if (e.target.files) addFiles(e.target.files)
     e.target.value = ''
+  }
+
+  function removeAttachment(i: number) {
+    setAttachments(prev => prev.filter((_, idx) => idx !== i))
   }
 
   function toggleRecording() {
@@ -108,17 +113,18 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
   }
 
   async function sendMessage(text: string) {
-    if ((!text.trim() && !attachment) || streaming) return
+    if ((!text.trim() && attachments.length === 0) || streaming) return
     const history = messages.map(m => ({ role: m.role, content: m.content }))
+    const hasImages = attachments.some(a => a.type === 'image')
     const userMsg: Message = {
       role: 'user',
-      content: text || (attachment?.type === 'image' ? 'O que você vê nessa imagem?' : 'Analise este documento.'),
-      attachmentName: attachment?.name,
+      content: text || (hasImages ? 'O que você vê nessas imagens?' : 'Analise estes documentos.'),
+      attachmentNames: attachments.length > 0 ? attachments.map(a => a.name) : undefined,
     }
-    const currentAttachment = attachment
+    const currentAttachments = attachments
     setMessages(prev => [...prev, userMsg, { role: 'assistant', content: '' }])
     setInput('')
-    setAttachment(null)
+    setAttachments([])
     setStreaming(true)
 
     try {
@@ -129,7 +135,7 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
           conversationId: null,
           message: text,
           history,
-          attachment: currentAttachment ? { type: currentAttachment.type, data: currentAttachment.data, mediaType: currentAttachment.mediaType } : undefined,
+          attachments: currentAttachments.map(a => ({ type: a.type, data: a.data, mediaType: a.mediaType })),
         }),
       })
 
@@ -188,28 +194,19 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
       {/* Side Panel */}
       {open && (
         <>
-          <div
-            className="fixed inset-0 bg-black/30 z-40 sm:hidden"
-            onClick={() => setOpen(false)}
-          />
+          <div className="fixed inset-0 bg-black/30 z-40 sm:hidden" onClick={() => setOpen(false)} />
 
           <div className="fixed right-0 top-0 bottom-0 w-full sm:right-4 sm:top-4 sm:bottom-4 sm:w-[380px] bg-white dark:bg-[#0d1020] z-50 flex flex-col shadow-2xl sm:rounded-2xl overflow-hidden">
             {/* Header */}
             <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100 dark:border-[#1e2030] shrink-0">
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
-                style={{ backgroundColor: '#b48840' }}
-              >
+              <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: '#b48840' }}>
                 <RobotIcon className="w-4 h-4 text-white" />
               </div>
               <div className="flex-1">
                 <p className="font-semibold text-sm text-gray-900 dark:text-white">Proteíno</p>
                 <p className="text-xs text-gray-400">Assistente de nutrição</p>
               </div>
-              <button
-                onClick={() => setOpen(false)}
-                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg transition"
-              >
+              <button onClick={() => setOpen(false)} className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg transition">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -220,22 +217,14 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {messages.length === 0 && (
                 <div className="text-center pt-8 px-2">
-                  <div
-                    className="w-14 h-14 rounded-full mx-auto flex items-center justify-center mb-3"
-                    style={{ backgroundColor: '#f5efe3' }}
-                  >
+                  <div className="w-14 h-14 rounded-full mx-auto flex items-center justify-center mb-3" style={{ backgroundColor: '#f5efe3' }}>
                     <RobotIcon className="w-7 h-7" style={{ color: '#b48840' } as React.CSSProperties} />
                   </div>
                   <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Olá! Sou o Proteíno</p>
                   <p className="text-xs text-gray-400 mt-1 mb-5">Seu assistente de nutrição. Como posso ajudar?</p>
-
                   <div className="flex flex-col gap-2 text-left">
                     {SUGGESTIONS.map(s => (
-                      <button
-                        key={s}
-                        onClick={() => sendMessage(s)}
-                        className="text-xs px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-[#b48840] hover:text-[#7a5c10] dark:hover:text-[#b48840] transition text-left"
-                      >
+                      <button key={s} onClick={() => sendMessage(s)} className="text-xs px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-[#b48840] hover:text-[#7a5c10] dark:hover:text-[#b48840] transition text-left">
                         {s}
                       </button>
                     ))}
@@ -247,18 +236,20 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
                 <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div
                     className={`max-w-[82%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
-                      msg.role === 'user'
-                        ? 'text-white rounded-tr-sm'
-                        : 'bg-gray-100 dark:bg-[#1a1f35] text-gray-800 dark:text-gray-200 rounded-tl-sm'
+                      msg.role === 'user' ? 'text-white rounded-tr-sm' : 'bg-gray-100 dark:bg-[#1a1f35] text-gray-800 dark:text-gray-200 rounded-tl-sm'
                     }`}
                     style={msg.role === 'user' ? { backgroundColor: '#b48840' } : undefined}
                   >
-                    {msg.attachmentName && (
-                      <div className="flex items-center gap-1.5 mb-1.5 opacity-80">
-                        <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
-                        </svg>
-                        <span className="text-xs truncate max-w-[160px]">{msg.attachmentName}</span>
+                    {msg.attachmentNames && msg.attachmentNames.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-1.5">
+                        {msg.attachmentNames.map((name, ni) => (
+                          <div key={ni} className="flex items-center gap-1 opacity-80">
+                            <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
+                            </svg>
+                            <span className="text-[11px] truncate max-w-[130px]">{name}</span>
+                          </div>
+                        ))}
                       </div>
                     )}
                     {msg.content || (
@@ -276,42 +267,47 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
 
             {/* Input */}
             <div className="px-4 py-3 border-t border-gray-100 dark:border-[#1e2030] shrink-0">
-              {/* Preview do anexo */}
-              {attachment && (
-                <div className="flex items-center gap-2 mb-2 p-2 rounded-xl bg-gray-50 dark:bg-[#1a1f35] border border-gray-200 dark:border-gray-600">
-                  {attachment.previewUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={attachment.previewUrl} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />
-                  ) : (
-                    <div className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-900/20 flex items-center justify-center shrink-0">
-                      <svg className="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                      </svg>
+              {/* Preview dos anexos */}
+              {attachments.length > 0 && (
+                <div className="flex gap-2 mb-2 overflow-x-auto pb-1">
+                  {attachments.map((att, i) => (
+                    <div key={i} className="relative shrink-0">
+                      {att.previewUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={att.previewUrl} alt="" className="w-14 h-14 rounded-xl object-cover border border-gray-200 dark:border-gray-600" />
+                      ) : (
+                        <div className="w-14 h-14 rounded-xl bg-red-50 dark:bg-red-900/20 border border-gray-200 dark:border-gray-600 flex flex-col items-center justify-center gap-0.5 px-1">
+                          <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                          </svg>
+                          <span className="text-[9px] text-gray-500 dark:text-gray-400 truncate w-full text-center px-0.5">PDF</span>
+                        </div>
+                      )}
+                      <button
+                        onClick={() => removeAttachment(i)}
+                        className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900 rounded-full flex items-center justify-center"
+                        style={{ width: '18px', height: '18px' }}
+                      >
+                        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
                     </div>
-                  )}
-                  <span className="text-xs text-gray-600 dark:text-gray-400 truncate flex-1">{attachment.name}</span>
-                  <button
-                    onClick={() => setAttachment(null)}
-                    className="p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded transition shrink-0"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
+                  ))}
                 </div>
               )}
 
               {/* Inputs ocultos */}
-              <input ref={fileInputRef} type="file" accept="image/*,application/pdf" onChange={handleFileChange} className="hidden" />
+              <input ref={fileInputRef} type="file" accept="image/*,application/pdf" multiple onChange={handleFileChange} className="hidden" />
               <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleCameraChange} className="hidden" />
 
               <div className="flex gap-1.5 items-end">
-                {/* Anexar arquivo */}
+                {/* Anexar */}
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={streaming}
                   className="w-9 h-9 shrink-0 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500 flex items-center justify-center transition disabled:opacity-40"
-                  title="Anexar imagem ou PDF"
+                  title="Anexar imagens ou PDF"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
@@ -362,7 +358,7 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
                 {/* Enviar */}
                 <button
                   onClick={() => sendMessage(input)}
-                  disabled={(!input.trim() && !attachment) || streaming}
+                  disabled={(!input.trim() && attachments.length === 0) || streaming}
                   className="w-9 h-9 shrink-0 rounded-xl text-white flex items-center justify-center transition hover:opacity-90 disabled:opacity-40"
                   style={{ backgroundColor: '#b48840' }}
                 >

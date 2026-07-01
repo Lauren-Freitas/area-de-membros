@@ -25,7 +25,8 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return new Response('Unauthorized', { status: 401 })
 
-  const { conversationId, message, history, attachment } = await req.json()
+  const { conversationId, message, history, attachments } = await req.json()
+  const attachmentList: { type: string; data: string; mediaType: string }[] = attachments ?? []
 
   // Salvar mensagem do usuário (apenas quando há conversationId — painel inline não persiste)
   if (conversationId) {
@@ -36,30 +37,34 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  // Montar conteúdo da última mensagem (texto + possível imagem/PDF)
+  // Montar conteúdo da última mensagem (texto + anexos)
   type ContentPart = Anthropic.TextBlockParam | Anthropic.ImageBlockParam | Anthropic.DocumentBlockParam
   const lastContent: ContentPart[] = []
 
-  if (attachment?.type === 'image') {
-    lastContent.push({
-      type: 'image',
-      source: {
-        type: 'base64',
-        media_type: attachment.mediaType as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
-        data: attachment.data,
-      },
-    })
-  } else if (attachment?.type === 'document') {
-    lastContent.push({
-      type: 'document',
-      source: { type: 'base64', media_type: 'application/pdf', data: attachment.data },
-    })
+  for (const att of attachmentList) {
+    if (att.type === 'image') {
+      lastContent.push({
+        type: 'image',
+        source: {
+          type: 'base64',
+          media_type: att.mediaType as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
+          data: att.data,
+        },
+      })
+    } else if (att.type === 'document') {
+      lastContent.push({
+        type: 'document',
+        source: { type: 'base64', media_type: 'application/pdf', data: att.data },
+      })
+    }
   }
 
-  lastContent.push({
-    type: 'text',
-    text: message || (attachment?.type === 'image' ? 'O que você vê nessa imagem?' : 'Analise este documento.'),
-  })
+  const hasImages = attachmentList.some(a => a.type === 'image')
+  const defaultPrompt = attachmentList.length > 0
+    ? (hasImages ? 'O que você vê nessas imagens?' : 'Analise estes documentos.')
+    : ''
+
+  lastContent.push({ type: 'text', text: message || defaultPrompt })
 
   // Montar histórico para a API
   const messages: Anthropic.MessageParam[] = [
