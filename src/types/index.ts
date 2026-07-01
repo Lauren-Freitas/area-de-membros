@@ -10,6 +10,10 @@ export interface Profile {
   role: UserRole
   asaas_customer_id: string | null
   is_active?: boolean
+  phone?: string | null
+  bio?: string | null
+  avatar_url?: string | null
+  timezone?: string | null
   created_at: string
 }
 

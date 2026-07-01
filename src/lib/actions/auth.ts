@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
-export type AuthState = { error: string } | undefined
+export type AuthState = { error?: string; success?: string } | undefined
 
 export async function login(prevState: AuthState, formData: FormData): Promise<AuthState> {
   const email = formData.get('email') as string
@@ -47,6 +47,21 @@ export async function setPassword(prevState: AuthState, formData: FormData): Pro
   }
 
   redirect('/dashboard')
+}
+
+export async function resetPassword(prevState: AuthState, formData: FormData): Promise<AuthState> {
+  const email = (formData.get('email') as string)?.trim().toLowerCase()
+  if (!email) return { error: 'Informe seu email.' }
+
+  const supabase = await createClient()
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${appUrl}/auth/callback?next=/nova-senha`,
+  })
+
+  if (error) return { error: 'Não foi possível enviar o email. Verifique o endereço e tente novamente.' }
+
+  return { success: 'Email enviado! Verifique sua caixa de entrada e clique no link para redefinir sua senha.' }
 }
 
 export async function logout() {
