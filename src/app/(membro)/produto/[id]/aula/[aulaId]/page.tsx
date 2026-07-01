@@ -129,50 +129,63 @@ export default async function AulaPage({
             />
           </div>
 
-          {/* Botão de conclusão + avaliação + navegação */}
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-4 flex-wrap">
-              <LessonCompleteButton lessonId={aulaId} productId={id} completed={isCompleted} />
-              <LessonRating lessonId={aulaId} productId={id} initialRating={myRating} />
+          {/* Comentários + Ações lado a lado (igual MemberKit) */}
+          <div className="grid grid-cols-1 sm:grid-cols-[1fr_220px] gap-4 items-start">
+
+            {/* Comentários */}
+            <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
+              <LessonComments
+                lessonId={aulaId}
+                productId={id}
+                currentUserId={user.id}
+                isAdmin={isAdmin}
+                initialComments={comments}
+              />
             </div>
 
-            <div className="flex items-center gap-2 ml-auto">
-              {prevLesson && (
-                <Link
-                  href={`/produto/${id}/aula/${prevLesson.id}`}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                  </svg>
-                  Anterior
-                </Link>
-              )}
-              {nextLesson && (
-                <Link
-                  href={`/produto/${id}/aula/${nextLesson.id}`}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition hover:opacity-90"
-                  style={{ backgroundColor: '#b48840' }}
-                >
-                  Próxima aula
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
-                </Link>
+            {/* Painel de ações */}
+            <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5 flex flex-col gap-5">
+              {/* Avaliação */}
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Avaliação</p>
+                <LessonRating lessonId={aulaId} productId={id} initialRating={myRating} />
+              </div>
+
+              {/* Marcar como concluído */}
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Progresso</p>
+                <LessonCompleteButton lessonId={aulaId} productId={id} completed={isCompleted} />
+              </div>
+
+              {/* Navegação */}
+              {(prevLesson || nextLesson) && (
+                <div className="flex flex-col gap-2 pt-1 border-t border-gray-100 dark:border-[#1e2030]">
+                  {prevLesson && (
+                    <Link
+                      href={`/produto/${id}/aula/${prevLesson.id}`}
+                      className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                      </svg>
+                      Anterior
+                    </Link>
+                  )}
+                  {nextLesson && (
+                    <Link
+                      href={`/produto/${id}/aula/${nextLesson.id}`}
+                      className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-white transition hover:opacity-90"
+                      style={{ backgroundColor: '#b48840' }}
+                    >
+                      Próxima aula
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                  )}
+                </div>
               )}
             </div>
-          </div>
-
-
-          {/* Comentários */}
-          <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
-            <LessonComments
-              lessonId={aulaId}
-              productId={id}
-              currentUserId={user.id}
-              isAdmin={isAdmin}
-              initialComments={comments}
-            />
           </div>
         </div>
 
