@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 
 type Message = { role: 'user' | 'assistant'; content: string; attachmentNames?: string[] }
-type Attachment = { type: 'image' | 'document'; data: string; mediaType: string; name: string; previewUrl?: string }
+type Attachment = { type: 'image' | 'document'; data: string; mediaType: string; name: string; previewUrl?: string; isVideo?: boolean }
 
 const SUGGESTIONS = [
   'O que comer antes de treinar?',
@@ -41,11 +41,45 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  function extractVideoFrame(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video')
+      video.preload = 'metadata'
+      video.muted = true
+      video.playsInline = true
+      const url = URL.createObjectURL(file)
+      video.src = url
+      video.onloadedmetadata = () => { video.currentTime = Math.min(1, video.duration / 2) }
+      video.onseeked = () => {
+        const canvas = document.createElement('canvas')
+        const maxW = 1280
+        canvas.width = Math.min(video.videoWidth, maxW)
+        canvas.height = Math.round((video.videoHeight / video.videoWidth) * canvas.width)
+        canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height)
+        URL.revokeObjectURL(url)
+        resolve(canvas.toDataURL('image/jpeg', 0.85))
+      }
+      video.onerror = reject
+    })
+  }
+
   function readFileAsAttachment(file: File): Promise<Attachment | null> {
-    const maxSize = file.type === 'application/pdf' ? 20 * 1024 * 1024 : 5 * 1024 * 1024
+    const isVideo = file.type.startsWith('video/')
+    const isPdf = file.type === 'application/pdf'
+    const maxSize = isPdf ? 20 * 1024 * 1024 : isVideo ? 500 * 1024 * 1024 : 5 * 1024 * 1024
     if (file.size > maxSize) {
-      alert(`${file.name}: muito grande (máx. ${file.type === 'application/pdf' ? '20MB' : '5MB'}).`)
+      alert(`${file.name}: muito grande (máx. ${isPdf ? '20MB' : isVideo ? '500MB' : '5MB'}).`)
       return Promise.resolve(null)
+    }
+    if (isVideo) {
+      return extractVideoFrame(file).then(frameDataUrl => ({
+        type: 'image' as const,
+        data: frameDataUrl.split(',')[1],
+        mediaType: 'image/jpeg',
+        name: file.name,
+        previewUrl: frameDataUrl,
+        isVideo: true,
+      })).catch(() => null)
     }
     return new Promise(resolve => {
       const reader = new FileReader()
@@ -273,8 +307,17 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
                   {attachments.map((att, i) => (
                     <div key={i} className="relative shrink-0">
                       {att.previewUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={att.previewUrl} alt="" className="w-14 h-14 rounded-xl object-cover border border-gray-200 dark:border-gray-600" />
+                        <div className="relative w-14 h-14 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-600">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={att.previewUrl} alt="" className="w-full h-full object-cover" />
+                          {att.isVideo && (
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
                       ) : (
                         <div className="w-14 h-14 rounded-xl bg-red-50 dark:bg-red-900/20 border border-gray-200 dark:border-gray-600 flex flex-col items-center justify-center gap-0.5 px-1">
                           <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -299,7 +342,7 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
 
               {/* Inputs ocultos */}
               <input ref={fileInputRef} type="file" accept="image/*,application/pdf" multiple onChange={handleFileChange} className="hidden" />
-              <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleCameraChange} className="hidden" />
+              <input ref={cameraInputRef} type="file" accept="image/*,video/*" capture="environment" onChange={handleCameraChange} className="hidden" />
 
               <div className="flex gap-1.5 items-end">
                 {/* Anexar */}
