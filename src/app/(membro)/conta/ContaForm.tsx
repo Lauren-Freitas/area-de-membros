@@ -182,8 +182,11 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
                   name="phone_ddi"
                   value={selectedDdi}
                   onChange={e => setSelectedDdi(e.target.value)}
-                  className="shrink-0 w-[6.5rem] px-2 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:border-transparent transition"
-                  style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+                  className="shrink-0 px-2 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:border-transparent transition"
+                  style={{
+                    '--tw-ring-color': '#b48840',
+                    width: selectedDdi.length <= 2 ? '4.5rem' : selectedDdi.length <= 3 ? '5rem' : '5.75rem',
+                  } as React.CSSProperties}
                 >
                   {COUNTRIES.map(c => (
                     <option key={c.ddi + c.name} value={c.ddi}>
