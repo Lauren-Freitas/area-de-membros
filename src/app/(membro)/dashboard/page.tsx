@@ -121,25 +121,17 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* Meus conteúdos */}
+      {/* Grade unificada — desbloqueados + bloqueados (com cadeado) */}
       <section>
-        <div className="mb-5">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Meus conteúdos</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {myProducts.length === 0
-              ? 'Você ainda não tem nenhum conteúdo desbloqueado.'
-              : `${myProducts.length} conteúdo${myProducts.length !== 1 ? 's' : ''} disponível${myProducts.length !== 1 ? 'is' : ''}.`}
-          </p>
-        </div>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-5">Meus conteúdos</h1>
 
-        {myProducts.length === 0 ? (
-          <div className="text-center py-12 bg-white dark:bg-[#0d1020] rounded-2xl border border-dashed border-gray-200 dark:border-[#1e2030] text-gray-400 dark:text-gray-500">
-            <p className="font-medium">Nenhum conteúdo desbloqueado ainda.</p>
-            <p className="text-sm mt-1">Confira os produtos disponíveis abaixo.</p>
+        {allProducts.length === 0 ? (
+          <div className="text-center py-20 text-gray-400 dark:text-gray-500">
+            <p className="text-lg font-medium">Nenhum conteúdo disponível ainda.</p>
           </div>
         ) : (
           <div className="space-y-8">
-            {myGroups.map(({ label, products: group }) => (
+            {groupByCategory(allProducts).map(({ label, products: group }) => (
               <div key={label ?? '_all'}>
                 {label && (
                   <h2 className="text-base font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
@@ -152,7 +144,7 @@ export default async function DashboardPage() {
                     <ProductCard
                       key={product.id}
                       product={product}
-                      unlocked={true}
+                      unlocked={unlockedIds.has(product.id)}
                       expiresAt={accessMap.get(product.id) ?? null}
                       progress={progressByProduct[product.id] ?? null}
                       certificateId={certByProduct[product.id] ?? null}
@@ -181,42 +173,6 @@ export default async function DashboardPage() {
             })}
           </div>
         </section>
-      )}
-
-      {/* Vitrine — produtos não adquiridos */}
-      {storeProducts.length > 0 && (
-        <section>
-          <div className="mb-5">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Também disponível para você</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Conteúdos que você ainda pode adquirir.
-            </p>
-          </div>
-          <div className="space-y-8">
-            {storeGroups.map(({ label, products: group }) => (
-              <div key={label ?? '_all'}>
-                {label && (
-                  <h2 className="text-base font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                    <span className="w-1 h-4 rounded-full inline-block" style={{ backgroundColor: '#b48840' }} />
-                    {label}
-                  </h2>
-                )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {group.map((product) => (
-                    <ProductCard key={product.id} product={product} unlocked={false} />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {allProducts.length === 0 && (
-        <div className="text-center py-20 text-gray-400 dark:text-gray-500">
-          <p className="text-lg font-medium">Nenhum conteúdo disponível ainda.</p>
-          <p className="text-sm mt-1">Os produtos aparecerão aqui quando forem publicados.</p>
-        </div>
       )}
     </div>
   )

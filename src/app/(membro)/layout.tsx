@@ -74,7 +74,6 @@ export default async function MemberLayout({ children }: { children: React.React
           {myProducts.map(p => (
             <NavLink key={p.id} href={`/produto/${p.id}`} label={p.title} />
           ))}
-          {hasLocked && <NavLink href="/dashboard" label="Disponíveis" />}
         </div>
       </nav>
 
