@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { markProductComplete, unmarkProductComplete } from '@/lib/actions/product-actions'
 
 interface Props {
@@ -11,12 +12,15 @@ interface Props {
 export function ProductCompleteButton({ productId, completed: initial }: Props) {
   const [completed, setCompleted] = useState(initial)
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
 
   function toggle() {
-    setCompleted(v => !v)
+    const next = !completed
+    setCompleted(next)
     startTransition(async () => {
-      if (!completed) await markProductComplete(productId)
+      if (next) await markProductComplete(productId)
       else await unmarkProductComplete(productId)
+      router.refresh()
     })
   }
 

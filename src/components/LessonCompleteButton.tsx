@@ -1,5 +1,6 @@
 'use client'
 import { useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { toggleLessonComplete } from '@/lib/actions/progress'
 
 interface Props {
@@ -10,9 +11,13 @@ interface Props {
 
 export function LessonCompleteButton({ lessonId, productId, completed }: Props) {
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
 
   function handleClick() {
-    startTransition(() => toggleLessonComplete(lessonId, productId, completed))
+    startTransition(async () => {
+      await toggleLessonComplete(lessonId, productId, completed)
+      router.refresh()
+    })
   }
 
   return (
