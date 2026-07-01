@@ -2,7 +2,6 @@
 
 import { useActionState, useState, useRef } from 'react'
 import { updateMemberProfile, updateMemberPassword } from '@/lib/actions/member'
-import Image from 'next/image'
 import Link from 'next/link'
 
 const COUNTRIES = [
@@ -123,11 +122,10 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
           <div className="flex items-center gap-5">
             <div className="relative">
               {avatarPreview ? (
-                <Image
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
                   src={avatarPreview}
                   alt="Avatar"
-                  width={72}
-                  height={72}
                   className="rounded-full object-cover w-[72px] h-[72px] border-2 border-gray-100 dark:border-[#1e2030]"
                 />
               ) : (

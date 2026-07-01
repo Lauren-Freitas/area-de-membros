@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { logout } from '@/lib/actions/auth'
 import Link from 'next/link'
-import Image from 'next/image'
 
 interface Props {
   name: string
@@ -36,11 +35,10 @@ export function ProfileMenu({ name, avatarUrl, unreadCount }: Props) {
         aria-label="Menu do perfil"
       >
         {avatarUrl ? (
-          <Image
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
             src={avatarUrl}
             alt={name}
-            width={36}
-            height={36}
             className="rounded-full object-cover w-9 h-9"
           />
         ) : (
