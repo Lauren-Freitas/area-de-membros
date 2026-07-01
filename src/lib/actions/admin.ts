@@ -35,18 +35,15 @@ export async function saveProduct(
   const id = formData.get('id') as string | null
   const title = (formData.get('title') as string)?.trim()
   const description = (formData.get('description') as string)?.trim()
-  const content_type = formData.get('content_type') as string
-  const content_url = (formData.get('content_url') as string)?.trim() || null
   const banner_url = (formData.get('banner_url') as string)?.trim() || null
   const is_pack = formData.get('is_pack') === 'on'
   const sort_order = parseInt(formData.get('sort_order') as string) || 0
   const is_active = formData.get('is_active') === 'on'
 
   if (!title) return { error: 'O título é obrigatório.' }
-  if (!content_type) return { error: 'O tipo de conteúdo é obrigatório.' }
 
   const buy_url = (formData.get('buy_url') as string)?.trim() || null
-  const payload = { title, description: description || '', content_type, content_url, banner_url, buy_url, is_pack, sort_order, is_active }
+  const payload = { title, description: description || '', banner_url, buy_url, is_pack, sort_order, is_active }
 
   const isNew = !id || id === 'novo'
   const { error } = isNew

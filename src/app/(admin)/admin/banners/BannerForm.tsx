@@ -22,7 +22,7 @@ export function BannerForm({ banner }: { banner: Banner | null }) {
           defaultValue={banner?.title ?? ''}
           required
           placeholder="Ex: Nova aula disponível!"
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
         />
       </div>
 
@@ -33,7 +33,7 @@ export function BannerForm({ banner }: { banner: Banner | null }) {
           defaultValue={banner?.body ?? ''}
           rows={3}
           placeholder="Texto adicional explicando o banner..."
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent resize-none"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent resize-none"
         />
       </div>
 
@@ -44,7 +44,7 @@ export function BannerForm({ banner }: { banner: Banner | null }) {
             name="link"
             defaultValue={banner?.link ?? ''}
             placeholder="https://..."
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
           />
         </div>
         <div>
@@ -53,7 +53,7 @@ export function BannerForm({ banner }: { banner: Banner | null }) {
             name="link_label"
             defaultValue={banner?.link_label ?? 'Ver mais'}
             placeholder="Ver mais"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
           />
         </div>
       </div>
@@ -78,7 +78,7 @@ export function BannerForm({ banner }: { banner: Banner | null }) {
             name="sort_order"
             type="number"
             defaultValue={banner?.sort_order ?? 0}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
           />
         </div>
       </div>
@@ -89,7 +89,7 @@ export function BannerForm({ banner }: { banner: Banner | null }) {
           name="expires_at"
           type="datetime-local"
           defaultValue={banner?.expires_at ? banner.expires_at.slice(0, 16) : ''}
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
         />
       </div>
 
