@@ -35,6 +35,7 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
     return acc + (m.lessons?.filter(l => l.is_published && completedSet.has(l.id)).length ?? 0)
   }, 0)
   const overallPct = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
+  const hasPublishedLessons = totalLessons > 0
 
   const lessonTypeIcon: Record<string, string> = {
     video: '▶',
@@ -94,7 +95,7 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
         </div>
       )}
 
-      {mods.length > 0 ? (
+      {hasPublishedLessons ? (
         <div className="space-y-4">
           {mods.map((mod, idx) => {
             const lessons = [...(mod.lessons ?? [])].filter(l => l.is_published).sort((a, b) => a.sort_order - b.sort_order)
