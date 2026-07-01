@@ -48,6 +48,21 @@ export default async function DashboardPage() {
   const myProducts = allProducts.filter((p) => unlockedIds.has(p.id))
   const storeProducts = allProducts.filter((p) => !unlockedIds.has(p.id))
 
+  // Agrupamento por categoria (se houver algum produto com categoria definida)
+  const hasCategories = allProducts.some(p => p.category)
+  function groupByCategory(items: Product[]): { label: string | null; products: Product[] }[] {
+    if (!hasCategories) return [{ label: null, products: items }]
+    const map = new Map<string, Product[]>()
+    for (const p of items) {
+      const key = p.category ?? 'Outros'
+      if (!map.has(key)) map.set(key, [])
+      map.get(key)!.push(p)
+    }
+    return Array.from(map.entries()).map(([label, products]) => ({ label, products }))
+  }
+  const myGroups = groupByCategory(myProducts)
+  const storeGroups = groupByCategory(storeProducts)
+
   // Calcula progresso para produtos desbloqueados
   const progressByProduct: Record<string, { total: number; completed: number }> = {}
   if (myProducts.length > 0) {
@@ -123,16 +138,28 @@ export default async function DashboardPage() {
             <p className="text-sm mt-1">Confira os produtos disponíveis abaixo.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {myProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                unlocked={true}
-                expiresAt={accessMap.get(product.id) ?? null}
-                progress={progressByProduct[product.id] ?? null}
-                certificateId={certByProduct[product.id] ?? null}
-              />
+          <div className="space-y-8">
+            {myGroups.map(({ label, products: group }) => (
+              <div key={label ?? '_all'}>
+                {label && (
+                  <h2 className="text-base font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <span className="w-1 h-4 rounded-full inline-block" style={{ backgroundColor: '#b48840' }} />
+                    {label}
+                  </h2>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {group.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      unlocked={true}
+                      expiresAt={accessMap.get(product.id) ?? null}
+                      progress={progressByProduct[product.id] ?? null}
+                      certificateId={certByProduct[product.id] ?? null}
+                    />
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         )}
@@ -165,9 +192,21 @@ export default async function DashboardPage() {
               Conteúdos que você ainda pode adquirir.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {storeProducts.map((product) => (
-              <ProductCard key={product.id} product={product} unlocked={false} />
+          <div className="space-y-8">
+            {storeGroups.map(({ label, products: group }) => (
+              <div key={label ?? '_all'}>
+                {label && (
+                  <h2 className="text-base font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <span className="w-1 h-4 rounded-full inline-block" style={{ backgroundColor: '#b48840' }} />
+                    {label}
+                  </h2>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {group.map((product) => (
+                    <ProductCard key={product.id} product={product} unlocked={false} />
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </section>

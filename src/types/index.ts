@@ -29,6 +29,7 @@ export interface Product {
   is_active: boolean
   is_pack: boolean
   sort_order: number
+  category: string | null
   created_at: string
 }
 
