@@ -10,6 +10,7 @@ async function asaasGet(path: string) {
 }
 
 export async function getAsaasCustomer(customerId: string): Promise<{
+  id: string
   name: string
   email: string
   cpfCnpj: string | null
@@ -25,4 +26,57 @@ export async function getAsaasPayment(paymentId: string): Promise<{
   status: string
 }> {
   return asaasGet(`/payments/${paymentId}`)
+}
+
+export interface AsaasPayment {
+  id: string
+  customer: string
+  description: string | null
+  billingType: string
+  value: number
+  status: string
+  dueDate: string
+  paymentDate: string | null
+  invoiceUrl: string | null
+  bankSlipUrl: string | null
+  externalReference: string | null
+}
+
+export interface AsaasSubscription {
+  id: string
+  customer: string
+  description: string | null
+  billingType: string
+  value: number
+  status: string
+  nextDueDate: string | null
+  cycle: string
+  externalReference: string | null
+}
+
+export async function getCustomerPayments(customerId: string): Promise<AsaasPayment[]> {
+  try {
+    const data = await asaasGet(`/payments?customer=${customerId}&limit=50&offset=0`)
+    return data?.data ?? []
+  } catch {
+    return []
+  }
+}
+
+export async function getCustomerSubscriptions(customerId: string): Promise<AsaasSubscription[]> {
+  try {
+    const data = await asaasGet(`/subscriptions?customer=${customerId}&limit=20&offset=0`)
+    return data?.data ?? []
+  } catch {
+    return []
+  }
+}
+
+export async function findCustomerByEmail(email: string): Promise<{ id: string; name: string } | null> {
+  try {
+    const data = await asaasGet(`/customers?email=${encodeURIComponent(email)}&limit=1`)
+    return data?.data?.[0] ?? null
+  } catch {
+    return null
+  }
 }
