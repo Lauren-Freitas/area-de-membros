@@ -51,7 +51,7 @@ export default async function AulaPage({
       .from('lesson_progress')
       .select('lesson_id')
       .eq('user_id', user.id),
-    supabase.from('profiles').select('role').eq('id', user.id).single(),
+    supabase.from('profiles').select('role, name, avatar_url').eq('id', user.id).single(),
     supabase
       .from('lesson_comments')
       .select('*, profiles(name)')
@@ -68,6 +68,10 @@ export default async function AulaPage({
   const completedSet = new Set(progressRows?.map(p => p.lesson_id) ?? [])
   const isCompleted = completedSet.has(aulaId)
   const isAdmin = profile?.role === 'admin'
+  const userInitials = (profile as { name?: string } | null)?.name
+    ? (profile as { name: string }).name.split(' ').slice(0, 2).map((n: string) => n[0]).join('').toUpperCase()
+    : 'EU'
+  const userAvatarUrl = (profile as { avatar_url?: string | null } | null)?.avatar_url ?? null
   const myRating = ratingData?.rating ?? null
   const comments = (commentsData ?? []) as LessonComment[]
 
@@ -87,15 +91,55 @@ export default async function AulaPage({
         {/* Coluna principal */}
         <div className="min-w-0 space-y-6">
           <div>
-            <Link
-              href={`/produto/${id}`}
-              className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition mb-2"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-              Voltar ao curso
-            </Link>
+            <div className="flex items-center justify-between mb-2">
+              <Link
+                href={`/produto/${id}`}
+                className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+                Voltar ao curso
+              </Link>
+
+              {/* Setas prev / next */}
+              <div className="flex items-center gap-1">
+                {prevLesson ? (
+                  <Link
+                    href={`/produto/${id}/aula/${prevLesson.id}`}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                    title="Aula anterior"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </Link>
+                ) : (
+                  <span className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-100 dark:border-gray-700 text-gray-300 dark:text-gray-600 cursor-not-allowed">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </span>
+                )}
+                {nextLesson ? (
+                  <Link
+                    href={`/produto/${id}/aula/${nextLesson.id}`}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                    title="Próxima aula"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                ) : (
+                  <span className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-100 dark:border-gray-700 text-gray-300 dark:text-gray-600 cursor-not-allowed">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </span>
+                )}
+              </div>
+            </div>
 
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{l.modules?.title}</p>
             <div className="flex items-start gap-3 mb-1">
@@ -140,6 +184,8 @@ export default async function AulaPage({
                 currentUserId={user.id}
                 isAdmin={isAdmin}
                 initialComments={comments}
+                userInitials={userInitials}
+                userAvatarUrl={userAvatarUrl}
               />
             </div>
 

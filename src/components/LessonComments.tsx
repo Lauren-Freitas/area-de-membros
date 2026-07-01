@@ -9,6 +9,8 @@ interface Props {
   currentUserId: string
   isAdmin: boolean
   initialComments: LessonComment[]
+  userInitials?: string
+  userAvatarUrl?: string | null
 }
 
 function timeAgo(date: string) {
@@ -28,7 +30,7 @@ function initials(name: string) {
   return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()
 }
 
-export function LessonComments({ lessonId, productId, currentUserId, isAdmin, initialComments }: Props) {
+export function LessonComments({ lessonId, productId, currentUserId, isAdmin, initialComments, userInitials = 'EU', userAvatarUrl }: Props) {
   const [comments, setComments] = useState(initialComments)
   const [text, setText] = useState('')
   const [isPending, startTransition] = useTransition()
@@ -65,9 +67,13 @@ export function LessonComments({ lessonId, productId, currentUserId, isAdmin, in
 
       {/* Form */}
       <div className="flex gap-3 mb-6">
-        <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: '#b48840' }}>
-          EU
-        </div>
+        {userAvatarUrl ? (
+          <img src={userAvatarUrl} alt="Você" className="w-8 h-8 rounded-full shrink-0 object-cover" />
+        ) : (
+          <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: '#b48840' }}>
+            {userInitials}
+          </div>
+        )}
         <div className="flex-1">
           <textarea
             value={text}

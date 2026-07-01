@@ -5,6 +5,7 @@ import { Product, Module, Lesson } from '@/types'
 import { ProductCompleteButton } from '@/components/ProductCompleteButton'
 import { ProductRating } from '@/components/ProductRating'
 import { ProductComments } from '@/components/ProductComments'
+import { VideoFocusLesson } from '@/components/VideoFocusLesson'
 
 export default async function ProdutoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -19,7 +20,7 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
     supabase.from('modules').select('*, lessons(*)').eq('product_id', id).order('sort_order'),
     supabase.from('lesson_progress').select('lesson_id').eq('user_id', user.id),
     supabase.from('certificates').select('id').eq('user_id', user.id).eq('product_id', id).maybeSingle(),
-    supabase.from('profiles').select('role').eq('id', user.id).single(),
+    supabase.from('profiles').select('role, name, avatar_url').eq('id', user.id).single(),
   ])
 
   if (!product || !access) redirect('/dashboard')
@@ -40,6 +41,10 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
   const completedSet = new Set(progressRows?.map(r => r.lesson_id) ?? [])
   const isAdmin = profile?.role === 'admin'
   const isProductCompleted = (access as { is_completed?: boolean | null })?.is_completed ?? false
+  const userInitials = (profile as { name?: string } | null)?.name
+    ? (profile as { name: string }).name.split(' ').slice(0, 2).map((n: string) => n[0]).join('').toUpperCase()
+    : 'EU'
+  const userAvatarUrl = (profile as { avatar_url?: string | null } | null)?.avatar_url ?? null
 
   const totalLessons = mods.reduce((acc, m) => acc + (m.lessons?.filter(l => l.is_published).length ?? 0), 0)
   const completedLessons = mods.reduce((acc, m) => {
@@ -188,6 +193,8 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
           isCompleted={isProductCompleted}
           myRating={myRating}
           comments={comments}
+          userInitials={userInitials}
+          userAvatarUrl={userAvatarUrl}
         />
       )}
     </div>
@@ -197,7 +204,7 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
 type CommentRow = { id: string; content: string; created_at: string; user_id: string; profiles: { name: string } | null }
 
 function SimpleProductView({
-  product, productId, userId, isAdmin, isCompleted, myRating, comments,
+  product, productId, userId, isAdmin, isCompleted, myRating, comments, userInitials, userAvatarUrl,
 }: {
   product: Product
   productId: string
@@ -206,13 +213,15 @@ function SimpleProductView({
   isCompleted: boolean
   myRating: number | null
   comments: CommentRow[]
+  userInitials: string
+  userAvatarUrl: string | null
 }) {
   return (
     <div className="space-y-4">
       {/* Conteúdo principal */}
       <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
         {product.content_type === 'video' ? (
-          <VideoContent url={product.content_url} />
+          <VideoFocusLesson url={product.content_url} />
         ) : (
           <FileContent productId={product.id} title={product.title} />
         )}
@@ -226,6 +235,8 @@ function SimpleProductView({
             currentUserId={userId}
             isAdmin={isAdmin}
             initialComments={comments}
+            userInitials={userInitials}
+            userAvatarUrl={userAvatarUrl}
           />
         </div>
 

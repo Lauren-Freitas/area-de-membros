@@ -16,6 +16,8 @@ interface Props {
   currentUserId: string
   isAdmin: boolean
   initialComments: Comment[]
+  userInitials?: string
+  userAvatarUrl?: string | null
 }
 
 function timeAgo(date: string) {
@@ -28,7 +30,7 @@ function timeAgo(date: string) {
   return `${Math.floor(h / 24)}d atrás`
 }
 
-export function ProductComments({ productId, currentUserId, isAdmin, initialComments }: Props) {
+export function ProductComments({ productId, currentUserId, isAdmin, initialComments, userInitials = 'EU', userAvatarUrl }: Props) {
   const [comments, setComments] = useState(initialComments)
   const [text, setText] = useState('')
   const [isPending, startTransition] = useTransition()
@@ -65,6 +67,15 @@ export function ProductComments({ productId, currentUserId, isAdmin, initialComm
 
       {/* Formulário */}
       <form onSubmit={handleSubmit} className="mb-6">
+        <div className="flex gap-3 mb-3">
+          {userAvatarUrl ? (
+            <img src={userAvatarUrl} alt="Você" className="w-8 h-8 rounded-full shrink-0 object-cover mt-1" />
+          ) : (
+            <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white mt-1" style={{ backgroundColor: '#b48840' }}>
+              {userInitials}
+            </div>
+          )}
+        <div className="flex-1">
         <textarea
           value={text}
           onChange={e => setText(e.target.value)}
@@ -82,6 +93,8 @@ export function ProductComments({ productId, currentUserId, isAdmin, initialComm
           >
             Publicar
           </button>
+        </div>
+        </div>
         </div>
       </form>
 
