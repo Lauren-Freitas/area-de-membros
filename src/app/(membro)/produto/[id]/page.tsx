@@ -5,7 +5,7 @@ import { Product, Module, Lesson } from '@/types'
 import { ProductCompleteButton } from '@/components/ProductCompleteButton'
 import { ProductRating } from '@/components/ProductRating'
 import { ProductComments } from '@/components/ProductComments'
-import { VideoFocusLesson } from '@/components/VideoFocusLesson'
+import { LessonVideoPlayer } from '@/components/LessonVideoPlayer'
 
 export default async function ProdutoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -221,7 +221,12 @@ function SimpleProductView({
       {/* Conteúdo principal */}
       <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
         {product.content_type === 'video' ? (
-          <VideoFocusLesson url={product.content_url} />
+          <LessonVideoPlayer
+            url={product.content_url}
+            progressPct={isCompleted ? 100 : 0}
+            prevHref={null}
+            nextHref={null}
+          />
         ) : (
           <FileContent productId={product.id} title={product.title} />
         )}
