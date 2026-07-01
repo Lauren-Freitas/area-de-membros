@@ -8,10 +8,10 @@ interface Props {
   children: React.ReactNode
   userName: string
   userEmail: string
-  userId: string
+  userId?: string
 }
 
-export function AdminShell({ children, userName, userEmail, userId }: Props) {
+export function AdminShell({ children, userName, userEmail }: Props) {
   const [collapsed, setCollapsed] = useState(false)
   const [mounted, setMounted] = useState(false)
 
@@ -49,7 +49,7 @@ export function AdminShell({ children, userName, userEmail, userId }: Props) {
       <main className={`transition-[margin] duration-200 pt-14 lg:pt-0 ${collapsed ? 'lg:ml-16' : 'lg:ml-60'}`}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">{children}</div>
       </main>
-      <ProteinoFAB userId={userId} />
+      <ProteinoFAB />
     </div>
   )
 }

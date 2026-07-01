@@ -81,7 +81,7 @@ export default async function MemberLayout({ children }: { children: React.React
         {children}
       </main>
 
-      {user && <ProteinoFAB userId={user.id} />}
+      {user && <ProteinoFAB />}
     </div>
   )
 }

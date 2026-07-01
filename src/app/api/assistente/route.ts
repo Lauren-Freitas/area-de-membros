@@ -27,12 +27,14 @@ export async function POST(req: NextRequest) {
 
   const { conversationId, message, history } = await req.json()
 
-  // Salvar mensagem do usuário
-  await supabase.from('ai_messages').insert({
-    conversation_id: conversationId,
-    role: 'user',
-    content: message,
-  })
+  // Salvar mensagem do usuário (apenas quando há conversationId — painel inline não persiste)
+  if (conversationId) {
+    await supabase.from('ai_messages').insert({
+      conversation_id: conversationId,
+      role: 'user',
+      content: message,
+    })
+  }
 
   // Montar histórico para a API
   const messages: Anthropic.MessageParam[] = [
@@ -64,12 +66,14 @@ export async function POST(req: NextRequest) {
       }
       controller.close()
 
-      // Salvar resposta completa
-      await supabase.from('ai_messages').insert({
-        conversation_id: conversationId,
-        role: 'assistant',
-        content: fullText,
-      })
+      // Salvar resposta completa (apenas quando há conversationId)
+      if (conversationId) {
+        await supabase.from('ai_messages').insert({
+          conversation_id: conversationId,
+          role: 'assistant',
+          content: fullText,
+        })
+      }
     },
   })
 
