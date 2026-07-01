@@ -65,12 +65,19 @@ const TIMEZONES = [
   { value: 'UTC', label: 'UTC (GMT+0)' },
 ]
 
+const AI_TONES = [
+  { value: 'empatico', label: 'Empático e motivador', description: 'Acolhedor, celebra conquistas e usa linguagem encorajadora' },
+  { value: 'direto', label: 'Direto e objetivo', description: 'Respostas curtas e práticas, sem rodeios' },
+  { value: 'tecnico', label: 'Técnico e detalhado', description: 'Explica mecanismos e fundamentos com mais profundidade' },
+]
+
 interface InitialData {
   name: string
   phone: string
   bio: string
   avatar_url: string | null
   timezone: string
+  ai_tone: string
   email: string
 }
 
@@ -243,6 +250,33 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
                 <option key={tz.value} value={tz.value}>{tz.label}</option>
               ))}
             </select>
+          </div>
+
+          {/* Tom de voz do assistente */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              Tom de voz do Proteíno
+            </label>
+            <div className="flex flex-col gap-2">
+              {AI_TONES.map(tone => (
+                <label
+                  key={tone.value}
+                  className="flex items-start gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-600 cursor-pointer hover:border-[#b48840] transition has-[:checked]:border-[#b48840] has-[:checked]:bg-amber-50 dark:has-[:checked]:bg-amber-900/10"
+                >
+                  <input
+                    type="radio"
+                    name="ai_tone"
+                    value={tone.value}
+                    defaultChecked={initialData.ai_tone === tone.value}
+                    className="mt-0.5 shrink-0 accent-[#b48840]"
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{tone.label}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{tone.description}</p>
+                  </div>
+                </label>
+              ))}
+            </div>
           </div>
 
           <div className="flex items-center gap-3 pt-1">

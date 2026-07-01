@@ -20,6 +20,7 @@ export async function updateMemberProfile(
   const phone = phoneDdi && phoneNumber ? `${phoneDdi}${phoneNumber}` : (phoneNumber || null)
   const bio = (formData.get('bio') as string)?.trim() || null
   const timezone = (formData.get('timezone') as string)?.trim() || 'America/Sao_Paulo'
+  const ai_tone = (formData.get('ai_tone') as string)?.trim() || 'empatico'
 
   if (!name) return { error: 'O nome é obrigatório.' }
 
@@ -40,7 +41,7 @@ export async function updateMemberProfile(
     }
   }
 
-  const update: Record<string, unknown> = { name, phone, bio, timezone }
+  const update: Record<string, unknown> = { name, phone, bio, timezone, ai_tone }
   if (avatar_url !== undefined) update.avatar_url = avatar_url
 
   const { error } = await supabase.from('profiles').update(update).eq('id', user.id)

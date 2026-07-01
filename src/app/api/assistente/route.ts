@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     systemPrompt = MEMBER_SYSTEM_PROMPT
     // Adicionar contexto dos produtos do usuário
     const [{ data: profileData }, { data: upData }] = await Promise.all([
-      supabase.from('profiles').select('name, role').eq('id', user.id).single(),
+      supabase.from('profiles').select('name, role, ai_tone').eq('id', user.id).single(),
       supabase.from('user_products').select('product_id').eq('user_id', user.id),
     ])
     const productIds = (upData ?? []).map(up => up.product_id)
@@ -68,11 +68,18 @@ export async function POST(req: NextRequest) {
       productTitles = (productsData ?? []).map(p => p.title as string)
     }
     const isProfessional = profileData?.role === 'professional'
+    const aiTone = (profileData as { ai_tone?: string | null } | null)?.ai_tone ?? 'empatico'
+    const toneInstruction = aiTone === 'direto'
+      ? 'Tom de voz: seja direto e objetivo. Respostas curtas e práticas, sem rodeios ou introduções longas.'
+      : aiTone === 'tecnico'
+      ? 'Tom de voz: seja técnico e detalhado. Explique mecanismos, fundamentos e, quando relevante, cite estudos ou referências científicas.'
+      : 'Tom de voz: seja empático e motivador. Use linguagem acolhedora, celebre conquistas e encoraje o usuário.'
     systemPrompt += `\n\nContexto do usuário atual:
 - Nome: ${profileData?.name ?? 'Usuário'}
 - Perfil: ${isProfessional ? 'Profissional de saúde' : 'Paciente/aluno'}
 - Conteúdos adquiridos: ${productTitles.length > 0 ? productTitles.join(', ') : 'nenhum ainda'}
-${isProfessional ? 'Este usuário é um profissional de saúde — use linguagem técnica quando adequado.' : 'Este usuário é um aluno ou paciente — use linguagem acessível e motivadora.'}`
+${isProfessional ? 'Este usuário é um profissional de saúde — use linguagem técnica quando adequado.' : 'Este usuário é um aluno ou paciente — use linguagem acessível.'}
+${toneInstruction}`
   }
 
   // Montar conteúdo da última mensagem (texto + anexos)
