@@ -76,8 +76,13 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
         Voltar para meus conteúdos
       </Link>
 
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{p.title}</h1>
-      {p.description && <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">{p.description}</p>}
+      {/* Título e descrição ficam acima apenas quando há módulos (visão de curso) */}
+      {hasPublishedLessons && (
+        <>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{p.title}</h1>
+          {p.description && <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">{p.description}</p>}
+        </>
+      )}
 
       {/* Banner de certificado */}
       {certificate && (
@@ -195,6 +200,8 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
           comments={comments}
           userInitials={userInitials}
           userAvatarUrl={userAvatarUrl}
+          title={p.title}
+          description={p.description ?? null}
         />
       )}
     </div>
@@ -204,7 +211,7 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
 type CommentRow = { id: string; content: string; created_at: string; user_id: string; profiles: { name: string } | null }
 
 function SimpleProductView({
-  product, productId, userId, isAdmin, isCompleted, myRating, comments, userInitials, userAvatarUrl,
+  product, productId, userId, isAdmin, isCompleted, myRating, comments, userInitials, userAvatarUrl, title, description,
 }: {
   product: Product
   productId: string
@@ -215,6 +222,8 @@ function SimpleProductView({
   comments: CommentRow[]
   userInitials: string
   userAvatarUrl: string | null
+  title: string
+  description: string | null
 }) {
   return (
     <div className="space-y-4">
@@ -231,6 +240,12 @@ function SimpleProductView({
         ) : (
           <FileContent productId={product.id} title={product.title} />
         )}
+      </div>
+
+      {/* Título e descrição — abaixo do vídeo */}
+      <div>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h1>
+        {description && <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{description}</p>}
       </div>
 
       {/* Comentários + Ações */}

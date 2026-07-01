@@ -96,33 +96,18 @@ export default async function AulaPage({
       <div className="lg:grid lg:grid-cols-[1fr_300px] lg:gap-6 lg:items-start">
 
         {/* Coluna principal */}
-        <div className="min-w-0 space-y-6">
-          <div>
-            <Link
-              href={`/produto/${id}`}
-              className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition mb-2"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-              Voltar ao curso
-            </Link>
+        <div className="min-w-0 space-y-4">
+          <Link
+            href={`/produto/${id}`}
+            className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            Voltar ao curso
+          </Link>
 
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{l.modules?.title}</p>
-            <div className="flex items-start gap-3 mb-1">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white flex-1">{l.title}</h1>
-              {isCompleted && (
-                <span className="mt-1 shrink-0 w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: '#22c55e' }}>
-                  <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </span>
-              )}
-            </div>
-            {l.description && <p className="text-gray-500 dark:text-gray-400 text-sm">{l.description}</p>}
-          </div>
-
-          {/* Player / conteúdo */}
+          {/* Player / conteúdo — vem primeiro */}
           {l.lesson_type === 'video' ? (
             <LessonVideoPlayer
               url={l.content_url}
@@ -137,6 +122,22 @@ export default async function AulaPage({
               {l.lesson_type === 'link' && <LinkLesson url={l.content_url} title={l.title} />}
             </div>
           )}
+
+          {/* Título e descrição — abaixo do vídeo */}
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{l.modules?.title}</p>
+            <div className="flex items-start gap-3">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white flex-1">{l.title}</h1>
+              {isCompleted && (
+                <span className="mt-1 shrink-0 w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: '#22c55e' }}>
+                  <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </span>
+              )}
+            </div>
+            {l.description && <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{l.description}</p>}
+          </div>
 
           {/* Sidebar no mobile (abaixo do vídeo) */}
           <div id="lesson-sidebar" className="lg:hidden">
