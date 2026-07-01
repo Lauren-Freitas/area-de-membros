@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Lesson } from '@/types'
 import { LessonCompleteButton } from '@/components/LessonCompleteButton'
 import { LessonComments } from '@/components/LessonComments'
+import { LessonSidebar } from '@/components/LessonSidebar'
 import { LessonComment } from '@/types'
 
 export default async function AulaPage({
@@ -37,19 +38,17 @@ export default async function AulaPage({
 
   const l = lesson as Lesson & { modules: { title: string; product_id: string } }
 
-  const [{ data: siblings }, { data: progressRow }, { data: profile }, { data: commentsData }] = await Promise.all([
+  const [{ data: siblings }, { data: progressRows }, { data: profile }, { data: commentsData }] = await Promise.all([
     supabase
       .from('lessons')
-      .select('id, title, sort_order')
+      .select('id, title, sort_order, lesson_type')
       .eq('module_id', l.module_id)
       .eq('is_published', true)
       .order('sort_order'),
     supabase
       .from('lesson_progress')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('lesson_id', aulaId)
-      .maybeSingle(),
+      .select('lesson_id')
+      .eq('user_id', user.id),
     supabase.from('profiles').select('role').eq('id', user.id).single(),
     supabase
       .from('lesson_comments')
@@ -58,85 +57,122 @@ export default async function AulaPage({
       .order('created_at', { ascending: true }),
   ])
 
-  const isCompleted = !!progressRow
+  const completedSet = new Set(progressRows?.map(p => p.lesson_id) ?? [])
+  const isCompleted = completedSet.has(aulaId)
   const isAdmin = profile?.role === 'admin'
   const comments = (commentsData ?? []) as LessonComment[]
+
   const currentIdx = siblings?.findIndex(s => s.id === aulaId) ?? -1
   const prevLesson = currentIdx > 0 ? siblings![currentIdx - 1] : null
   const nextLesson = siblings && currentIdx < siblings.length - 1 ? siblings[currentIdx + 1] : null
 
+  const sidebarLessons = (siblings ?? []).map(s => ({
+    ...s,
+    completed: completedSet.has(s.id),
+  }))
+
   return (
-    <div className="max-w-3xl mx-auto">
-      <Link
-        href={`/produto/${id}`}
-        className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition mb-2"
-      >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-        </svg>
-        Voltar ao curso
-      </Link>
+    <div className="max-w-6xl mx-auto">
+      <div className="lg:grid lg:grid-cols-[1fr_300px] lg:gap-6 lg:items-start">
 
-      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{l.modules?.title}</p>
-      <div className="flex items-start gap-3 mb-2">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex-1">{l.title}</h1>
-        {isCompleted && (
-          <span className="mt-1 shrink-0 w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: '#22c55e' }}>
-            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-          </span>
-        )}
-      </div>
-      {l.description && <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">{l.description}</p>}
-
-      <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden mb-6">
-        {l.lesson_type === 'video' && <VideoLesson url={l.content_url} />}
-        {l.lesson_type === 'text' && <TextLesson content={l.content_text} />}
-        {l.lesson_type === 'file' && <FileLesson url={l.content_url} title={l.title} />}
-        {l.lesson_type === 'link' && <LinkLesson url={l.content_url} title={l.title} />}
-      </div>
-
-      {/* Comentários */}
-      <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6 mb-6">
-        <LessonComments
-          lessonId={aulaId}
-          productId={id}
-          currentUserId={user.id}
-          isAdmin={isAdmin}
-          initialComments={comments}
-        />
-      </div>
-
-      {/* Rodapé: botão de conclusão + navegação */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <LessonCompleteButton lessonId={aulaId} productId={id} completed={isCompleted} />
-
-        <div className="flex items-center gap-2 ml-auto">
-          {prevLesson && (
+        {/* Coluna principal */}
+        <div className="min-w-0 space-y-6">
+          <div>
             <Link
-              href={`/produto/${id}/aula/${prevLesson.id}`}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+              href={`/produto/${id}`}
+              className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition mb-2"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
-              Anterior
+              Voltar ao curso
             </Link>
-          )}
-          {nextLesson && (
-            <Link
-              href={`/produto/${id}/aula/${nextLesson.id}`}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition hover:opacity-90"
-              style={{ backgroundColor: '#b48840' }}
-            >
-              Próxima aula
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          )}
+
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{l.modules?.title}</p>
+            <div className="flex items-start gap-3 mb-1">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white flex-1">{l.title}</h1>
+              {isCompleted && (
+                <span className="mt-1 shrink-0 w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: '#22c55e' }}>
+                  <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </span>
+              )}
+            </div>
+            {l.description && <p className="text-gray-500 dark:text-gray-400 text-sm">{l.description}</p>}
+          </div>
+
+          {/* Player / conteúdo */}
+          <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
+            {l.lesson_type === 'video' && <VideoLesson url={l.content_url} />}
+            {l.lesson_type === 'text' && <TextLesson content={l.content_text} />}
+            {l.lesson_type === 'file' && <FileLesson url={l.content_url} title={l.title} />}
+            {l.lesson_type === 'link' && <LinkLesson url={l.content_url} title={l.title} />}
+          </div>
+
+          {/* Sidebar no mobile (abaixo do vídeo) */}
+          <div className="lg:hidden">
+            <LessonSidebar
+              productId={id}
+              moduleTitle={l.modules?.title ?? 'Módulo'}
+              lessons={sidebarLessons}
+              currentLessonId={aulaId}
+            />
+          </div>
+
+          {/* Botão de conclusão + navegação */}
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <LessonCompleteButton lessonId={aulaId} productId={id} completed={isCompleted} />
+
+            <div className="flex items-center gap-2 ml-auto">
+              {prevLesson && (
+                <Link
+                  href={`/produto/${id}/aula/${prevLesson.id}`}
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Anterior
+                </Link>
+              )}
+              {nextLesson && (
+                <Link
+                  href={`/produto/${id}/aula/${nextLesson.id}`}
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition hover:opacity-90"
+                  style={{ backgroundColor: '#b48840' }}
+                >
+                  Próxima aula
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {/* Comentários */}
+          <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
+            <LessonComments
+              lessonId={aulaId}
+              productId={id}
+              currentUserId={user.id}
+              isAdmin={isAdmin}
+              initialComments={comments}
+            />
+          </div>
         </div>
+
+        {/* Sidebar no desktop */}
+        <div className="hidden lg:block sticky top-20">
+          <LessonSidebar
+            productId={id}
+            moduleTitle={l.modules?.title ?? 'Módulo'}
+            lessons={sidebarLessons}
+            currentLessonId={aulaId}
+          />
+        </div>
+
       </div>
     </div>
   )
