@@ -14,8 +14,8 @@ const NAV_ITEMS = [
       </svg>
     ),
     children: [
-      { href: '/dashboard#meus-conteudos', label: 'Meus conteúdos' },
-      { href: '/dashboard#disponiveis', label: 'Disponíveis para compra' },
+      { href: '/dashboard?tab=meus', label: 'Meus conteúdos' },
+      { href: '/dashboard?tab=disponiveis', label: 'Disponíveis para compra' },
     ],
   },
   {

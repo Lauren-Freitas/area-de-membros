@@ -6,7 +6,8 @@ import { BannerList } from '@/components/BannerList'
 import { OfertaCard } from '@/components/OfertaCard'
 import { Product, Banner } from '@/types'
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+  const { tab } = await searchParams
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -122,44 +123,46 @@ export default async function DashboardPage() {
       )}
 
       {/* Meus conteúdos — apenas produtos desbloqueados */}
-      <section id="meus-conteudos">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-5">Meus conteúdos</h1>
+      {tab !== 'disponiveis' && (
+        <section id="meus-conteudos">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-5">Meus conteúdos</h1>
 
-        {myProducts.length === 0 ? (
-          <div className="text-center py-12 text-gray-400 dark:text-gray-500 bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030]">
-            <p className="text-lg font-medium">Você ainda não tem nenhum conteúdo.</p>
-            <p className="text-sm mt-1">Confira os conteúdos disponíveis abaixo.</p>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {myGroups.map(({ label, products: group }) => (
-              <div key={label ?? '_all'}>
-                {label && (
-                  <h2 className="text-base font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                    <span className="w-1 h-4 rounded-full inline-block" style={{ backgroundColor: '#b48840' }} />
-                    {label}
-                  </h2>
-                )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {group.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      unlocked={true}
-                      expiresAt={accessMap.get(product.id) ?? null}
-                      progress={progressByProduct[product.id] ?? null}
-                      certificateId={certByProduct[product.id] ?? null}
-                    />
-                  ))}
+          {myProducts.length === 0 ? (
+            <div className="text-center py-12 text-gray-400 dark:text-gray-500 bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030]">
+              <p className="text-lg font-medium">Você ainda não tem nenhum conteúdo.</p>
+              <p className="text-sm mt-1">Confira os conteúdos disponíveis abaixo.</p>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {myGroups.map(({ label, products: group }) => (
+                <div key={label ?? '_all'}>
+                  {label && (
+                    <h2 className="text-base font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                      <span className="w-1 h-4 rounded-full inline-block" style={{ backgroundColor: '#b48840' }} />
+                      {label}
+                    </h2>
+                  )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {group.map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        unlocked={true}
+                        expiresAt={accessMap.get(product.id) ?? null}
+                        progress={progressByProduct[product.id] ?? null}
+                        certificateId={certByProduct[product.id] ?? null}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Disponíveis para compra — produtos bloqueados */}
-      {storeProducts.length > 0 && (
+      {storeProducts.length > 0 && tab !== 'meus' && (
         <section id="disponiveis">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5">Disponíveis para compra</h2>
           <div className="space-y-8">
