@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return new Response('Unauthorized', { status: 401 })
 
-  const { conversationId, message, history } = await req.json()
+  const { conversationId, message, history, attachment } = await req.json()
 
   // Salvar mensagem do usuário (apenas quando há conversationId — painel inline não persiste)
   if (conversationId) {
@@ -36,13 +36,38 @@ export async function POST(req: NextRequest) {
     })
   }
 
+  // Montar conteúdo da última mensagem (texto + possível imagem/PDF)
+  type ContentPart = Anthropic.TextBlockParam | Anthropic.ImageBlockParam | Anthropic.DocumentBlockParam
+  const lastContent: ContentPart[] = []
+
+  if (attachment?.type === 'image') {
+    lastContent.push({
+      type: 'image',
+      source: {
+        type: 'base64',
+        media_type: attachment.mediaType as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
+        data: attachment.data,
+      },
+    })
+  } else if (attachment?.type === 'document') {
+    lastContent.push({
+      type: 'document',
+      source: { type: 'base64', media_type: 'application/pdf', data: attachment.data },
+    })
+  }
+
+  lastContent.push({
+    type: 'text',
+    text: message || (attachment?.type === 'image' ? 'O que você vê nessa imagem?' : 'Analise este documento.'),
+  })
+
   // Montar histórico para a API
   const messages: Anthropic.MessageParam[] = [
     ...(history ?? []).map((m: { role: string; content: string }) => ({
       role: m.role as 'user' | 'assistant',
       content: m.content,
     })),
-    { role: 'user', content: message },
+    { role: 'user', content: lastContent },
   ]
 
   // Stream da resposta

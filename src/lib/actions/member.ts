@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
 export type MemberActionState = { error?: string; success?: boolean } | undefined
@@ -98,11 +99,37 @@ export async function submitTicket(
 
   if (!message) return { error: 'A mensagem é obrigatória.' }
 
+  // Upload de anexo opcional
+  let attachment_url: string | null = null
+  const attachmentFile = formData.get('attachment') as File | null
+  if (attachmentFile && attachmentFile.size > 0) {
+    try {
+      const admin = createAdminClient()
+      await admin.storage.createBucket('ticket-files', { public: true }).catch(() => {})
+      const ext = attachmentFile.name.split('.').pop()?.toLowerCase() || 'bin'
+      const path = `${user.id}/${Date.now()}.${ext}`
+      const bytes = await attachmentFile.arrayBuffer()
+      const { error: uploadError } = await admin.storage
+        .from('ticket-files')
+        .upload(path, bytes, { contentType: attachmentFile.type })
+      if (!uploadError) {
+        const { data: { publicUrl } } = admin.storage.from('ticket-files').getPublicUrl(path)
+        attachment_url = publicUrl
+      }
+    } catch {
+      // Segue sem o anexo se upload falhar
+    }
+  }
+
+  const fullMessage = attachment_url
+    ? `${message}\n\n📎 Anexo: ${attachment_url}`
+    : message
+
   const { error } = await supabase.from('support_tickets').insert({
     user_id: user.id,
     subject,
     product_id: product_id || null,
-    message,
+    message: fullMessage,
   })
 
   if (error) return { error: error.message }

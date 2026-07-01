@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react'
 
-type Message = { role: 'user' | 'assistant'; content: string }
+type Message = { role: 'user' | 'assistant'; content: string; attachmentName?: string }
+type Attachment = { type: 'image' | 'document'; data: string; mediaType: string; name: string; previewUrl?: string }
 
 const SUGGESTIONS = [
   'O que comer antes de treinar?',
@@ -27,26 +28,65 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
+  const [attachment, setAttachment] = useState<Attachment | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const maxSize = file.type === 'application/pdf' ? 20 * 1024 * 1024 : 5 * 1024 * 1024
+    if (file.size > maxSize) {
+      alert(file.type === 'application/pdf' ? 'PDF muito grande. Máximo 20MB.' : 'Imagem muito grande. Máximo 5MB.')
+      e.target.value = ''
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = () => {
+      const dataUrl = reader.result as string
+      const base64 = dataUrl.split(',')[1]
+      const isImage = file.type.startsWith('image/')
+      setAttachment({
+        type: isImage ? 'image' : 'document',
+        data: base64,
+        mediaType: file.type,
+        name: file.name,
+        previewUrl: isImage ? dataUrl : undefined,
+      })
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }
+
   async function sendMessage(text: string) {
-    if (!text.trim() || streaming) return
+    if ((!text.trim() && !attachment) || streaming) return
     const history = messages.map(m => ({ role: m.role, content: m.content }))
-    const userMsg: Message = { role: 'user', content: text }
+    const userMsg: Message = {
+      role: 'user',
+      content: text || (attachment?.type === 'image' ? 'O que você vê nessa imagem?' : 'Analise este documento.'),
+      attachmentName: attachment?.name,
+    }
+    const currentAttachment = attachment
     setMessages(prev => [...prev, userMsg, { role: 'assistant', content: '' }])
     setInput('')
+    setAttachment(null)
     setStreaming(true)
 
     try {
       const res = await fetch('/api/assistente', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ conversationId: null, message: text, history }),
+        body: JSON.stringify({
+          conversationId: null,
+          message: text,
+          history,
+          attachment: currentAttachment ? { type: currentAttachment.type, data: currentAttachment.data, mediaType: currentAttachment.mediaType } : undefined,
+        }),
       })
 
       const reader = res.body!.getReader()
@@ -104,7 +144,6 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
       {/* Side Panel */}
       {open && (
         <>
-          {/* Backdrop mobile */}
           <div
             className="fixed inset-0 bg-black/30 z-40 sm:hidden"
             onClick={() => setOpen(false)}
@@ -170,6 +209,14 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
                     }`}
                     style={msg.role === 'user' ? { backgroundColor: '#b48840' } : undefined}
                   >
+                    {msg.attachmentName && (
+                      <div className="flex items-center gap-1.5 mb-1.5 opacity-80">
+                        <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
+                        </svg>
+                        <span className="text-xs truncate max-w-[160px]">{msg.attachmentName}</span>
+                      </div>
+                    )}
                     {msg.content || (
                       <span className="flex gap-1 py-0.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -185,7 +232,51 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
 
             {/* Input */}
             <div className="px-4 py-3 border-t border-gray-100 dark:border-[#1e2030] shrink-0">
+              {/* Preview do anexo */}
+              {attachment && (
+                <div className="flex items-center gap-2 mb-2 p-2 rounded-xl bg-gray-50 dark:bg-[#1a1f35] border border-gray-200 dark:border-gray-600">
+                  {attachment.previewUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={attachment.previewUrl} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-900/20 flex items-center justify-center shrink-0">
+                      <svg className="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                      </svg>
+                    </div>
+                  )}
+                  <span className="text-xs text-gray-600 dark:text-gray-400 truncate flex-1">{attachment.name}</span>
+                  <button
+                    onClick={() => setAttachment(null)}
+                    className="p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded transition shrink-0"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
               <div className="flex gap-2 items-end">
+                {/* Botão anexar */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={streaming}
+                  className="w-9 h-9 shrink-0 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500 flex items-center justify-center transition disabled:opacity-40"
+                  title="Anexar imagem ou PDF"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
+                  </svg>
+                </button>
+
                 <textarea
                   ref={textareaRef}
                   value={input}
@@ -199,7 +290,7 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
                 />
                 <button
                   onClick={() => sendMessage(input)}
-                  disabled={!input.trim() || streaming}
+                  disabled={(!input.trim() && !attachment) || streaming}
                   className="w-9 h-9 shrink-0 rounded-xl text-white flex items-center justify-center transition hover:opacity-90 disabled:opacity-40"
                   style={{ backgroundColor: '#b48840' }}
                 >
