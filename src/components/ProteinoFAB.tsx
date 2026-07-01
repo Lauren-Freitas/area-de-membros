@@ -29,9 +29,13 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   const [attachment, setAttachment] = useState<Attachment | null>(null)
+  const [isRecording, setIsRecording] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -61,6 +65,46 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
     }
     reader.readAsDataURL(file)
     e.target.value = ''
+  }
+
+  function handleCameraChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) { alert('Imagem muito grande. Máximo 5MB.'); e.target.value = ''; return }
+    const reader = new FileReader()
+    reader.onload = () => {
+      const dataUrl = reader.result as string
+      setAttachment({ type: 'image', data: dataUrl.split(',')[1], mediaType: file.type || 'image/jpeg', name: file.name || 'foto.jpg', previewUrl: dataUrl })
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }
+
+  function toggleRecording() {
+    if (isRecording) {
+      recognitionRef.current?.stop()
+      setIsRecording(false)
+      return
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SpeechAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SpeechAPI) {
+      alert('Reconhecimento de voz não suportado neste navegador. Tente Chrome ou Safari.')
+      return
+    }
+    const recognition = new SpeechAPI()
+    recognition.lang = 'pt-BR'
+    recognition.continuous = false
+    recognition.interimResults = false
+    recognition.onresult = (e: { results: { [k: number]: { [k: number]: { transcript: string } } } }) => {
+      const transcript = e.results[0][0].transcript
+      setInput(prev => prev ? `${prev} ${transcript}` : transcript)
+    }
+    recognition.onend = () => setIsRecording(false)
+    recognition.onerror = () => setIsRecording(false)
+    recognitionRef.current = recognition
+    recognition.start()
+    setIsRecording(true)
   }
 
   async function sendMessage(text: string) {
@@ -257,15 +301,12 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
                 </div>
               )}
 
-              <div className="flex gap-2 items-end">
-                {/* Botão anexar */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*,application/pdf"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
+              {/* Inputs ocultos */}
+              <input ref={fileInputRef} type="file" accept="image/*,application/pdf" onChange={handleFileChange} className="hidden" />
+              <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleCameraChange} className="hidden" />
+
+              <div className="flex gap-1.5 items-end">
+                {/* Anexar arquivo */}
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={streaming}
@@ -277,6 +318,19 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
                   </svg>
                 </button>
 
+                {/* Câmera */}
+                <button
+                  onClick={() => cameraInputRef.current?.click()}
+                  disabled={streaming}
+                  className="w-9 h-9 shrink-0 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500 flex items-center justify-center transition disabled:opacity-40"
+                  title="Tirar foto"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                  </svg>
+                </button>
+
                 <textarea
                   ref={textareaRef}
                   value={input}
@@ -285,9 +339,27 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
                   placeholder="Pergunte algo..."
                   rows={1}
                   disabled={streaming}
-                  className="flex-1 resize-none text-sm px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-[#1a1f35] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition disabled:opacity-60"
+                  className="flex-1 resize-none text-sm px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-[#1a1f35] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition disabled:opacity-60"
                   style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
                 />
+
+                {/* Microfone */}
+                <button
+                  onClick={toggleRecording}
+                  disabled={streaming}
+                  className={`w-9 h-9 shrink-0 rounded-xl border flex items-center justify-center transition disabled:opacity-40 ${
+                    isRecording
+                      ? 'border-red-400 text-red-500 bg-red-50 dark:bg-red-900/20 animate-pulse'
+                      : 'border-gray-200 dark:border-gray-600 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500'
+                  }`}
+                  title={isRecording ? 'Parar gravação' : 'Gravar áudio'}
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+                  </svg>
+                </button>
+
+                {/* Enviar */}
                 <button
                   onClick={() => sendMessage(input)}
                   disabled={(!input.trim() && !attachment) || streaming}
