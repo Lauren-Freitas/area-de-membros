@@ -69,14 +69,17 @@ export function ProductCard({ product, unlocked, expiresAt, progress, certificat
         )}
       </div>
 
-      {/* Título + info */}
-      <div className="px-3 py-2.5">
+      {/* Título + descrição + info */}
+      <div className="px-3 py-3">
         <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-snug">{product.title}</h3>
+        {product.description && (
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed line-clamp-2">{product.description}</p>
+        )}
         {hasAccess && progress && progress.total > 0 && (
-          <p className="text-xs text-gray-400 mt-0.5">{progress.completed}/{progress.total} aulas · {pct}%</p>
+          <p className="text-xs text-gray-400 mt-1.5">{progress.completed}/{progress.total} aulas · {pct}%</p>
         )}
         {hasAccess && expiry && !isExpired && (
-          <p className="text-xs text-gray-400 mt-0.5">Válido até {expiry.toLocaleDateString('pt-BR')}</p>
+          <p className="text-xs text-gray-400 mt-1">Válido até {expiry.toLocaleDateString('pt-BR')}</p>
         )}
       </div>
     </div>
