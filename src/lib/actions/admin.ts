@@ -189,13 +189,22 @@ export async function saveModule(
   const title = (formData.get('title') as string)?.trim()
   const description = (formData.get('description') as string)?.trim() || null
   const sort_order = parseInt(formData.get('sort_order') as string) || 0
+  const release_type = (formData.get('release_type') as string) || 'immediate'
+  const release_after_days = release_type === 'days_after'
+    ? parseInt(formData.get('release_after_days') as string) || 7
+    : null
+  const release_at = release_type === 'date'
+    ? (formData.get('release_at') as string) || null
+    : null
 
   if (!title) return { error: 'O título é obrigatório.' }
 
+  const payload = { title, description, sort_order, release_type, release_after_days, release_at }
+
   const isNew = !id
   const { error } = isNew
-    ? await supabase.from('modules').insert({ product_id, title, description, sort_order })
-    : await supabase.from('modules').update({ title, description, sort_order }).eq('id', id)
+    ? await supabase.from('modules').insert({ product_id, ...payload })
+    : await supabase.from('modules').update(payload).eq('id', id)
 
   if (error) return { error: error.message }
   revalidatePath(`/admin/produtos/${product_id}`)

@@ -33,12 +33,17 @@ export interface Product {
   created_at: string
 }
 
+export type ModuleReleaseType = 'immediate' | 'days_after' | 'date'
+
 export interface Module {
   id: string
   product_id: string
   title: string
   description: string | null
   sort_order: number
+  release_type: ModuleReleaseType
+  release_after_days: number | null
+  release_at: string | null
   created_at: string
 }
 
