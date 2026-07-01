@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ProductForm } from './ProductForm'
 import { Product, Module, Lesson } from '@/types'
-import { deleteModule } from '@/lib/actions/admin'
+import { DeleteModuleButton } from '@/components/admin/DeleteModuleButton'
+import { DeleteLessonButton } from '@/components/admin/DeleteLessonButton'
 
 export default async function AdminProdutoPage({
   params,
@@ -99,17 +100,7 @@ export default async function AdminProdutoPage({
                       >
                         Editar
                       </Link>
-                      <form action={deleteModule.bind(null, mod.id, id)}>
-                        <button
-                          type="submit"
-                          onClick={(e) => {
-                            if (!confirm(`Excluir o módulo "${mod.title}" e todas as suas aulas?`)) e.preventDefault()
-                          }}
-                          className="text-xs font-medium px-3 py-1.5 rounded-full border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 transition"
-                        >
-                          Excluir
-                        </button>
-                      </form>
+                      <DeleteModuleButton moduleId={mod.id} productId={id} moduleTitle={mod.title} />
                     </div>
                   </div>
 

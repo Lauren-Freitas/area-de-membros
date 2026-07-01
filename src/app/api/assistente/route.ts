@@ -4,7 +4,7 @@ import { NextRequest } from 'next/server'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-const SYSTEM_PROMPT = `Você é um assistente de nutrição criado para ajudar os alunos de Thiago Cantalovo, nutricionista especializado em saúde funcional e emagrecimento saudável.
+const MEMBER_SYSTEM_PROMPT = `Você é Proteíno, assistente de nutrição criado para ajudar os alunos de Thiago Cantalovo, nutricionista especializado em saúde funcional e emagrecimento saudável.
 
 Seu papel:
 - Responder dúvidas sobre alimentação saudável, nutrientes, dietas e hábitos alimentares
@@ -17,15 +17,28 @@ Limites importantes:
 - Não faça diagnósticos médicos ou prescreva dietas específicas (isso é papel do Thiago em consulta)
 - Quando a questão for muito individualizada ou clínica, indique agendar uma consulta com o Thiago
 - Não contradiga orientações que o Thiago possa ter dado ao aluno
+- Não assuma automaticamente que o usuário é paciente — pode ser um profissional de saúde
 
 Seja sempre: simpático, motivador, prático e direto. Responda em português brasileiro.`
+
+const IAN_SYSTEM_PROMPT = `Você é IAN (Inteligência de Apoio Nutricional), assistente exclusivo do painel administrativo da clínica de nutrição de Thiago Cantalovo.
+
+Seu papel:
+- Auxiliar o nutricionista Thiago na gestão da plataforma de membros
+- Ajudar a redigir respostas para tickets de atendimento de alunos
+- Apoiar na criação de descrições e conteúdos para cursos e materiais didáticos
+- Responder dúvidas técnicas sobre nutrição que o Thiago queira consultar rapidamente
+- Oferecer sugestões de melhoria para a plataforma e a experiência dos alunos
+
+Você está conversando com o administrador do sistema — seja objetivo, técnico quando necessário, e use linguagem profissional.
+Responda sempre em português brasileiro.`
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return new Response('Unauthorized', { status: 401 })
 
-  const { conversationId, message, history, attachments } = await req.json()
+  const { conversationId, message, history, attachments, persona } = await req.json()
   const attachmentList: { type: string; data: string; mediaType: string }[] = attachments ?? []
 
   // Salvar mensagem do usuário (apenas quando há conversationId — painel inline não persiste)
@@ -35,6 +48,31 @@ export async function POST(req: NextRequest) {
       role: 'user',
       content: message,
     })
+  }
+
+  // Montar sistema prompt com contexto do usuário
+  let systemPrompt: string
+  if (persona === 'admin') {
+    systemPrompt = IAN_SYSTEM_PROMPT
+  } else {
+    systemPrompt = MEMBER_SYSTEM_PROMPT
+    // Adicionar contexto dos produtos do usuário
+    const [{ data: profileData }, { data: upData }] = await Promise.all([
+      supabase.from('profiles').select('name, role').eq('id', user.id).single(),
+      supabase.from('user_products').select('product_id').eq('user_id', user.id),
+    ])
+    const productIds = (upData ?? []).map(up => up.product_id)
+    let productTitles: string[] = []
+    if (productIds.length > 0) {
+      const { data: productsData } = await supabase.from('products').select('title').in('id', productIds)
+      productTitles = (productsData ?? []).map(p => p.title as string)
+    }
+    const isProfessional = profileData?.role === 'professional'
+    systemPrompt += `\n\nContexto do usuário atual:
+- Nome: ${profileData?.name ?? 'Usuário'}
+- Perfil: ${isProfessional ? 'Profissional de saúde' : 'Paciente/aluno'}
+- Conteúdos adquiridos: ${productTitles.length > 0 ? productTitles.join(', ') : 'nenhum ainda'}
+${isProfessional ? 'Este usuário é um profissional de saúde — use linguagem técnica quando adequado.' : 'Este usuário é um aluno ou paciente — use linguagem acessível e motivadora.'}`
   }
 
   // Montar conteúdo da última mensagem (texto + anexos)
@@ -79,7 +117,7 @@ export async function POST(req: NextRequest) {
   const stream = anthropic.messages.stream({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 1024,
-    system: SYSTEM_PROMPT,
+    system: systemPrompt,
     messages,
   })
 

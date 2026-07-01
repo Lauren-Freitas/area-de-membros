@@ -5,11 +5,42 @@ import { useState, useRef, useEffect } from 'react'
 type Message = { role: 'user' | 'assistant'; content: string; attachmentNames?: string[] }
 type Attachment = { type: 'image' | 'document'; data: string; mediaType: string; name: string; previewUrl?: string; isVideo?: boolean }
 
-const SUGGESTIONS = [
+const MEMBER_SUGGESTIONS = [
   'O que comer antes de treinar?',
   'Como calcular minhas proteínas?',
   'Sugestão de café da manhã saudável',
 ]
+
+const ADMIN_SUGGESTIONS = [
+  'Como responder este ticket de atendimento?',
+  'Ideias para um novo módulo sobre nutrição',
+  'Como criar uma descrição atrativa para este produto?',
+]
+
+interface Persona {
+  name: string
+  subtitle: string
+  color: string
+  lightBg: string
+  suggestions: string[]
+}
+
+const PERSONAS: Record<'member' | 'admin', Persona> = {
+  member: {
+    name: 'Proteíno',
+    subtitle: 'Assistente de nutrição',
+    color: '#b48840',
+    lightBg: '#f5efe3',
+    suggestions: MEMBER_SUGGESTIONS,
+  },
+  admin: {
+    name: 'IAN',
+    subtitle: 'Inteligência de Apoio Nutricional',
+    color: '#1e40af',
+    lightBg: '#eff6ff',
+    suggestions: ADMIN_SUGGESTIONS,
+  },
+}
 
 const RobotIcon = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
   <svg className={className} style={style} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -23,7 +54,8 @@ const RobotIcon = ({ className, style }: { className?: string; style?: React.CSS
   </svg>
 )
 
-export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
+export function ProteinoFAB({ userId: _userId, persona: personaKey = 'member' }: { userId?: string; persona?: 'member' | 'admin' }) {
+  const persona = PERSONAS[personaKey]
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -170,6 +202,7 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
           message: text,
           history,
           attachments: currentAttachments.map(a => ({ type: a.type, data: a.data, mediaType: a.mediaType })),
+          persona: personaKey,
         }),
       })
 
@@ -211,9 +244,9 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
       <div className="fixed bottom-6 right-6 z-50">
         <button
           onClick={() => setOpen(v => !v)}
-          aria-label="Abrir Proteíno"
+          aria-label={`Abrir ${persona.name}`}
           className="w-12 h-12 rounded-full text-white shadow-2xl flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95"
-          style={{ backgroundColor: '#b48840' }}
+          style={{ backgroundColor: persona.color }}
         >
           {open ? (
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -233,12 +266,12 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
           <div className="fixed right-0 top-0 bottom-0 w-full sm:right-4 sm:top-4 sm:bottom-4 sm:w-[380px] bg-white dark:bg-[#0d1020] z-50 flex flex-col shadow-2xl sm:rounded-2xl overflow-hidden">
             {/* Header */}
             <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100 dark:border-[#1e2030] shrink-0">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: '#b48840' }}>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: persona.color }}>
                 <RobotIcon className="w-4 h-4 text-white" />
               </div>
               <div className="flex-1">
-                <p className="font-semibold text-sm text-gray-900 dark:text-white">Proteíno</p>
-                <p className="text-xs text-gray-400">Assistente de nutrição</p>
+                <p className="font-semibold text-sm text-gray-900 dark:text-white">{persona.name}</p>
+                <p className="text-xs text-gray-400">{persona.subtitle}</p>
               </div>
               <button onClick={() => setOpen(false)} className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg transition">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -251,14 +284,14 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {messages.length === 0 && (
                 <div className="text-center pt-8 px-2">
-                  <div className="w-14 h-14 rounded-full mx-auto flex items-center justify-center mb-3" style={{ backgroundColor: '#f5efe3' }}>
-                    <RobotIcon className="w-7 h-7" style={{ color: '#b48840' } as React.CSSProperties} />
+                  <div className="w-14 h-14 rounded-full mx-auto flex items-center justify-center mb-3" style={{ backgroundColor: persona.lightBg }}>
+                    <RobotIcon className="w-7 h-7" style={{ color: persona.color } as React.CSSProperties} />
                   </div>
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Olá! Sou o Proteíno</p>
-                  <p className="text-xs text-gray-400 mt-1 mb-5">Seu assistente de nutrição. Como posso ajudar?</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Olá! Sou {personaKey === 'admin' ? 'o IAN' : 'o Proteíno'}</p>
+                  <p className="text-xs text-gray-400 mt-1 mb-5">{persona.subtitle}. Como posso ajudar?</p>
                   <div className="flex flex-col gap-2 text-left">
-                    {SUGGESTIONS.map(s => (
-                      <button key={s} onClick={() => sendMessage(s)} className="text-xs px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-[#b48840] hover:text-[#7a5c10] dark:hover:text-[#b48840] transition text-left">
+                    {persona.suggestions.map(s => (
+                      <button key={s} onClick={() => sendMessage(s)} className="text-xs px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 transition text-left" style={{ '--hover-border': persona.color } as React.CSSProperties} onMouseEnter={e => (e.currentTarget.style.borderColor = persona.color)} onMouseLeave={e => (e.currentTarget.style.borderColor = '')}>
                         {s}
                       </button>
                     ))}
@@ -272,7 +305,7 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
                     className={`max-w-[82%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
                       msg.role === 'user' ? 'text-white rounded-tr-sm' : 'bg-gray-100 dark:bg-[#1a1f35] text-gray-800 dark:text-gray-200 rounded-tl-sm'
                     }`}
-                    style={msg.role === 'user' ? { backgroundColor: '#b48840' } : undefined}
+                    style={msg.role === 'user' ? { backgroundColor: persona.color } : undefined}
                   >
                     {msg.attachmentNames && msg.attachmentNames.length > 0 && (
                       <div className="flex flex-wrap gap-1 mb-1.5">
@@ -379,7 +412,7 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
                   rows={1}
                   disabled={streaming}
                   className="flex-1 resize-none text-sm px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-[#1a1f35] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition disabled:opacity-60"
-                  style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+                  style={{ '--tw-ring-color': persona.color } as React.CSSProperties}
                 />
 
                 {/* Microfone */}
@@ -403,7 +436,7 @@ export function ProteinoFAB({ userId: _userId }: { userId?: string }) {
                   onClick={() => sendMessage(input)}
                   disabled={(!input.trim() && attachments.length === 0) || streaming}
                   className="w-9 h-9 shrink-0 rounded-xl text-white flex items-center justify-center transition hover:opacity-90 disabled:opacity-40"
-                  style={{ backgroundColor: '#b48840' }}
+                  style={{ backgroundColor: persona.color }}
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.269 20.876L5.999 12zm0 0h7.5" />

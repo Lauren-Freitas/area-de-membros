@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ModuloForm } from '../novo/ModuloForm'
 import { Module, Lesson } from '@/types'
-import { deleteLesson } from '@/lib/actions/admin'
+import { DeleteLessonButton } from '@/components/admin/DeleteLessonButton'
 
 const lessonTypeLabel: Record<string, string> = {
   video: '▶ Vídeo',
@@ -89,17 +89,7 @@ export default async function EditModuloPage({
                   >
                     Editar
                   </Link>
-                  <form action={deleteLesson.bind(null, lesson.id, modId, id)}>
-                    <button
-                      type="submit"
-                      onClick={(e) => {
-                        if (!confirm(`Excluir a aula "${lesson.title}"?`)) e.preventDefault()
-                      }}
-                      className="text-xs font-medium px-3 py-1.5 rounded-full border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 transition"
-                    >
-                      Excluir
-                    </button>
-                  </form>
+                  <DeleteLessonButton lessonId={lesson.id} moduleId={modId} productId={id} lessonTitle={lesson.title} />
                 </div>
               </div>
             ))}

@@ -47,9 +47,6 @@ export function ProductRating({ productId, initialRating }: Props) {
           </svg>
         </button>
       ))}
-      {rating > 0 && (
-        <span className="text-xs ml-1 font-medium" style={{ color: '#b48840' }}>{rating}/5</span>
-      )}
     </div>
   )
 }
