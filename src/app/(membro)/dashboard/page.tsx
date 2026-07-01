@@ -121,17 +121,18 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* Grade unificada — desbloqueados + bloqueados (com cadeado) */}
+      {/* Meus conteúdos — apenas produtos desbloqueados */}
       <section>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-5">Meus conteúdos</h1>
 
-        {allProducts.length === 0 ? (
-          <div className="text-center py-20 text-gray-400 dark:text-gray-500">
-            <p className="text-lg font-medium">Nenhum conteúdo disponível ainda.</p>
+        {myProducts.length === 0 ? (
+          <div className="text-center py-12 text-gray-400 dark:text-gray-500 bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030]">
+            <p className="text-lg font-medium">Você ainda não tem nenhum conteúdo.</p>
+            <p className="text-sm mt-1">Confira os conteúdos disponíveis abaixo.</p>
           </div>
         ) : (
           <div className="space-y-8">
-            {groupByCategory(allProducts).map(({ label, products: group }) => (
+            {myGroups.map(({ label, products: group }) => (
               <div key={label ?? '_all'}>
                 {label && (
                   <h2 className="text-base font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
@@ -144,7 +145,7 @@ export default async function DashboardPage() {
                     <ProductCard
                       key={product.id}
                       product={product}
-                      unlocked={unlockedIds.has(product.id)}
+                      unlocked={true}
                       expiresAt={accessMap.get(product.id) ?? null}
                       progress={progressByProduct[product.id] ?? null}
                       certificateId={certByProduct[product.id] ?? null}
@@ -156,6 +157,37 @@ export default async function DashboardPage() {
           </div>
         )}
       </section>
+
+      {/* Disponíveis para compra — produtos bloqueados */}
+      {storeProducts.length > 0 && (
+        <section>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5">Disponíveis para compra</h2>
+          <div className="space-y-8">
+            {storeGroups.map(({ label, products: group }) => (
+              <div key={label ?? '_store'}>
+                {label && (
+                  <h3 className="text-base font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                    <span className="w-1 h-4 rounded-full inline-block" style={{ backgroundColor: '#b48840' }} />
+                    {label}
+                  </h3>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {group.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      unlocked={false}
+                      expiresAt={null}
+                      progress={null}
+                      certificateId={null}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Ofertas relâmpago */}
       {visibleOffers.length > 0 && (

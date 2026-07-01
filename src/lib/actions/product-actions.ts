@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { awardXp, checkBadgesAfterComment, checkBadgesAfterProduct, checkBadgesAfterRating } from '@/lib/xp'
 
 export async function markProductComplete(productId: string) {
   const supabase = await createClient()
@@ -13,6 +14,11 @@ export async function markProductComplete(productId: string) {
     .update({ is_completed: true, completed_at: new Date().toISOString() })
     .eq('user_id', user.id)
     .eq('product_id', productId)
+
+  await Promise.all([
+    awardXp(user.id, 'product_complete', { product_id: productId }),
+    checkBadgesAfterProduct(user.id),
+  ])
 
   revalidatePath(`/produto/${productId}`)
 }
@@ -37,12 +43,26 @@ export async function rateProduct(productId: string, rating: number) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Não autenticado' }
 
+  const { data: existing } = await supabase
+    .from('product_ratings')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('product_id', productId)
+    .maybeSingle()
+
   await supabase
     .from('product_ratings')
     .upsert(
       { user_id: user.id, product_id: productId, rating, updated_at: new Date().toISOString() },
       { onConflict: 'user_id,product_id' }
     )
+
+  if (!existing) {
+    await Promise.all([
+      awardXp(user.id, 'product_rating', { product_id: productId }),
+      checkBadgesAfterRating(user.id),
+    ])
+  }
 }
 
 export async function addProductComment(productId: string, content: string) {
@@ -56,6 +76,12 @@ export async function addProductComment(productId: string, content: string) {
     .insert({ user_id: user.id, product_id: productId, content: content.trim() })
 
   if (error) return { error: error.message }
+
+  await Promise.all([
+    awardXp(user.id, 'product_comment', { product_id: productId }),
+    checkBadgesAfterComment(user.id),
+  ])
+
   revalidatePath(`/produto/${productId}`)
   return { success: true }
 }

@@ -1,6 +1,7 @@
 'use server'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { awardXp, checkBadgesAfterLesson } from '@/lib/xp'
 
 export async function toggleLessonComplete(lessonId: string, productId: string, completed: boolean) {
   const supabase = await createClient()
@@ -16,8 +17,11 @@ export async function toggleLessonComplete(lessonId: string, productId: string, 
       { onConflict: 'user_id,lesson_id' }
     )
 
-    // Verificar se atingiu 100% e emitir certificado
-    await maybeIssueCertificate(supabase, user.id, productId)
+    await Promise.all([
+      awardXp(user.id, 'lesson_complete', { lesson_id: lessonId, product_id: productId }),
+      checkBadgesAfterLesson(user.id),
+      maybeIssueCertificate(supabase, user.id, productId),
+    ])
   }
 
   revalidatePath(`/produto/${productId}/aula/${lessonId}`)
