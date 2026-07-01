@@ -7,9 +7,10 @@ import { markProductComplete, unmarkProductComplete } from '@/lib/actions/produc
 interface Props {
   productId: string
   completed: boolean
+  completionEventKey?: string
 }
 
-export function ProductCompleteButton({ productId, completed: initial }: Props) {
+export function ProductCompleteButton({ productId, completed: initial, completionEventKey }: Props) {
   const [completed, setCompleted] = useState(initial)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
@@ -17,6 +18,9 @@ export function ProductCompleteButton({ productId, completed: initial }: Props) 
   function toggle() {
     const next = !completed
     setCompleted(next)
+    if (completionEventKey) {
+      window.dispatchEvent(new CustomEvent(completionEventKey, { detail: { completed: next } }))
+    }
     startTransition(async () => {
       if (next) await markProductComplete(productId)
       else await unmarkProductComplete(productId)

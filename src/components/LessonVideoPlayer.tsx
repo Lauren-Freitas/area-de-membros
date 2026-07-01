@@ -15,10 +15,12 @@ interface Props {
   progressPct: number
   prevHref: string | null
   nextHref: string | null
+  completionEventKey?: string
 }
 
-export function LessonVideoPlayer({ url, progressPct, prevHref, nextHref }: Props) {
+export function LessonVideoPlayer({ url, progressPct: initialPct, prevHref, nextHref, completionEventKey }: Props) {
   const [focusMode, setFocusMode] = useState(false)
+  const [progressPct, setProgressPct] = useState(initialPct)
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -27,6 +29,16 @@ export function LessonVideoPlayer({ url, progressPct, prevHref, nextHref }: Prop
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
+
+  useEffect(() => {
+    if (!completionEventKey) return
+    function onComplete(e: Event) {
+      const detail = (e as CustomEvent<{ completed: boolean }>).detail
+      setProgressPct(detail.completed ? 100 : 0)
+    }
+    window.addEventListener(completionEventKey, onComplete)
+    return () => window.removeEventListener(completionEventKey, onComplete)
+  }, [completionEventKey])
 
   return (
     <>

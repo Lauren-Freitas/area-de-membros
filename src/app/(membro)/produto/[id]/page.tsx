@@ -226,6 +226,7 @@ function SimpleProductView({
             progressPct={isCompleted ? 100 : 0}
             prevHref={null}
             nextHref={null}
+            completionEventKey={`product-complete:${productId}`}
           />
         ) : (
           <FileContent productId={product.id} title={product.title} />
@@ -252,7 +253,11 @@ function SimpleProductView({
           </div>
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Progresso</p>
-            <ProductCompleteButton productId={productId} completed={isCompleted} />
+            <ProductCompleteButton
+            productId={productId}
+            completed={isCompleted}
+            completionEventKey={`product-complete:${productId}`}
+          />
           </div>
         </div>
       </div>
