@@ -22,10 +22,10 @@ export function ProductCard({ product, unlocked, expiresAt, progress, certificat
     ?? `https://wa.me/5561991900589?text=Ol%C3%A1!%20Tenho%20interesse%20em%3A%20${encodeURIComponent(product.title)}`
 
   const card = (
-    <div className="group relative rounded-2xl overflow-hidden border border-gray-100 dark:border-[#1e2030] bg-white dark:bg-[#0d1020] transition-all duration-200 hover:scale-[1.02] hover:shadow-lg">
+    <div className="group relative rounded-2xl overflow-hidden transition-all duration-200 hover:scale-[1.02]">
       {/* Banner */}
       <div
-        className="relative aspect-video overflow-hidden"
+        className="relative aspect-video overflow-hidden rounded-2xl"
         style={{ background: 'linear-gradient(135deg, #f5efe3 0%, #ede0c8 100%)' }}
       >
         {product.banner_url ? (
