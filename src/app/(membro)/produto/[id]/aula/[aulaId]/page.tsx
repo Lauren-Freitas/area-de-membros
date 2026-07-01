@@ -5,7 +5,7 @@ import { Lesson } from '@/types'
 import { LessonCompleteButton } from '@/components/LessonCompleteButton'
 import { LessonComments } from '@/components/LessonComments'
 import { LessonSidebar } from '@/components/LessonSidebar'
-import { VideoFocusLesson } from '@/components/VideoFocusLesson'
+import { LessonVideoPlayer } from '@/components/LessonVideoPlayer'
 import { LessonRating } from '@/components/LessonRating'
 import { LessonComment } from '@/types'
 
@@ -79,6 +79,13 @@ export default async function AulaPage({
   const prevLesson = currentIdx > 0 ? siblings![currentIdx - 1] : null
   const nextLesson = siblings && currentIdx < siblings.length - 1 ? siblings[currentIdx + 1] : null
 
+  const modTotal = siblings?.length ?? 0
+  const modDone = (siblings ?? []).filter(s => completedSet.has(s.id)).length
+  const modPct = modTotal > 0 ? Math.round((modDone / modTotal) * 100) : 0
+
+  const prevHref = prevLesson ? `/produto/${id}/aula/${prevLesson.id}` : null
+  const nextHref = nextLesson ? `/produto/${id}/aula/${nextLesson.id}` : null
+
   const sidebarLessons = (siblings ?? []).map(s => ({
     ...s,
     completed: completedSet.has(s.id),
@@ -91,55 +98,15 @@ export default async function AulaPage({
         {/* Coluna principal */}
         <div className="min-w-0 space-y-6">
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <Link
-                href={`/produto/${id}`}
-                className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                </svg>
-                Voltar ao curso
-              </Link>
-
-              {/* Setas prev / next */}
-              <div className="flex items-center gap-1">
-                {prevLesson ? (
-                  <Link
-                    href={`/produto/${id}/aula/${prevLesson.id}`}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-                    title="Aula anterior"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </Link>
-                ) : (
-                  <span className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-100 dark:border-gray-700 text-gray-300 dark:text-gray-600 cursor-not-allowed">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </span>
-                )}
-                {nextLesson ? (
-                  <Link
-                    href={`/produto/${id}/aula/${nextLesson.id}`}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-                    title="Próxima aula"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </Link>
-                ) : (
-                  <span className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-100 dark:border-gray-700 text-gray-300 dark:text-gray-600 cursor-not-allowed">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </span>
-                )}
-              </div>
-            </div>
+            <Link
+              href={`/produto/${id}`}
+              className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition mb-2"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+              Voltar ao curso
+            </Link>
 
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{l.modules?.title}</p>
             <div className="flex items-start gap-3 mb-1">
@@ -156,15 +123,23 @@ export default async function AulaPage({
           </div>
 
           {/* Player / conteúdo */}
-          <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
-            {l.lesson_type === 'video' && <VideoFocusLesson url={l.content_url} />}
-            {l.lesson_type === 'text' && <TextLesson content={l.content_text} />}
-            {l.lesson_type === 'file' && <FileLesson url={l.content_url} title={l.title} />}
-            {l.lesson_type === 'link' && <LinkLesson url={l.content_url} title={l.title} />}
-          </div>
+          {l.lesson_type === 'video' ? (
+            <LessonVideoPlayer
+              url={l.content_url}
+              progressPct={modPct}
+              prevHref={prevHref}
+              nextHref={nextHref}
+            />
+          ) : (
+            <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
+              {l.lesson_type === 'text' && <TextLesson content={l.content_text} />}
+              {l.lesson_type === 'file' && <FileLesson url={l.content_url} title={l.title} />}
+              {l.lesson_type === 'link' && <LinkLesson url={l.content_url} title={l.title} />}
+            </div>
+          )}
 
           {/* Sidebar no mobile (abaixo do vídeo) */}
-          <div className="lg:hidden">
+          <div id="lesson-sidebar" className="lg:hidden">
             <LessonSidebar
               productId={id}
               moduleTitle={l.modules?.title ?? 'Módulo'}
