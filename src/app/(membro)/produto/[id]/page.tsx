@@ -2,6 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Product, Module, Lesson } from '@/types'
+import { ProductCompleteButton } from '@/components/ProductCompleteButton'
+import { ProductRating } from '@/components/ProductRating'
+import { ProductComments } from '@/components/ProductComments'
 
 export default async function ProdutoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -10,12 +13,13 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: product }, { data: access }, { data: modules }, { data: progressRows }, { data: certificate }] = await Promise.all([
+  const [{ data: product }, { data: access }, { data: modules }, { data: progressRows }, { data: certificate }, { data: profile }] = await Promise.all([
     supabase.from('products').select('*').eq('id', id).eq('is_active', true).single(),
-    supabase.from('user_products').select('id').eq('user_id', user.id).eq('product_id', id).single(),
+    supabase.from('user_products').select('id, is_completed').eq('user_id', user.id).eq('product_id', id).single(),
     supabase.from('modules').select('*, lessons(*)').eq('product_id', id).order('sort_order'),
     supabase.from('lesson_progress').select('lesson_id').eq('user_id', user.id),
     supabase.from('certificates').select('id').eq('user_id', user.id).eq('product_id', id).maybeSingle(),
+    supabase.from('profiles').select('role').eq('id', user.id).single(),
   ])
 
   if (!product || !access) redirect('/dashboard')
@@ -23,6 +27,8 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
   const p = product as Product
   const mods = (modules ?? []) as (Module & { lessons: Lesson[] })[]
   const completedSet = new Set(progressRows?.map(r => r.lesson_id) ?? [])
+  const isAdmin = profile?.role === 'admin'
+  const isProductCompleted = (access as { is_completed?: boolean | null })?.is_completed ?? false
 
   const totalLessons = mods.reduce((acc, m) => acc + (m.lessons?.filter(l => l.is_published).length ?? 0), 0)
   const completedLessons = mods.reduce((acc, m) => {
@@ -158,14 +164,70 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
           })}
         </div>
       ) : (
-        <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
-          {p.content_type === 'video' ? (
-            <VideoContent url={p.content_url} />
-          ) : (
-            <FileContent productId={p.id} title={p.title} />
-          )}
-        </div>
+        <SimpleProductView
+          product={p}
+          productId={id}
+          userId={user.id}
+          isAdmin={isAdmin}
+          isCompleted={isProductCompleted}
+        />
       )}
+    </div>
+  )
+}
+
+async function SimpleProductView({
+  product, productId, userId, isAdmin, isCompleted,
+}: {
+  product: Product
+  productId: string
+  userId: string
+  isAdmin: boolean
+  isCompleted: boolean
+}) {
+  const supabase = await createClient()
+
+  const [{ data: ratingData }, { data: commentsData }] = await Promise.all([
+    supabase.from('product_ratings').select('rating').eq('user_id', userId).eq('product_id', productId).maybeSingle(),
+    supabase.from('product_comments').select('*, profiles(name)').eq('product_id', productId).order('created_at', { ascending: true }),
+  ])
+
+  const myRating = ratingData?.rating ?? null
+  const comments = commentsData ?? []
+
+  return (
+    <div className="space-y-4">
+      {/* Conteúdo principal */}
+      <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
+        {product.content_type === 'video' ? (
+          <VideoContent url={product.content_url} />
+        ) : (
+          <FileContent productId={product.id} title={product.title} />
+        )}
+      </div>
+
+      {/* Comentários + Ações */}
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_220px] gap-4 items-start">
+        <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
+          <ProductComments
+            productId={productId}
+            currentUserId={userId}
+            isAdmin={isAdmin}
+            initialComments={comments as Parameters<typeof ProductComments>[0]['initialComments']}
+          />
+        </div>
+
+        <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5 flex flex-col gap-5">
+          <div>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Avaliação</p>
+            <ProductRating productId={productId} initialRating={myRating} />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Progresso</p>
+            <ProductCompleteButton productId={productId} completed={isCompleted} />
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
