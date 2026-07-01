@@ -5,6 +5,7 @@ import { Lesson } from '@/types'
 import { LessonCompleteButton } from '@/components/LessonCompleteButton'
 import { LessonComments } from '@/components/LessonComments'
 import { LessonSidebar } from '@/components/LessonSidebar'
+import { VideoFocusLesson } from '@/components/VideoFocusLesson'
 import { LessonComment } from '@/types'
 
 export default async function AulaPage({
@@ -104,7 +105,7 @@ export default async function AulaPage({
 
           {/* Player / conteúdo */}
           <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
-            {l.lesson_type === 'video' && <VideoLesson url={l.content_url} />}
+            {l.lesson_type === 'video' && <VideoFocusLesson url={l.content_url} />}
             {l.lesson_type === 'text' && <TextLesson content={l.content_text} />}
             {l.lesson_type === 'file' && <FileLesson url={l.content_url} title={l.title} />}
             {l.lesson_type === 'link' && <LinkLesson url={l.content_url} title={l.title} />}
@@ -174,21 +175,6 @@ export default async function AulaPage({
         </div>
 
       </div>
-    </div>
-  )
-}
-
-function VideoLesson({ url }: { url: string | null }) {
-  if (!url) return (
-    <div className="aspect-video flex items-center justify-center bg-[#e4e4e4] dark:bg-[#00060f] text-gray-400">Vídeo não configurado.</div>
-  )
-  const embedUrl = url
-    .replace('watch?v=', 'embed/')
-    .replace('youtu.be/', 'www.youtube.com/embed/')
-    .replace('vimeo.com/', 'player.vimeo.com/video/')
-  return (
-    <div className="aspect-video">
-      <iframe src={embedUrl} className="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
     </div>
   )
 }
