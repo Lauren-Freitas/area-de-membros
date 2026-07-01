@@ -133,7 +133,6 @@ export function ProductCard({ product, unlocked, expiresAt, progress, certificat
               href={`/produto/${product.id}`}
               className="block w-full text-center py-2 px-4 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
               style={{ backgroundColor: '#b48840' }}
-              onClick={e => e.stopPropagation()}
             >
               {completed ? 'Rever conteúdo' : progress && progress.completed > 0 ? 'Continuar' : 'Acessar conteúdo'}
             </Link>
@@ -153,7 +152,6 @@ export function ProductCard({ product, unlocked, expiresAt, progress, certificat
               href={`/certificado/${certificateId}`}
               className="block w-full text-center py-1.5 px-4 text-xs font-semibold rounded-lg transition hover:opacity-90"
               style={{ backgroundColor: '#f5efe3', color: '#7a5c10' }}
-              onClick={e => e.stopPropagation()}
             >
               🎓 Ver certificado
             </Link>
