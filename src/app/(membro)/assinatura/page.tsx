@@ -1,57 +1,14 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import {
-  getCustomerPayments,
-  getCustomerSubscriptions,
-  findCustomerByEmail,
-  AsaasPayment,
-  AsaasSubscription,
-} from '@/lib/asaas'
-
-const BILLING_TYPE: Record<string, string> = {
-  BOLETO: 'Boleto',
-  CREDIT_CARD: 'Cartão de crédito',
-  PIX: 'Pix',
-  DEBIT_CARD: 'Cartão de débito',
-  TRANSFER: 'Transferência',
-  UNDEFINED: 'Não definido',
-}
-
-const PAYMENT_STATUS: Record<string, { label: string; color: string }> = {
-  PENDING: { label: 'Pendente', color: 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
-  RECEIVED: { label: 'Pago', color: 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
-  CONFIRMED: { label: 'Confirmado', color: 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
-  OVERDUE: { label: 'Vencido', color: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
-  REFUNDED: { label: 'Estornado', color: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400' },
-  REFUND_REQUESTED: { label: 'Estorno solicitado', color: 'bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' },
-  CHARGEBACK_REQUESTED: { label: 'Chargeback', color: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
-  AWAITING_CHARGEBACK_REVERSAL: { label: 'Chargeback', color: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
-  DUNNING_REQUESTED: { label: 'Em negativação', color: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
-  CANCELLED: { label: 'Cancelado', color: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400' },
-}
-
-const SUBSCRIPTION_STATUS: Record<string, { label: string; color: string }> = {
-  ACTIVE: { label: 'Ativa', color: 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
-  INACTIVE: { label: 'Inativa', color: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400' },
-  EXPIRED: { label: 'Expirada', color: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
-}
-
-const CYCLE: Record<string, string> = {
-  WEEKLY: 'Semanal',
-  BIWEEKLY: 'Quinzenal',
-  MONTHLY: 'Mensal',
-  BIMONTHLY: 'Bimestral',
-  QUARTERLY: 'Trimestral',
-  SEMIANNUALLY: 'Semestral',
-  YEARLY: 'Anual',
-}
+import Link from 'next/link'
 
 function formatDate(iso: string) {
-  return new Date(iso + 'T00:00:00').toLocaleDateString('pt-BR')
+  return new Date(iso).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-function formatCurrency(value: number) {
-  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+function daysLeft(iso: string) {
+  const diff = new Date(iso).getTime() - Date.now()
+  return Math.ceil(diff / (1000 * 60 * 60 * 24))
 }
 
 export default async function AssinaturaPage() {
@@ -59,46 +16,47 @@ export default async function AssinaturaPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // Busca profile com asaas_customer_id
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('name, asaas_customer_id')
-    .eq('id', user.id)
-    .single()
-
-  // Busca os produtos adquiridos localmente (todos, inclusive manuais)
-  const { data: userProductsData } = await supabase
+  const { data: rows } = await supabase
     .from('user_products')
-    .select('product_id, granted_by, granted_at, asaas_payment_id, products(title)')
+    .select('product_id, granted_by, granted_at, expires_at, products(id, title, buy_url)')
     .eq('user_id', user.id)
     .order('granted_at', { ascending: false })
 
-  const userProducts = (userProductsData ?? []) as {
-    product_id: string
-    granted_by: string
-    granted_at: string
-    asaas_payment_id: string | null
-    products: { title: string } | { title: string }[] | null
-  }[]
+  const items = (rows ?? []).map((r) => {
+    const prod = Array.isArray(r.products) ? r.products[0] : r.products
+    const now = new Date()
+    const expiry = r.expires_at ? new Date(r.expires_at) : null
+    const expired = expiry ? expiry < now : false
+    const days = expiry && !expired ? daysLeft(r.expires_at!) : null
 
-  // Resolve o customer ID no Asaas (via profile ou busca por email)
-  let customerId: string | null = (profile as { asaas_customer_id?: string | null } | null)?.asaas_customer_id ?? null
-  if (!customerId && user.email) {
-    const found = await findCustomerByEmail(user.email).catch(() => null)
-    customerId = found?.id ?? null
-  }
+    let statusLabel = 'Ativo'
+    let statusColor = 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+    if (expired) {
+      statusLabel = 'Expirado'
+      statusColor = 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+    } else if (days !== null && days <= 7) {
+      statusLabel = `Expira em ${days} dia${days !== 1 ? 's' : ''}`
+      statusColor = 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+    }
 
-  let payments: AsaasPayment[] = []
-  let subscriptions: AsaasSubscription[] = []
+    return {
+      productId: prod?.id ?? r.product_id,
+      title: prod?.title ?? 'Produto',
+      buyUrl: prod?.buy_url ?? null,
+      grantedBy: r.granted_by as string,
+      grantedAt: r.granted_at as string,
+      expiresAt: r.expires_at as string | null,
+      expiry,
+      expired,
+      statusLabel,
+      statusColor,
+    }
+  })
 
-  if (customerId) {
-    ;[payments, subscriptions] = await Promise.all([
-      getCustomerPayments(customerId),
-      getCustomerSubscriptions(customerId),
-    ])
-  }
+  const active = items.filter(i => !i.expired)
+  const expired = items.filter(i => i.expired)
 
-  const grantedByLabel = (g: string) => {
+  const grantedLabel = (g: string) => {
     if (g === 'purchase') return 'Compra'
     if (g === 'manual') return 'Liberado manualmente'
     if (g === 'pack') return 'Pacote'
@@ -108,122 +66,110 @@ export default async function AssinaturaPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Assinatura & Pagamentos</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Minha Assinatura</h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Visualize seus acessos, assinaturas e histórico de cobranças.
+          Seus produtos ativos e histórico de acessos.
         </p>
       </div>
 
-      {/* Assinaturas recorrentes */}
-      {subscriptions.length > 0 && (
-        <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
-          <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Assinaturas ativas</h2>
-          <div className="space-y-3">
-            {subscriptions.map(sub => {
-              const st = SUBSCRIPTION_STATUS[sub.status] ?? { label: sub.status, color: 'bg-gray-100 text-gray-600' }
-              return (
-                <div key={sub.id} className="flex items-center justify-between gap-4 p-4 rounded-xl border border-gray-100 dark:border-[#1e2030] bg-gray-50 dark:bg-[#0a0d1a]">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                      {sub.description ?? 'Assinatura'}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                      {CYCLE[sub.cycle] ?? sub.cycle} · {BILLING_TYPE[sub.billingType] ?? sub.billingType}
-                      {sub.nextDueDate && ` · Próximo vencimento: ${formatDate(sub.nextDueDate)}`}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{formatCurrency(sub.value)}</p>
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${st.color}`}>{st.label}</span>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Meus acessos */}
+      {/* Produtos ativos */}
       <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
-        <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Meus acessos</h2>
-        {userProducts.length === 0 ? (
-          <p className="text-sm text-gray-400">Nenhum conteúdo adquirido ainda.</p>
+        <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">
+          {active.length > 0 ? 'Produtos ativos' : 'Nenhum produto ativo'}
+        </h2>
+
+        {active.length === 0 ? (
+          <p className="text-sm text-gray-400">
+            Você ainda não tem nenhum conteúdo ativo.{' '}
+            <Link href="/dashboard" className="underline" style={{ color: '#b48840' }}>Ver disponíveis</Link>
+          </p>
         ) : (
           <div className="space-y-3">
-            {userProducts.map((up, i) => {
-              const prod = Array.isArray(up.products) ? up.products[0] : up.products
-              return (
-                <div key={i} className="flex items-center justify-between gap-4 p-4 rounded-xl border border-gray-100 dark:border-[#1e2030] bg-gray-50 dark:bg-[#0a0d1a]">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                      {prod?.title ?? 'Produto'}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                      {grantedByLabel(up.granted_by)} · {new Date(up.granted_at).toLocaleDateString('pt-BR')}
-                    </p>
-                  </div>
-                  <span className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                    Ativo
-                  </span>
+            {active.map((item, i) => (
+              <div key={i} className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 dark:border-[#1e2030] bg-gray-50 dark:bg-[#0a0d1a]">
+                {/* Ícone */}
+                <div className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#f5efe3' }}>
+                  <svg className="w-5 h-5" style={{ color: '#b48840' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.906 59.906 0 0112 3.493a59.903 59.903 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+                  </svg>
                 </div>
-              )
-            })}
+
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{item.title}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {grantedLabel(item.grantedBy)} · desde {formatDate(item.grantedAt)}
+                  </p>
+                  {item.expiry && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      {item.expiresAt ? `Renovação/vencimento: ${formatDate(item.expiresAt)}` : ''}
+                    </p>
+                  )}
+                  {!item.expiry && (
+                    <p className="text-xs mt-0.5" style={{ color: '#b48840' }}>Acesso vitalício</p>
+                  )}
+                </div>
+
+                <div className="flex flex-col items-end gap-2 shrink-0">
+                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${item.statusColor}`}>
+                    {item.statusLabel}
+                  </span>
+                  <Link
+                    href={`/produto/${item.productId}`}
+                    className="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                  >
+                    Acessar
+                  </Link>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
 
-      {/* Histórico de pagamentos */}
-      {payments.length > 0 && (
+      {/* Produtos expirados */}
+      {expired.length > 0 && (
         <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
-          <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Histórico de cobranças</h2>
-          <div className="space-y-2">
-            {payments.map(p => {
-              const ps = PAYMENT_STATUS[p.status] ?? { label: p.status, color: 'bg-gray-100 text-gray-600' }
-              const invoiceLink = p.invoiceUrl ?? p.bankSlipUrl
-              return (
-                <div key={p.id} className="flex items-center gap-3 py-3 border-b border-gray-100 dark:border-[#1e2030] last:border-0">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900 dark:text-white truncate">
-                      {p.description ?? 'Cobrança'}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                      Vencimento: {formatDate(p.dueDate)}
-                      {p.paymentDate && ` · Pago em: ${formatDate(p.paymentDate)}`}
-                      {' · '}{BILLING_TYPE[p.billingType] ?? p.billingType}
-                    </p>
-                  </div>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white shrink-0">
-                    {formatCurrency(p.value)}
-                  </p>
-                  <span className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${ps.color}`}>
-                    {ps.label}
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Expirados / Encerrados</h2>
+          <div className="space-y-3">
+            {expired.map((item, i) => (
+              <div key={i} className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 dark:border-[#1e2030] opacity-75">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{item.title}</p>
+                  {item.expiresAt && (
+                    <p className="text-xs text-gray-400 mt-0.5">Expirou em {formatDate(item.expiresAt)}</p>
+                  )}
+                </div>
+                <div className="flex flex-col items-end gap-2 shrink-0">
+                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${item.statusColor}`}>
+                    {item.statusLabel}
                   </span>
-                  {invoiceLink && (
+                  {item.buyUrl && (
                     <a
-                      href={invoiceLink}
+                      href={item.buyUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="shrink-0 text-xs font-medium text-gray-500 dark:text-gray-400 hover:underline"
+                      className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white transition hover:opacity-90"
+                      style={{ backgroundColor: '#b48840' }}
                     >
-                      Ver boleto
+                      Renovar
                     </a>
                   )}
                 </div>
-              )
-            })}
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Sem dados do Asaas */}
-      {!customerId && payments.length === 0 && subscriptions.length === 0 && (
-        <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6 text-center">
-          <p className="text-sm text-gray-400">
-            Nenhuma cobrança encontrada. Se você realizou um pagamento recentemente,{' '}
-            pode demorar alguns instantes para aparecer aqui.
-          </p>
-        </div>
-      )}
+      {/* Dúvidas */}
+      <div className="text-center py-4">
+        <p className="text-sm text-gray-400">
+          Dúvidas sobre sua assinatura?{' '}
+          <Link href="/atendimento" className="underline font-medium" style={{ color: '#b48840' }}>
+            Abrir chamado
+          </Link>
+        </p>
+      </div>
     </div>
   )
 }

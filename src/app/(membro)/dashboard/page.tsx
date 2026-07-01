@@ -17,7 +17,7 @@ export default async function DashboardPage() {
 
   const [{ data: products }, { data: accesses }, { data: bannersData }, { data: certsData }, { data: cohortMembership }, { data: offersData }, { data: siteConfigData }] = await Promise.all([
     supabase.from('products').select('*').eq('is_active', true).order('sort_order'),
-    supabase.from('user_products').select('product_id').eq('user_id', user.id),
+    supabase.from('user_products').select('product_id, expires_at').eq('user_id', user.id),
     adminClient.from('banners').select('*').eq('is_active', true).or(`expires_at.is.null,expires_at.gt.${now}`).order('sort_order'),
     supabase.from('certificates').select('id, product_id').eq('user_id', user.id),
     adminClient.from('cohort_members').select('cohorts(id, name, description, starts_at, ends_at, products(title))').eq('user_id', user.id).limit(1).maybeSingle(),
@@ -34,7 +34,11 @@ export default async function DashboardPage() {
   const siteConfig = Object.fromEntries((siteConfigData ?? []).map(r => [r.key, r.value]))
   const welcomeMessage = siteConfig['welcome_message'] ?? ''
 
-  const unlockedIds = new Set(accesses?.map((a) => a.product_id) ?? [])
+  // Mapa de product_id → expires_at
+  const accessMap = new Map<string, string | null>(
+    (accesses ?? []).map((a) => [a.product_id, (a as { product_id: string; expires_at?: string | null }).expires_at ?? null])
+  )
+  const unlockedIds = new Set(accessMap.keys())
 
   // Mostrar ofertas apenas para produtos que o membro ainda não tem
   const visibleOffers = (offersData ?? []).filter(o =>
@@ -125,6 +129,7 @@ export default async function DashboardPage() {
                 key={product.id}
                 product={product}
                 unlocked={true}
+                expiresAt={accessMap.get(product.id) ?? null}
                 progress={progressByProduct[product.id] ?? null}
                 certificateId={certByProduct[product.id] ?? null}
               />
