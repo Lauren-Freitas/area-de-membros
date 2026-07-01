@@ -24,6 +24,17 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
 
   if (!product || !access) redirect('/dashboard')
 
+  // Dados extras para produtos sem módulos (carregados condicionalmente)
+  const totalLessonsCheck = (modules ?? []).reduce((acc: number, m: { lessons?: { is_published: boolean }[] }) => acc + (m.lessons?.filter((l: { is_published: boolean }) => l.is_published).length ?? 0), 0)
+  const needsSimpleView = totalLessonsCheck === 0
+
+  const [ratingResult, commentsResult] = needsSimpleView
+    ? await Promise.all([
+        supabase.from('product_ratings').select('rating').eq('user_id', user.id).eq('product_id', id).maybeSingle(),
+        supabase.from('product_comments').select('id, content, created_at, user_id, profiles(name)').eq('product_id', id).order('created_at', { ascending: true }),
+      ])
+    : [{ data: null, error: null }, { data: null, error: null }]
+
   const p = product as Product
   const mods = (modules ?? []) as (Module & { lessons: Lesson[] })[]
   const completedSet = new Set(progressRows?.map(r => r.lesson_id) ?? [])
@@ -36,6 +47,10 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
   }, 0)
   const overallPct = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
   const hasPublishedLessons = totalLessons > 0
+
+  const myRating = ratingResult.data?.rating ?? null
+  type CommentRow = { id: string; content: string; created_at: string; user_id: string; profiles: { name: string } | null }
+  const comments: CommentRow[] = (commentsResult.data as CommentRow[] | null) ?? []
 
   const lessonTypeIcon: Record<string, string> = {
     video: '▶',
@@ -171,31 +186,27 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
           userId={user.id}
           isAdmin={isAdmin}
           isCompleted={isProductCompleted}
+          myRating={myRating}
+          comments={comments}
         />
       )}
     </div>
   )
 }
 
-async function SimpleProductView({
-  product, productId, userId, isAdmin, isCompleted,
+type CommentRow = { id: string; content: string; created_at: string; user_id: string; profiles: { name: string } | null }
+
+function SimpleProductView({
+  product, productId, userId, isAdmin, isCompleted, myRating, comments,
 }: {
   product: Product
   productId: string
   userId: string
   isAdmin: boolean
   isCompleted: boolean
+  myRating: number | null
+  comments: CommentRow[]
 }) {
-  const supabase = await createClient()
-
-  const [{ data: ratingData }, { data: commentsData }] = await Promise.all([
-    supabase.from('product_ratings').select('rating').eq('user_id', userId).eq('product_id', productId).maybeSingle(),
-    supabase.from('product_comments').select('*, profiles(name)').eq('product_id', productId).order('created_at', { ascending: true }),
-  ])
-
-  const myRating = ratingData?.rating ?? null
-  const comments = commentsData ?? []
-
   return (
     <div className="space-y-4">
       {/* Conteúdo principal */}
@@ -214,7 +225,7 @@ async function SimpleProductView({
             productId={productId}
             currentUserId={userId}
             isAdmin={isAdmin}
-            initialComments={comments as Parameters<typeof ProductComments>[0]['initialComments']}
+            initialComments={comments}
           />
         </div>
 
