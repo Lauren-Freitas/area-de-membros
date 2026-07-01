@@ -6,38 +6,20 @@ import { usePathname, useRouter } from 'next/navigation'
 
 const NAV_ITEMS = [
   {
-    href: '/dashboard#meus-conteudos',
-    activeHref: '/dashboard',
-    label: 'Meus conteúdos',
+    href: '/dashboard',
+    label: 'Conteúdos',
     icon: (
       <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
       </svg>
     ),
-  },
-  {
-    href: '/dashboard#disponiveis',
-    activeHref: null,
-    label: 'Disponíveis para compra',
-    icon: (
-      <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-      </svg>
-    ),
-  },
-  {
-    href: '/perfil',
-    activeHref: '/perfil',
-    label: 'Meu perfil & XP',
-    icon: (
-      <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
-      </svg>
-    ),
+    children: [
+      { href: '/dashboard#meus-conteudos', label: 'Meus conteúdos' },
+      { href: '/dashboard#disponiveis', label: 'Disponíveis para compra' },
+    ],
   },
   {
     href: '/conta',
-    activeHref: '/conta',
     label: 'Minha conta',
     icon: (
       <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -47,7 +29,6 @@ const NAV_ITEMS = [
   },
   {
     href: '/assinatura',
-    activeHref: '/assinatura',
     label: 'Assinatura',
     icon: (
       <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -57,7 +38,6 @@ const NAV_ITEMS = [
   },
   {
     href: '/atendimento',
-    activeHref: '/atendimento',
     label: 'Atendimento',
     icon: (
       <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -67,7 +47,6 @@ const NAV_ITEMS = [
   },
   {
     href: '/comunidade',
-    activeHref: '/comunidade',
     label: 'Comunidade',
     icon: (
       <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -77,7 +56,6 @@ const NAV_ITEMS = [
   },
   {
     href: '/ranking',
-    activeHref: '/ranking',
     label: 'Ranking',
     icon: (
       <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -90,8 +68,14 @@ const NAV_ITEMS = [
 export function MobileSidebar() {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
+  const [conteudosOpen, setConteudosOpen] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
+
+  // Auto-expandir "Conteúdos" quando estiver no dashboard
+  useEffect(() => {
+    if (pathname === '/dashboard') setConteudosOpen(true)
+  }, [pathname])
 
   useEffect(() => {
     setOpen(false)
@@ -157,10 +141,50 @@ export function MobileSidebar() {
 
             <nav className="flex-1 overflow-y-auto p-4 space-y-0.5">
               {NAV_ITEMS.map(item => {
-                const checkHref = item.activeHref
-                const active = checkHref
-                  ? (pathname === checkHref || (checkHref !== '/dashboard' && pathname.startsWith(checkHref)))
-                  : false
+                const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
+                const hasChildren = item.children && item.children.length > 0
+
+                if (hasChildren) {
+                  return (
+                    <div key={item.href}>
+                      {/* Botão principal com seta */}
+                      <button
+                        onClick={() => setConteudosOpen(v => !v)}
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition ${
+                          active ? '' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1a1f35]'
+                        }`}
+                        style={active ? { backgroundColor: '#f5efe3', color: '#7a5c10' } : undefined}
+                      >
+                        {item.icon}
+                        <span className="flex-1 text-left">{item.label}</span>
+                        <svg
+                          className={`w-4 h-4 shrink-0 transition-transform ${conteudosOpen ? 'rotate-90' : ''}`}
+                          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+
+                      {/* Sub-itens */}
+                      {conteudosOpen && (
+                        <div className="ml-8 mt-0.5 space-y-0.5 border-l-2 pl-3" style={{ borderColor: '#e5d9c3' }}>
+                          {item.children!.map(child => (
+                            <Link
+                              key={child.href}
+                              href={child.href}
+                              onClick={() => setOpen(false)}
+                              className="flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1a1f35] hover:text-gray-900 dark:hover:text-white transition"
+                            >
+                              <span className="w-1.5 h-1.5 rounded-full bg-current opacity-40 shrink-0" />
+                              {child.label}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                }
+
                 return (
                   <Link
                     key={item.href}
@@ -168,10 +192,7 @@ export function MobileSidebar() {
                     className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition ${
                       active ? '' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1a1f35]'
                     }`}
-                    style={active
-                      ? { backgroundColor: '#f5efe3', color: '#7a5c10' }
-                      : undefined
-                    }
+                    style={active ? { backgroundColor: '#f5efe3', color: '#7a5c10' } : undefined}
                   >
                     {item.icon}
                     {item.label}
