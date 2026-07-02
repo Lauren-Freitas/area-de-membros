@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useRef, useState } from 'react'
+import { useActionState, useEffect, useRef, useState } from 'react'
 import { submitTicket } from '@/lib/actions/member'
 
 interface Ticket {
@@ -25,15 +25,21 @@ function statusLabel(status: string) {
 
 export function AtendimentoForm({ products, tickets }: Props) {
   const [state, action, isPending] = useActionState(submitTicket, undefined)
-  const formRef = useRef<HTMLFormElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [fileError, setFileError] = useState<string | null>(null)
+  const [formKey, setFormKey] = useState(0)
 
-  if (state?.success && formRef.current) {
-    formRef.current.reset()
+  function resetForm() {
+    setFormKey(k => k + 1)
     setSelectedFiles([])
+    setFileError(null)
   }
+
+  useEffect(() => {
+    if (state?.success) resetForm()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state?.success])
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     setFileError(null)
@@ -64,7 +70,7 @@ export function AtendimentoForm({ products, tickets }: Props) {
           Descreva sua dúvida ou problema e entraremos em contato pelo email cadastrado.
         </p>
 
-        <form ref={formRef} action={action} className="space-y-4">
+        <form key={formKey} action={action} className="space-y-4">
           {state?.error && (
             <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-sm text-red-700 dark:text-red-400">
               {state.error}
@@ -196,9 +202,9 @@ export function AtendimentoForm({ products, tickets }: Props) {
               {isPending ? 'Enviando...' : 'Enviar chamado'}
             </button>
             <button
-              type="reset"
-              onClick={() => { setSelectedFiles([]); setFileError(null) }}
-              className="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition"
+              type="button"
+              onClick={resetForm}
+              className="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition focus:outline-none"
             >
               Cancelar
             </button>

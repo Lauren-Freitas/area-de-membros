@@ -13,7 +13,7 @@ export default async function AdminUsuariosPage() {
     { data: products },
     { data: accesses },
   ] = await Promise.all([
-    supabase.from('profiles').select('*').order('created_at', { ascending: false }),
+    supabase.from('profiles').select('*').or('role.neq.admin,role.is.null').order('created_at', { ascending: false }),
     supabase.from('products').select('id, title').eq('is_active', true).order('sort_order'),
     supabase.from('user_products').select('user_id, product_id'),
   ])
@@ -27,13 +27,13 @@ export default async function AdminUsuariosPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Usuários</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Membros</h1>
         <Link
           href="/admin/usuarios/novo"
           className="px-4 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
           style={{ backgroundColor: '#b48840' }}
         >
-          + Novo usuário
+          + Novo membro
         </Link>
       </div>
 
@@ -106,9 +106,9 @@ export default async function AdminUsuariosPage() {
         </div>
       ) : (
         <div className="text-center py-16 text-gray-400 bg-white rounded-2xl border border-gray-100">
-          <p className="font-medium">Nenhum usuário cadastrado ainda.</p>
+          <p className="font-medium">Nenhum membro cadastrado ainda.</p>
           <p className="text-sm mt-1">
-            <Link href="/admin/usuarios/novo" className="underline">Criar o primeiro usuário</Link>
+            <Link href="/admin/usuarios/novo" className="underline">Criar o primeiro membro</Link>
           </p>
         </div>
       )}

@@ -23,8 +23,8 @@ export default async function ConvitesPage() {
   const productMap = Object.fromEntries((products ?? []).map(p => [p.id, p.title]))
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Convites</h1>
           <p className="text-sm text-gray-500 mt-0.5">Links de cadastro para novos membros.</p>
@@ -43,42 +43,71 @@ export default async function ConvitesPage() {
           <p className="font-medium">Nenhum convite criado ainda.</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {invites.map(inv => {
-            const link = `${APP_URL}/convite/${inv.code}`
-            const expired = inv.expires_at && new Date(inv.expires_at) < new Date()
-            const exhausted = inv.max_uses !== null && inv.used_count >= inv.max_uses
-            const productNames = (inv.product_ids ?? []).map((id: string) => productMap[id] ?? id).join(', ')
-
-            return (
-              <div key={inv.id} className="bg-white rounded-xl border border-gray-100 p-4">
-                <div className="flex items-start gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className="font-mono font-bold text-gray-900 text-sm">{inv.code}</span>
-                      {expired && <span className="text-xs text-red-400 bg-red-50 px-2 py-0.5 rounded-full">Expirado</span>}
-                      {exhausted && <span className="text-xs text-orange-400 bg-orange-50 px-2 py-0.5 rounded-full">Esgotado</span>}
-                    </div>
-                    {inv.note && <p className="text-xs text-gray-500 mb-1">{inv.note}</p>}
-                    <div className="flex items-center gap-3 text-xs text-gray-400 flex-wrap">
-                      <span>Usos: {inv.used_count}{inv.max_uses ? `/${inv.max_uses}` : ''}</span>
-                      {inv.expires_at && <span>Expira: {new Date(inv.expires_at).toLocaleDateString('pt-BR')}</span>}
-                      {productNames && <span>Acesso: {productNames}</span>}
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                      <p className="text-xs text-gray-400 font-mono truncate max-w-xs">{link}</p>
-                      <CopyButton text={link} />
-                    </div>
-                  </div>
-                  <form action={async () => { 'use server'; await deleteInvite(inv.id) }}>
-                    <button type="submit" className="text-xs font-medium text-red-400 hover:text-red-600 px-3 py-1.5 rounded-lg border border-red-100 hover:bg-red-50 transition shrink-0">
-                      Excluir
-                    </button>
-                  </form>
-                </div>
-              </div>
-            )
-          })}
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Código</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden md:table-cell">Produtos</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden lg:table-cell">Usos</th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden lg:table-cell">Expira</th>
+                <th className="text-center px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+                <th className="px-5 py-3" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {invites.map(inv => {
+                const link = `${APP_URL}/convite/${inv.code}`
+                const expired = inv.expires_at && new Date(inv.expires_at) < new Date()
+                const exhausted = inv.max_uses !== null && inv.used_count >= inv.max_uses
+                const productNames = (inv.product_ids ?? []).map((id: string) => productMap[id] ?? id).join(', ')
+                return (
+                  <tr key={inv.id} className="hover:bg-gray-50 transition">
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-gray-900">{inv.code}</span>
+                        <CopyButton text={link} />
+                      </div>
+                      {inv.note && <p className="text-xs text-gray-400 mt-0.5">{inv.note}</p>}
+                    </td>
+                    <td className="px-5 py-3.5 text-gray-500 hidden md:table-cell">
+                      {productNames || <span className="text-gray-300">—</span>}
+                    </td>
+                    <td className="px-5 py-3.5 text-gray-500 hidden lg:table-cell">
+                      {inv.used_count}{inv.max_uses ? `/${inv.max_uses}` : ''}
+                    </td>
+                    <td className="px-5 py-3.5 text-gray-500 hidden lg:table-cell">
+                      {inv.expires_at ? new Date(inv.expires_at).toLocaleDateString('pt-BR') : '—'}
+                    </td>
+                    <td className="px-5 py-3.5 text-center">
+                      {expired
+                        ? <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-red-50 text-red-500">Expirado</span>
+                        : exhausted
+                          ? <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-orange-50 text-orange-500">Esgotado</span>
+                          : <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-green-50 text-green-600">Ativo</span>
+                      }
+                    </td>
+                    <td className="px-5 py-3.5 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Link
+                          href={`/admin/convites/${inv.id}`}
+                          className="text-xs font-medium px-3 py-1.5 rounded-lg border transition hover:bg-gray-50"
+                          style={{ borderColor: '#b48840', color: '#7a5c10' }}
+                        >
+                          Editar
+                        </Link>
+                        <form action={async () => { 'use server'; await deleteInvite(inv.id) }}>
+                          <button type="submit" className="text-xs font-medium text-red-400 hover:text-red-600 px-3 py-1.5 rounded-lg border border-red-100 hover:bg-red-50 transition">
+                            Excluir
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

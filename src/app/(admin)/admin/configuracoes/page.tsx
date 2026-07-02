@@ -7,7 +7,7 @@ export default async function ConfiguracoesPage() {
   const { data: { user } } = await supabase.auth.getUser()
   const { data: profile } = await supabase
     .from('profiles')
-    .select('name, email')
+    .select('name, email, avatar_url')
     .eq('id', user?.id ?? '')
     .single()
 
@@ -15,10 +15,11 @@ export default async function ConfiguracoesPage() {
     <div className="max-w-lg space-y-6">
       <h1 className="text-2xl font-bold text-gray-900">Meu perfil</h1>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Informações pessoais</h2>
-        <ConfiguracoesForm name={profile?.name ?? ''} email={profile?.email ?? ''} />
-      </div>
+      <ConfiguracoesForm
+        name={profile?.name ?? ''}
+        email={profile?.email ?? ''}
+        avatarUrl={profile?.avatar_url ?? null}
+      />
 
       <div className="bg-white rounded-2xl border border-gray-100 p-6">
         <h2 className="font-semibold text-gray-900 mb-1">Tema</h2>

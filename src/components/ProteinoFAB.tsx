@@ -36,8 +36,8 @@ const PERSONAS: Record<'member' | 'admin', Persona> = {
   admin: {
     name: 'IAN',
     subtitle: 'Inteligência de Apoio Nutricional',
-    color: '#1e40af',
-    lightBg: '#eff6ff',
+    color: '#b48840',
+    lightBg: '#f5efe3',
     suggestions: ADMIN_SUGGESTIONS,
   },
 }

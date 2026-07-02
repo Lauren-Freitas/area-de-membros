@@ -14,13 +14,13 @@ export default async function NovoUsuarioPage() {
     <div className="max-w-2xl">
       <div className="flex items-center gap-2 mb-6">
         <Link href="/admin/usuarios" className="text-sm text-gray-400 hover:text-gray-600">
-          Usuários
+          Membros
         </Link>
         <span className="text-gray-300">/</span>
-        <span className="text-sm text-gray-700 font-medium">Novo usuário</span>
+        <span className="text-sm text-gray-700 font-medium">Novo membro</span>
       </div>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Novo usuário</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Novo membro</h1>
 
       <NovoUsuarioForm products={products ?? []} />
     </div>

@@ -6,6 +6,8 @@ import Link from 'next/link'
 
 interface Product { id: string; title: string }
 
+const inputClass = 'w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition'
+
 export function NovoUsuarioForm({ products }: { products: Product[] }) {
   const [state, action, isPending] = useActionState(createUser, undefined)
 
@@ -18,7 +20,7 @@ export function NovoUsuarioForm({ products }: { products: Product[] }) {
       )}
 
       <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-        <h2 className="font-semibold text-gray-900">Dados do usuário</h2>
+        <h2 className="font-semibold text-gray-900">Dados do membro</h2>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Nome completo</label>
@@ -26,7 +28,8 @@ export function NovoUsuarioForm({ products }: { products: Product[] }) {
             name="name"
             type="text"
             required
-            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent"
+            className={inputClass}
+            style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
             placeholder="Ex: João Silva"
           />
         </div>
@@ -37,7 +40,8 @@ export function NovoUsuarioForm({ products }: { products: Product[] }) {
             name="email"
             type="email"
             required
-            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent"
+            className={inputClass}
+            style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
             placeholder="Ex: joao@email.com"
           />
         </div>
@@ -71,9 +75,12 @@ export function NovoUsuarioForm({ products }: { products: Product[] }) {
           className="px-6 py-2.5 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 disabled:opacity-60"
           style={{ backgroundColor: '#b48840' }}
         >
-          {isPending ? 'Criando...' : 'Criar usuário e enviar convite'}
+          {isPending ? 'Criando...' : 'Criar membro e enviar convite'}
         </button>
-        <Link href="/admin/usuarios" className="text-sm text-gray-500 hover:text-gray-800">
+        <Link
+          href="/admin/usuarios"
+          className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition"
+        >
           Cancelar
         </Link>
       </div>

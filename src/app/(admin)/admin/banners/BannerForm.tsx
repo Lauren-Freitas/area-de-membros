@@ -8,7 +8,7 @@ export function BannerForm({ banner }: { banner: Banner | null }) {
   const [state, action, pending] = useActionState<AdminActionState, FormData>(saveBanner, undefined)
 
   return (
-    <form action={action} className="space-y-5">
+    <form action={action} className="space-y-5 bg-white rounded-2xl border border-gray-100 p-6">
       {banner && <input type="hidden" name="id" value={banner.id} />}
 
       {state?.error && (

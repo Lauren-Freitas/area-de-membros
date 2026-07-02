@@ -278,14 +278,60 @@ export async function updateProfile(
     if (authError) return { error: authError.message }
   }
 
+  let avatar_url: string | null | undefined
+  const removeAvatar = formData.get('remove_avatar') === 'true'
+  const avatarFile = formData.get('avatar') as File | null
+  if (removeAvatar) {
+    avatar_url = null
+  } else if (avatarFile && avatarFile.size > 0) {
+    const ext = avatarFile.name.split('.').pop()?.toLowerCase() || 'jpg'
+    const path = `${user.id}/avatar.${ext}`
+    const bytes = await avatarFile.arrayBuffer()
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(path, bytes, { contentType: avatarFile.type, upsert: true })
+    if (!uploadError) {
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
+      avatar_url = `${publicUrl}?v=${Date.now()}`
+    }
+  }
+
+  const update: Record<string, unknown> = { name, email }
+  if (avatar_url !== undefined) update.avatar_url = avatar_url
+
   const { error: profileError } = await supabase
     .from('profiles')
-    .update({ name, email })
+    .update(update)
     .eq('id', user.id)
 
   if (profileError) return { error: profileError.message }
 
   revalidatePath('/admin/configuracoes')
+  return { success: true }
+}
+
+export async function updateAdminPassword(
+  prevState: AdminActionState,
+  formData: FormData
+): Promise<AdminActionState> {
+  const supabase = await requireAdmin()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Não autenticado.' }
+
+  const currentPassword = formData.get('current_password') as string
+  const newPassword = formData.get('new_password') as string
+  const confirmPassword = formData.get('confirm_password') as string
+
+  if (!currentPassword || !newPassword || !confirmPassword) return { error: 'Preencha todos os campos.' }
+  if (newPassword !== confirmPassword) return { error: 'As novas senhas não coincidem.' }
+  if (newPassword.length < 8) return { error: 'A nova senha deve ter pelo menos 8 caracteres.' }
+
+  const { error: authError } = await supabase.auth.signInWithPassword({ email: user.email!, password: currentPassword })
+  if (authError) return { error: 'Senha atual incorreta.' }
+
+  const { error: updateError } = await supabase.auth.updateUser({ password: newPassword })
+  if (updateError) return { error: updateError.message }
+
   return { success: true }
 }
 
@@ -365,6 +411,39 @@ export async function deleteInvite(id: string) {
   const admin = createAdminClient()
   await admin.from('invites').delete().eq('id', id)
   revalidatePath('/admin/convites')
+}
+
+export async function updateInvite(
+  id: string,
+  prevState: AdminActionState,
+  formData: FormData
+): Promise<AdminActionState> {
+  await requireAdmin()
+  const admin = createAdminClient()
+
+  const note = (formData.get('note') as string)?.trim() || null
+  const product_ids = formData.getAll('products') as string[]
+  const max_uses = parseInt(formData.get('max_uses') as string) || null
+  const expires_at = (formData.get('expires_at') as string)?.trim() || null
+
+  const { error } = await admin.from('invites').update({
+    note,
+    product_ids,
+    max_uses,
+    expires_at: expires_at || null,
+  }).eq('id', id)
+
+  if (error) return { error: error.message }
+  revalidatePath('/admin/convites')
+  redirect('/admin/convites')
+}
+
+// ─── Certificados ─────────────────────────────────────────────────────────────
+
+export async function deleteCertificate(id: string) {
+  const supabase = await requireAdmin()
+  await supabase.from('certificates').delete().eq('id', id)
+  revalidatePath('/admin/certificados')
 }
 
 // ─── Acesso ──────────────────────────────────────────────────────────────────

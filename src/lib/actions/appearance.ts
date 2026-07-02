@@ -2,6 +2,29 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
+const DEFAULTS: Record<string, string> = {
+  platform_name: 'Thiago Cantalovo',
+  primary_color: '#b48840',
+  brand_light: '#d2b17b',
+  bg_light: '#e4e4e4',
+  bg_dark: '#00060f',
+  card_bg_light: '#ffffff',
+  card_bg_dark: '#0d1020',
+  welcome_message: 'Bem-vindo à área de membros!',
+  support_whatsapp: '5561991900589',
+  support_email: 'contato@thiagocantalovo.com',
+}
+
+export async function restoreAppearanceDefaults() {
+  const adminClient = createAdminClient()
+  for (const [key, value] of Object.entries(DEFAULTS)) {
+    await adminClient.from('site_config').upsert({ key, value }, { onConflict: 'key' })
+  }
+  revalidatePath('/')
+  revalidatePath('/dashboard')
+  revalidatePath('/admin/aparencia')
+}
+
 export async function saveAppearance(formData: FormData) {
   const adminClient = createAdminClient()
   const fields = [

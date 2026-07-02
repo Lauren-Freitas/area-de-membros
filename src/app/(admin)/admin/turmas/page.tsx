@@ -73,7 +73,7 @@ export default async function TurmasPage() {
                           className="text-xs px-3 py-1.5 rounded-lg border transition hover:bg-gray-50"
                           style={{ borderColor: '#b48840', color: '#7a5c10' }}
                         >
-                          Gerenciar
+                          Editar
                         </Link>
                         <form action={async () => { 'use server'; await deleteCohort(c.id) }}>
                           <button type="submit" className="text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-500 transition hover:bg-red-50">

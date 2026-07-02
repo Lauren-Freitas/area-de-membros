@@ -24,10 +24,13 @@ export async function updateMemberProfile(
 
   if (!name) return { error: 'O nome é obrigatório.' }
 
-  let avatar_url: string | undefined
+  let avatar_url: string | null | undefined
 
+  const removeAvatar = formData.get('remove_avatar') === 'true'
   const avatarFile = formData.get('avatar') as File | null
-  if (avatarFile && avatarFile.size > 0) {
+  if (removeAvatar) {
+    avatar_url = null
+  } else if (avatarFile && avatarFile.size > 0) {
     const ext = avatarFile.name.split('.').pop()?.toLowerCase() || 'jpg'
     const path = `${user.id}/avatar.${ext}`
     const bytes = await avatarFile.arrayBuffer()
@@ -37,7 +40,7 @@ export async function updateMemberProfile(
 
     if (!uploadError) {
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
-      avatar_url = publicUrl
+      avatar_url = `${publicUrl}?v=${Date.now()}`
     }
   }
 
@@ -47,8 +50,11 @@ export async function updateMemberProfile(
   const { error } = await supabase.from('profiles').update(update).eq('id', user.id)
   if (error) return { error: error.message }
 
+  revalidatePath('/', 'layout')
   revalidatePath('/conta')
+  revalidatePath('/perfil')
   revalidatePath('/dashboard')
+  revalidatePath('/ranking')
   return { success: true }
 }
 

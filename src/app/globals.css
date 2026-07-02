@@ -48,3 +48,74 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
+
+/* ── Admin dark mode (escopo [data-admin]) ───────────────────────────────── */
+
+/* Fundo principal */
+.dark [data-admin] { background-color: #00060f; }
+
+/* Sidebar */
+.dark [data-admin-sidebar] {
+  background-color: #0d1020 !important;
+  border-color: #1e2030 !important;
+}
+.dark [data-admin-sidebar] .border-gray-100 { border-color: #1e2030; }
+.dark [data-admin-sidebar] .bg-gray-100 { background-color: #1a2035; }
+.dark [data-admin-sidebar] .text-gray-900 { color: #f3f4f6; }
+.dark [data-admin-sidebar] .text-gray-700 { color: #d1d5db; }
+.dark [data-admin-sidebar] .text-gray-500 { color: #9ca3af; }
+.dark [data-admin-sidebar] .text-gray-400 { color: #6b7280; }
+.dark [data-admin-sidebar] .hover\:bg-gray-100:hover { background-color: #1a2035; }
+
+/* Cards (rounded-2xl + bg-white → escuro) */
+.dark [data-admin] .rounded-2xl.bg-white {
+  background-color: #0d1020;
+}
+.dark [data-admin] .rounded-2xl.border-gray-100 {
+  border-color: #1e2030;
+}
+
+/* Tabelas */
+.dark [data-admin] .bg-gray-50 { background-color: #0a0f1a; }
+.dark [data-admin] .border-b.border-gray-100 { border-color: #1e2030; }
+.dark [data-admin] .divide-gray-50 > * + * { border-color: #12182a; }
+.dark [data-admin] tr.hover\:bg-gray-50:hover { background-color: #0f1525; }
+
+/* Texto */
+.dark [data-admin] .text-gray-900 { color: #f3f4f6; }
+.dark [data-admin] .text-gray-800 { color: #e5e7eb; }
+.dark [data-admin] .text-gray-700 { color: #d1d5db; }
+.dark [data-admin] .text-gray-600 { color: #9ca3af; }
+.dark [data-admin] .text-gray-500 { color: #9ca3af; }
+.dark [data-admin] .text-gray-400 { color: #6b7280; }
+.dark [data-admin] .text-gray-300 { color: #4b5563; }
+
+/* Bordas */
+.dark [data-admin] .border-gray-100 { border-color: #1e2030; }
+.dark [data-admin] .border-gray-200 { border-color: #2a3050; }
+
+/* Inputs, textareas, selects */
+.dark [data-admin] input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=submit]):not([type=button]):not([type=file]),
+.dark [data-admin] textarea,
+.dark [data-admin] select {
+  background-color: #111827 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+.dark [data-admin] input::placeholder,
+.dark [data-admin] textarea::placeholder {
+  color: #6b7280 !important;
+}
+
+/* Input range (slider) */
+.dark [data-admin] input[type=range] {
+  accent-color: #b48840;
+}
+
+/* Secondary buttons (border + bg-white) */
+.dark [data-admin] a.border-gray-200:not([style]),
+.dark [data-admin] button.border-gray-200:not([style]) {
+  background-color: transparent;
+  border-color: #374151;
+  color: #d1d5db;
+}

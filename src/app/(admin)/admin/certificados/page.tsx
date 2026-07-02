@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { deleteCertificate } from '@/lib/actions/admin'
 
 export default async function CertificadosAdminPage() {
   const adminClient = createAdminClient()
@@ -46,9 +47,16 @@ export default async function CertificadosAdminPage() {
                       })}
                     </td>
                     <td className="px-5 py-3 text-right">
-                      <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium" style={{ backgroundColor: '#f5efe3', color: '#7a5c10' }}>
-                        🎓 Emitido
-                      </span>
+                      <div className="flex items-center justify-end gap-3">
+                        <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium" style={{ backgroundColor: '#f5efe3', color: '#7a5c10' }}>
+                          Emitido
+                        </span>
+                        <form action={async () => { 'use server'; await deleteCertificate(cert.id) }}>
+                          <button type="submit" className="text-xs font-medium text-red-400 hover:text-red-600 px-3 py-1.5 rounded-lg border border-red-100 hover:bg-red-50 transition">
+                            Revogar
+                          </button>
+                        </form>
+                      </div>
                     </td>
                   </tr>
                 )

@@ -2,7 +2,8 @@
 
 import { useActionState, useState, useRef } from 'react'
 import { updateMemberProfile, updateMemberPassword } from '@/lib/actions/member'
-import Link from 'next/link'
+import { AvatarCropper } from '@/components/AvatarCropper'
+import { AvatarPhotoModal } from '@/components/AvatarPhotoModal'
 
 const COUNTRIES = [
   { ddi: '+55',  flag: '🇧🇷', name: 'Brasil' },
@@ -85,15 +86,44 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
   const [profileState, profileAction, profilePending] = useActionState(updateMemberProfile, undefined)
   const [passwordState, passwordAction, passwordPending] = useActionState(updateMemberPassword, undefined)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(initialData.avatar_url)
+  const [cropSrc, setCropSrc] = useState<string | null>(null)
+  const [photoModalOpen, setPhotoModalOpen] = useState(false)
+  const [removeAvatar, setRemoveAvatar] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const parsedPhone = parsePhone(initialData.phone)
   const [selectedDdi, setSelectedDdi] = useState(parsedPhone.ddi)
+  const [profileFormKey, setProfileFormKey] = useState(0)
+  const [passwordFormKey, setPasswordFormKey] = useState(0)
 
-  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const url = URL.createObjectURL(file)
-    setAvatarPreview(url)
+  function handleProfileCancel() {
+    setProfileFormKey(k => k + 1)
+    setSelectedDdi(parsedPhone.ddi)
+    setAvatarPreview(initialData.avatar_url)
+    setRemoveAvatar(false)
+    if (fileRef.current) fileRef.current.value = ''
+  }
+
+  function handlePasswordCancel() {
+    setPasswordFormKey(k => k + 1)
+  }
+
+  function handleCropConfirm(previewUrl: string, file: File) {
+    setAvatarPreview(previewUrl)
+    setRemoveAvatar(false)
+    setCropSrc(null)
+    setPhotoModalOpen(false)
+    if (fileRef.current) {
+      const dt = new DataTransfer()
+      dt.items.add(file)
+      fileRef.current.files = dt.files
+    }
+  }
+
+  function handleDelete() {
+    setAvatarPreview(null)
+    setRemoveAvatar(true)
+    setPhotoModalOpen(false)
+    if (fileRef.current) fileRef.current.value = ''
   }
 
   function getInitials(name: string) {
@@ -102,6 +132,23 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
+      {cropSrc && (
+        <AvatarCropper
+          src={cropSrc}
+          onConfirm={handleCropConfirm}
+          onCancel={() => { setCropSrc(null); if (fileRef.current) fileRef.current.value = '' }}
+        />
+      )}
+      {photoModalOpen && !cropSrc && (
+        <AvatarPhotoModal
+          src={avatarPreview}
+          initials={getInitials(initialData.name)}
+          onEdit={() => { if (avatarPreview) { setPhotoModalOpen(false); setCropSrc(avatarPreview) } }}
+          onUpdate={(file) => { setPhotoModalOpen(false); setCropSrc(URL.createObjectURL(file)) }}
+          onDelete={handleDelete}
+          onClose={() => setPhotoModalOpen(false)}
+        />
+      )}
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Minha Conta</h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -113,7 +160,7 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
       <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
         <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-5">Informações pessoais</h2>
 
-        <form action={profileAction} className="space-y-5" encType="multipart/form-data">
+        <form key={profileFormKey} action={profileAction} className="space-y-5">
           {profileState?.error && (
             <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-sm text-red-700 dark:text-red-400">
               {profileState.error}
@@ -126,43 +173,37 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
           )}
 
           {/* Avatar */}
-          <div className="flex items-center gap-5">
-            <div className="relative">
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => setPhotoModalOpen(true)}
+              className="relative shrink-0 group"
+            >
               {avatarPreview ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={avatarPreview}
-                  alt="Avatar"
-                  className="rounded-full object-cover w-[72px] h-[72px] border-2 border-gray-100 dark:border-[#1e2030]"
-                />
+                <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-gray-100 dark:border-[#1e2030]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                </div>
               ) : (
                 <div
-                  className="w-[72px] h-[72px] rounded-full flex items-center justify-center text-xl font-bold text-white"
+                  className="w-20 h-20 rounded-full flex items-center justify-center text-xl font-bold text-white"
                   style={{ backgroundColor: '#b48840' }}
                 >
                   {getInitials(initialData.name)}
                 </div>
               )}
-            </div>
+              <div className="absolute inset-0 rounded-full bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 11l6.536-6.536a2 2 0 012.828 2.828L11.828 13.828A2 2 0 0110.414 14H9v-1.414A2 2 0 019.586 11z" />
+                </svg>
+              </div>
+            </button>
             <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Foto de perfil</p>
-              <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                className="text-sm font-medium px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1a1f35] transition"
-              >
-                Escolher foto
-              </button>
-              <input
-                ref={fileRef}
-                type="file"
-                name="avatar"
-                accept="image/png,image/jpeg,image/webp,image/gif"
-                className="hidden"
-                onChange={handleAvatarChange}
-              />
-              <p className="text-xs text-gray-400 mt-1">PNG, JPG ou WebP. Máx. 2 MB.</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white mb-0.5">Foto de perfil</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">Clique na foto para editar</p>
             </div>
+            <input ref={fileRef} type="file" name="avatar" accept="image/png,image/jpeg,image/webp" className="hidden" />
+            {removeAvatar && <input type="hidden" name="remove_avatar" value="true" />}
           </div>
 
           {/* Nome + Telefone */}
@@ -288,12 +329,13 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
             >
               {profilePending ? 'Salvando...' : 'Atualizar'}
             </button>
-            <Link
-              href="/dashboard"
-              className="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition"
+            <button
+              type="button"
+              onClick={handleProfileCancel}
+              className="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition focus:outline-none"
             >
               Cancelar
-            </Link>
+            </button>
           </div>
         </form>
       </div>
@@ -305,7 +347,7 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
           Para alterar sua senha, informe a senha atual e depois a nova senha desejada.
         </p>
 
-        <form action={passwordAction} className="space-y-4">
+        <form key={passwordFormKey} action={passwordAction} className="space-y-4">
           {passwordState?.error && (
             <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-sm text-red-700 dark:text-red-400">
               {passwordState.error}
@@ -369,8 +411,9 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
               {passwordPending ? 'Alterando...' : 'Atualizar senha'}
             </button>
             <button
-              type="reset"
-              className="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition"
+              type="button"
+              onClick={handlePasswordCancel}
+              className="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition focus:outline-none"
             >
               Cancelar
             </button>

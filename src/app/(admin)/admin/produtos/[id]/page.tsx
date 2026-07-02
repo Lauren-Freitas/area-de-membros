@@ -43,7 +43,7 @@ export default async function AdminProdutoPage({
     <div>
       <div className="flex items-center gap-2 text-sm mb-6">
         <Link href="/admin/produtos" className="text-gray-500 hover:text-gray-800 transition">
-          ← Produtos
+          Produtos
         </Link>
         <span className="text-gray-300">/</span>
         <span className="text-gray-900">{isNew ? 'Novo produto' : product?.title}</span>
@@ -96,7 +96,8 @@ export default async function AdminProdutoPage({
                       </span>
                       <Link
                         href={`/admin/produtos/${id}/modulos/${mod.id}`}
-                        className="text-xs font-medium px-3 py-1.5 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition"
+                        className="text-xs font-medium px-3 py-1.5 rounded-lg border transition hover:bg-gray-50"
+                        style={{ borderColor: '#b48840', color: '#7a5c10' }}
                       >
                         Editar
                       </Link>
@@ -107,7 +108,7 @@ export default async function AdminProdutoPage({
                   {(mod.lessons?.length ?? 0) > 0 && (
                     <div className="border-t border-gray-50 px-5 py-3 space-y-1">
                       {mod.lessons.sort((a, b) => a.sort_order - b.sort_order).map((lesson) => (
-                        <div key={lesson.id} className="flex items-center justify-between py-1">
+                        <div key={lesson.id} className="flex items-center justify-between py-1.5">
                           <div className="flex items-center gap-2">
                             <span className="text-xs text-gray-400">{lessonTypeLabel[lesson.lesson_type]}</span>
                             <span className="text-sm text-gray-700">{lesson.title}</span>
@@ -115,12 +116,16 @@ export default async function AdminProdutoPage({
                               <span className="text-[10px] bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded">Rascunho</span>
                             )}
                           </div>
-                          <Link
-                            href={`/admin/produtos/${id}/modulos/${mod.id}/aulas/${lesson.id}`}
-                            className="text-xs text-gray-400 hover:text-gray-700 transition"
-                          >
-                            Editar
-                          </Link>
+                          <div className="flex items-center gap-2">
+                            <Link
+                              href={`/admin/produtos/${id}/modulos/${mod.id}/aulas/${lesson.id}`}
+                              className="text-xs font-medium px-3 py-1.5 rounded-lg border transition hover:bg-gray-50"
+                              style={{ borderColor: '#b48840', color: '#7a5c10' }}
+                            >
+                              Editar
+                            </Link>
+                            <DeleteLessonButton lessonId={lesson.id} moduleId={mod.id} productId={id} lessonTitle={lesson.title} />
+                          </div>
                         </div>
                       ))}
                       <Link

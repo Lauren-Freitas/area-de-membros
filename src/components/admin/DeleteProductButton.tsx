@@ -15,7 +15,7 @@ export function DeleteProductButton({ id }: { id: string }) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="text-sm text-red-500 hover:text-red-700 font-medium transition"
+        className="text-xs font-medium text-red-400 hover:text-red-600 px-3 py-1.5 rounded-lg border border-red-100 hover:bg-red-50 transition"
       >
         Excluir
       </button>
@@ -26,6 +26,7 @@ export function DeleteProductButton({ id }: { id: string }) {
         title="Excluir produto"
         message="Este produto e todo o seu conteúdo serão excluídos permanentemente."
         confirmLabel="Excluir produto"
+        dangerWord="EXCLUIR"
       />
     </>
   )

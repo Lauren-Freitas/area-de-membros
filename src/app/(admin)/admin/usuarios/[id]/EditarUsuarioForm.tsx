@@ -41,12 +41,12 @@ export function EditarUsuarioForm({ profile, action, products, userId }: Props) 
     <div className="space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-500">
-        <Link href="/admin/usuarios" className="hover:text-gray-800 transition">← Usuários</Link>
+        <Link href="/admin/usuarios" className="hover:text-gray-800 transition">← Membros</Link>
         <span>/</span>
         <span className="text-gray-800 font-medium truncate">{profile.name || profile.email}</span>
       </div>
 
-      <h1 className="text-2xl font-bold text-gray-900">Editar usuário</h1>
+      <h1 className="text-2xl font-bold text-gray-900">Editar membro</h1>
 
       {/* Formulário principal */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6">
@@ -123,7 +123,7 @@ export function EditarUsuarioForm({ profile, action, products, userId }: Props) 
               {isActive && <input type="hidden" name="is_active" value="on" />}
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900">Usuário ativo</p>
+              <p className="text-sm font-medium text-gray-900">Membro ativo</p>
               <p className="text-xs text-gray-400">{isActive ? 'Com acesso à plataforma' : 'Acesso suspenso'}</p>
             </div>
           </div>

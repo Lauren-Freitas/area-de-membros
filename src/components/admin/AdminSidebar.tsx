@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { logout } from '@/lib/actions/auth'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 // ── Icons ──────────────────────────────────────────────────────────────────
 const I = {
@@ -51,8 +52,8 @@ const nav = [
   {
     section: 'Membros',
     items: [
-      { label: 'Criar usuário', href: '/admin/usuarios/novo', exact: true, icon: I.userPlus },
-      { label: 'Gerenciar usuários', href: '/admin/usuarios', icon: I.users },
+      { label: 'Criar membro', href: '/admin/usuarios/novo', exact: true, icon: I.userPlus },
+      { label: 'Gerenciar membros', href: '/admin/usuarios', icon: I.users },
       { label: 'Convites', href: '/admin/convites', icon: I.mail },
     ],
   },
@@ -94,9 +95,10 @@ interface Props {
   onToggle: () => void
   userName: string
   userEmail: string
+  userAvatar: string | null
 }
 
-export function AdminSidebar({ collapsed, onToggle, userName, userEmail }: Props) {
+export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAvatar }: Props) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [tooltip, setTooltip] = useState<{ label: string; y: number } | null>(null)
@@ -225,13 +227,29 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail }: Props
         </Link>
 
         {(!collapsed || mobile) && (
-          <div className="flex items-center justify-between px-3 py-1">
-            <div className="min-w-0">
+          <div className="flex items-center gap-2.5 px-3 py-1">
+            <Link href="/admin/configuracoes" onClick={() => setMobileOpen(false)} className="shrink-0 hover:opacity-80 transition">
+              {userAvatar ? (
+                <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                  style={{ backgroundColor: '#b48840' }}
+                >
+                  {userName.split(' ').slice(0, 2).map(n => n[0] ?? '').join('').toUpperCase() || '?'}
+                </div>
+              )}
+            </Link>
+            <div className="flex-1 min-w-0">
               <p className="text-xs font-medium text-gray-700 truncate">{userName}</p>
               <p className="text-[10px] text-gray-400 truncate">{userEmail}</p>
             </div>
+            <ThemeToggle className="shrink-0 !p-1" />
             <form action={logout}>
-              <button type="submit" className="text-xs text-gray-400 hover:text-red-500 transition font-medium ml-2 shrink-0">
+              <button type="submit" className="text-xs text-gray-400 hover:text-red-500 transition font-medium shrink-0">
                 Sair
               </button>
             </form>
@@ -239,16 +257,21 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail }: Props
         )}
 
         {collapsed && !mobile && (
-          <form action={logout} className="flex justify-center">
-            <button
-              type="submit"
-              className="w-10 h-10 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-red-500 transition"
-              onMouseEnter={(e) => setTooltip({ label: 'Sair', y: e.currentTarget.getBoundingClientRect().top })}
-              onMouseLeave={() => setTooltip(null)}
-            >
-              <Icon d={I.logout} className="w-5 h-5" />
-            </button>
-          </form>
+          <>
+            <div className="flex justify-center">
+              <ThemeToggle className="!p-0 w-10 h-10" />
+            </div>
+            <form action={logout} className="flex justify-center">
+              <button
+                type="submit"
+                className="w-10 h-10 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-red-500 transition"
+                onMouseEnter={(e) => setTooltip({ label: 'Sair', y: e.currentTarget.getBoundingClientRect().top })}
+                onMouseLeave={() => setTooltip(null)}
+              >
+                <Icon d={I.logout} className="w-5 h-5" />
+              </button>
+            </form>
+          </>
         )}
       </div>
     </div>
@@ -270,7 +293,7 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail }: Props
       )}
 
       {/* Mobile top bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-100 z-20 flex items-center justify-between px-4">
+      <div data-admin-sidebar className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-100 z-20 flex items-center justify-between px-4">
         <button onClick={() => setMobileOpen(true)} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
@@ -286,12 +309,12 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail }: Props
       {mobileOpen && <div className="fixed inset-0 bg-black/40 z-30 lg:hidden" onClick={() => setMobileOpen(false)} />}
 
       {/* Desktop sidebar */}
-      <aside className={`hidden lg:flex flex-col fixed top-0 left-0 h-full bg-white border-r border-gray-100 z-40 transition-[width] duration-200 overflow-hidden ${sidebarW}`}>
+      <aside data-admin-sidebar className={`hidden lg:flex flex-col fixed top-0 left-0 h-full bg-white border-r border-gray-100 z-40 transition-[width] duration-200 overflow-hidden ${sidebarW}`}>
         <SidebarInner />
       </aside>
 
       {/* Mobile sidebar (always full width) */}
-      <aside className={`lg:hidden fixed top-0 left-0 h-full w-64 bg-white border-r border-gray-100 z-40 transition-transform duration-200 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside data-admin-sidebar className={`lg:hidden fixed top-0 left-0 h-full w-64 bg-white border-r border-gray-100 z-40 transition-transform duration-200 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <SidebarInner mobile />
       </aside>
     </>

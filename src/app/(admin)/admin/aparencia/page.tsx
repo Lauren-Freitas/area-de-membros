@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { saveAppearance } from '@/lib/actions/appearance'
+import { saveAppearance, restoreAppearanceDefaults } from '@/lib/actions/appearance'
 
 const DEFAULTS: Record<string, string> = {
   platform_name: 'Thiago Cantalovo',
@@ -27,9 +27,19 @@ export default async function AparenciaPage() {
 
   return (
     <div className="space-y-6 max-w-xl">
-      <div>
-        <h1 className="text-xl font-bold text-gray-900">Aparência</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Personalize textos e cores da plataforma.</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">Aparência</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Personalize textos e cores da plataforma.</p>
+        </div>
+        <form action={restoreAppearanceDefaults}>
+          <button
+            type="submit"
+            className="shrink-0 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+          >
+            Restaurar padrão
+          </button>
+        </form>
       </div>
 
       <form action={saveAppearance} className="space-y-6 bg-white rounded-2xl border border-gray-100 p-6">
