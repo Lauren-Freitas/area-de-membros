@@ -150,7 +150,7 @@ export default async function AdminPage() {
           ) : (
             <div className="divide-y divide-gray-100">
               {recentMembers.map(m => (
-                <div key={m.id} className="flex items-center gap-3 py-3 last:pb-0">
+                <div key={m.id} className="flex items-center gap-3 py-3 last:pb-0 hover:bg-gray-50 transition rounded-lg">
                   <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-gray-100 text-gray-500 shrink-0">
                     {m.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() ?? '?'}
                   </div>
@@ -181,7 +181,7 @@ export default async function AdminPage() {
                 const profile = Array.isArray(v.profiles) ? v.profiles[0] : v.profiles
                 const product = Array.isArray(v.products) ? v.products[0] : v.products
                 return (
-                  <div key={i} className="flex items-center gap-3 py-3 last:pb-0">
+                  <div key={i} className="flex items-center gap-3 py-3 last:pb-0 hover:bg-gray-50 transition rounded-lg">
                     <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm" style={{ backgroundColor: '#f5efe3' }}>
                       📦
                     </div>

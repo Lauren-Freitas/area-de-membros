@@ -50,7 +50,7 @@ export default async function AssinaturaPage() {
         ) : (
           <div className="divide-y divide-gray-100">
             {recentMembers.map(m => (
-              <div key={m.id} className="flex items-center gap-3 py-3 last:pb-0">
+              <div key={m.id} className="flex items-center gap-3 py-3 last:pb-0 hover:bg-gray-50 transition rounded-lg">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-gray-100 text-gray-500 shrink-0">
                   {m.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() ?? '?'}
                 </div>
