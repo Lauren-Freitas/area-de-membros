@@ -139,11 +139,12 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAva
     }
     if (href === '/admin') return pathname === '/admin'
     if (exact) return pathname === href
-    return pathname === href || (
-      pathname.startsWith(href + '/') &&
-      !pathname.endsWith('/novo') &&
-      !pathname.endsWith('/nova')
-    )
+    if (pathname === href) return true
+    if (!pathname.startsWith(href + '/')) return false
+    // Não ativar o item pai se existe um nav item com exact para o path atual
+    const allItems = nav.flatMap(s => s.items)
+    const hasOwnExactItem = allItems.some(item => item.exact && item.href === pathname)
+    return !hasOwnExactItem
   }
 
   const sidebarW = collapsed ? 'w-16' : 'w-60'
