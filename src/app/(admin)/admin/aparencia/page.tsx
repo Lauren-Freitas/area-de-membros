@@ -155,7 +155,7 @@ export default async function AparenciaPage() {
           </div>
         </div>
 
-        <div className="pt-2">
+        <div className="pt-2 flex items-center gap-3">
           <button
             type="submit"
             className="px-5 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
@@ -163,6 +163,12 @@ export default async function AparenciaPage() {
           >
             Salvar alterações
           </button>
+          <a
+            href="/admin/aparencia"
+            className="px-5 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+          >
+            Cancelar
+          </a>
         </div>
       </form>
     </div>

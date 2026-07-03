@@ -18,11 +18,14 @@ const DEFAULTS: Record<string, string> = {
 
 export async function restoreAppearanceDefaults() {
   const adminClient = createAdminClient()
-  for (const [key, value] of Object.entries(DEFAULTS)) {
-    await adminClient.from('site_config').upsert({ key, value }, { onConflict: 'key' })
-  }
-  revalidatePath('/', 'layout')
-  redirect('/admin/aparencia')
+  await Promise.all(
+    Object.entries(DEFAULTS).map(([key, value]) =>
+      adminClient.from('site_config').upsert({ key, value }, { onConflict: 'key' })
+    )
+  )
+  revalidatePath('/')
+  revalidatePath('/dashboard')
+  revalidatePath('/admin/aparencia')
 }
 
 export async function saveAppearance(formData: FormData) {
