@@ -133,13 +133,14 @@ body {
   border-bottom-color: #12182a !important;
 }
 
-/* Botões secundários (border-gray-200) em dark mode */
-.dark [data-admin] a.border-gray-200,
-.dark [data-admin] button.border-gray-200 {
+/* Botões secundários (border-gray-200) em dark mode — exclui cards rounded-2xl */
+.dark [data-admin] a.border-gray-200:not(.rounded-2xl),
+.dark [data-admin] button.border-gray-200:not(.rounded-2xl) {
   background-color: transparent !important;
   border-color: #374151 !important;
   color: #d1d5db !important;
 }
+/* Hover visível em botões E cards de integração */
 .dark [data-admin] a.border-gray-200:hover,
 .dark [data-admin] button.border-gray-200:hover {
   background-color: #1a2035 !important;
