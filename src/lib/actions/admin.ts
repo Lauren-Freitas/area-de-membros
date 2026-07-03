@@ -82,6 +82,7 @@ export async function createUser(
 
   const name = (formData.get('name') as string)?.trim()
   const email = (formData.get('email') as string)?.trim().toLowerCase()
+  const role = ((formData.get('role') as string) || 'membro') as 'admin' | 'membro'
   const productIds = formData.getAll('products') as string[]
 
   if (!name) return { error: 'O nome é obrigatório.' }
@@ -134,6 +135,10 @@ export async function createUser(
     ? (await admin.from('products').select('title').eq('id', productIds[0]).single()).data?.title ?? 'Área de Membros'
     : productIds.length > 1 ? 'seus produtos' : 'Área de Membros'
 
+  if (role !== 'membro') {
+    await admin.from('profiles').update({ role }).eq('id', userId)
+  }
+
   if (isNewUser && inviteLink) {
     await sendWelcomeEmail({ email, name, productTitle, inviteLink }).catch(() => null)
   } else if (productIds.length > 0) {
@@ -141,6 +146,8 @@ export async function createUser(
   }
 
   revalidatePath('/admin/usuarios')
+  revalidatePath('/admin/configuracoes')
+  if (role === 'admin') redirect('/admin/configuracoes')
   redirect('/admin/usuarios')
 }
 
