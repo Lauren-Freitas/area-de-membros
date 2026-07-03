@@ -21,7 +21,7 @@ export default async function ConfiguracoesPage() {
 
   return (
     <div className="max-w-lg space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Configurações</h1>
+      <h1 className="text-2xl font-bold text-gray-900">Conta & Equipe</h1>
 
       {/* Meu perfil */}
       <div>
