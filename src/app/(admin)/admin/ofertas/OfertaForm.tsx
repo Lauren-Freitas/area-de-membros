@@ -114,7 +114,7 @@ export function OfertaForm({ offer, products }: { offer?: Offer; products: Produ
         >
           {offer ? 'Salvar alterações' : 'Criar oferta'}
         </button>
-        <a href="/admin/ofertas" className="text-sm text-gray-500 hover:text-gray-700 transition">Cancelar</a>
+        <a href="/admin/ofertas" className="px-5 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition">Cancelar</a>
       </div>
     </form>
   )

@@ -78,6 +78,7 @@ body {
 /* Tabelas */
 .dark [data-admin] .bg-gray-50 { background-color: #0a0f1a; }
 .dark [data-admin] .hover\:bg-gray-50:hover { background-color: #1a2540; }
+.dark [data-admin] .hover\:bg-gray-100:hover { background-color: #1a2035; }
 
 /* Texto */
 .dark [data-admin] .text-gray-900 { color: #f3f4f6; }

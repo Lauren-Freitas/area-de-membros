@@ -1,6 +1,7 @@
 'use server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 
 const DEFAULTS: Record<string, string> = {
   platform_name: 'Thiago Cantalovo',
@@ -20,9 +21,8 @@ export async function restoreAppearanceDefaults() {
   for (const [key, value] of Object.entries(DEFAULTS)) {
     await adminClient.from('site_config').upsert({ key, value }, { onConflict: 'key' })
   }
-  revalidatePath('/')
-  revalidatePath('/dashboard')
-  revalidatePath('/admin/aparencia')
+  revalidatePath('/', 'layout')
+  redirect('/admin/aparencia')
 }
 
 export async function saveAppearance(formData: FormData) {

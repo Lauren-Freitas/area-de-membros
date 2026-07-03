@@ -120,7 +120,7 @@ export function ApiKeysClient({ keys }: { keys: ApiKey[] }) {
             >
               {isPending ? 'Criando...' : 'Criar chave'}
             </button>
-            <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg transition">
+            <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
               Cancelar
             </button>
           </div>

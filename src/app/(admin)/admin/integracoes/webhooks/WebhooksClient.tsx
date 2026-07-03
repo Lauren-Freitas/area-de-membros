@@ -143,7 +143,7 @@ export function WebhooksClient({ webhooks, products }: { webhooks: Webhook[]; pr
             >
               {isPending ? 'Criando...' : 'Criar webhook'}
             </button>
-            <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg transition">
+            <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
               Cancelar
             </button>
           </div>

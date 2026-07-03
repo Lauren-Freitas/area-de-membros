@@ -110,7 +110,7 @@ export default function IntegracoesPage() {
         <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Apps</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {apps.map((app) => {
-            const cardClass = "relative bg-white rounded-2xl border border-gray-200 p-6 flex flex-col items-center justify-center gap-3 hover:shadow-md hover:border-gray-300 transition group min-h-[130px]"
+            const cardClass = "relative bg-white rounded-2xl border border-gray-200 p-6 flex flex-col items-center justify-center gap-3 hover:shadow-md hover:border-gray-300 hover:bg-gray-50 transition group min-h-[130px]"
             const inner = (
               <>
                 {app.external && (

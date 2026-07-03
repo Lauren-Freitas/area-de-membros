@@ -136,7 +136,7 @@ export function ModuloForm({ productId, module }: Props) {
         >
           {isPending ? 'Salvando...' : module ? 'Salvar alterações' : 'Criar módulo'}
         </button>
-        <Link href={`/admin/produtos/${productId}`} className="text-sm text-gray-500 hover:text-gray-800">
+        <Link href={`/admin/produtos/${productId}`} className="px-5 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
           Cancelar
         </Link>
       </div>

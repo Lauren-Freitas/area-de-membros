@@ -137,7 +137,7 @@ export function AulaForm({ productId, moduleId, lesson }: Props) {
         >
           {isPending ? 'Salvando...' : lesson ? 'Salvar alterações' : 'Criar aula'}
         </button>
-        <Link href={`/admin/produtos/${productId}/modulos/${moduleId}`} className="text-sm text-gray-500 hover:text-gray-800">
+        <Link href={`/admin/produtos/${productId}/modulos/${moduleId}`} className="px-5 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
           Cancelar
         </Link>
       </div>

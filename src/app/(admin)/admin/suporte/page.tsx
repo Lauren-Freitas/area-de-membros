@@ -62,10 +62,10 @@ export default function SuportePage() {
 
       {/* Perguntas Frequentes */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <h2 className="font-semibold text-gray-900 mb-5">Perguntas frequentes</h2>
-        <div className="space-y-5">
+        <h2 className="font-semibold text-gray-900 pb-4 border-b border-gray-100 mb-1">Perguntas frequentes</h2>
+        <div className="divide-y divide-gray-100">
           {faq.map(({ q, a }) => (
-            <div key={q} className="border-b border-gray-100 pb-5 last:border-0 last:pb-0">
+            <div key={q} className="py-4 hover:bg-gray-50 transition rounded-lg px-2 -mx-2 last:pb-0">
               <p className="text-sm font-semibold text-gray-800 mb-1">{q}</p>
               <p className="text-sm text-gray-500 leading-relaxed">{a}</p>
             </div>
