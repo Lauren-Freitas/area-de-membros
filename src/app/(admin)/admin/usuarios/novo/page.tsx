@@ -14,7 +14,7 @@ export default async function NovoUsuarioPage({ searchParams }: { searchParams: 
     .order('sort_order')
 
   const backHref = isEquipe ? '/admin/configuracoes' : '/admin/usuarios'
-  const backLabel = isEquipe ? 'Configurações' : 'Membros'
+  const backLabel = isEquipe ? 'Conta & Equipe' : 'Membros'
   const title = isEquipe ? 'Novo colaborador' : 'Novo membro'
 
   return (

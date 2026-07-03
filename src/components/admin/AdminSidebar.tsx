@@ -117,10 +117,10 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAva
   }, [])
 
   function isActive(href: string, exact?: boolean) {
-    // Quando vem de Equipe (?from=equipe), /admin/usuarios/[id] deve ativar Conta & Equipe
-    if (fromEquipe && pathname.startsWith('/admin/usuarios/')) {
+    // Quando vem de Equipe (?from=equipe), páginas de usuário devem ativar Conta & Equipe
+    if (fromEquipe && (pathname.startsWith('/admin/usuarios/') || pathname === '/admin/usuarios/novo')) {
       if (href === '/admin/configuracoes') return true
-      if (href === '/admin/usuarios') return false
+      if (href === '/admin/usuarios' || href === '/admin/usuarios/novo') return false
     }
 
     if (href.includes('#')) {

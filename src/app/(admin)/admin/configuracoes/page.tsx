@@ -51,7 +51,7 @@ export default async function ConfiguracoesPage() {
               <p className="text-sm text-gray-500 mt-0.5">Administradores com acesso ao painel.</p>
             </div>
             <Link
-              href="/admin/usuarios/novo?equipe=true"
+              href="/admin/usuarios/novo?equipe=true&from=equipe"
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white rounded-lg hover:opacity-90 transition"
               style={{ backgroundColor: '#b48840' }}
             >
