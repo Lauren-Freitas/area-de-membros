@@ -1,6 +1,8 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminPage() {
   const adminClient = createAdminClient()
 
@@ -8,33 +10,35 @@ export default async function AdminPage() {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
 
   const [
-    { count: totalMembers },
-    { count: newMembersWeek },
+    { data: membroProfiles },
+    { data: nullRoleProfiles },
     { count: totalAccesses },
     { count: newAccessesMonth },
     { count: activeProducts },
     { count: totalCertificates },
-    { data: recentMembers },
     { data: recentActivity },
   ] = await Promise.all([
-    adminClient.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'member'),
-    adminClient.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'member').gte('created_at', sevenDaysAgo),
+    adminClient.from('profiles').select('id, name, email, created_at').eq('role', 'membro').order('created_at', { ascending: false }),
+    adminClient.from('profiles').select('id, name, email, created_at').is('role', null).order('created_at', { ascending: false }),
     adminClient.from('user_products').select('*', { count: 'exact', head: true }),
     adminClient.from('user_products').select('*', { count: 'exact', head: true }).gte('granted_at', thirtyDaysAgo),
     adminClient.from('products').select('*', { count: 'exact', head: true }).eq('is_active', true),
     adminClient.from('certificates').select('*', { count: 'exact', head: true }),
-    adminClient
-      .from('profiles')
-      .select('id, name, email, created_at')
-      .eq('role', 'member')
-      .order('created_at', { ascending: false })
-      .limit(5),
     adminClient
       .from('user_products')
       .select('granted_at, profiles(name, email), products(title)')
       .order('granted_at', { ascending: false })
       .limit(5),
   ])
+
+  const allMembers = [
+    ...(membroProfiles ?? []),
+    ...(nullRoleProfiles ?? []),
+  ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+
+  const totalMembers = allMembers.length
+  const newMembersWeek = allMembers.filter(p => p.created_at >= sevenDaysAgo).length
+  const recentMembers = allMembers.slice(0, 5)
 
   function fmt(d: string) {
     return new Date(d).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })
@@ -43,9 +47,9 @@ export default async function AdminPage() {
   const metrics = [
     {
       label: 'Membros',
-      value: totalMembers ?? 0,
-      sub: `+${newMembersWeek ?? 0} esta semana`,
-      up: (newMembersWeek ?? 0) > 0,
+      value: totalMembers,
+      sub: `+${newMembersWeek} esta semana`,
+      up: newMembersWeek > 0,
       href: '/admin/usuarios',
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -135,18 +139,18 @@ export default async function AdminPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent members */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between pb-4 border-b border-gray-100">
             <h2 className="font-semibold text-gray-900">Membros recentes</h2>
             <Link href="/admin/usuarios" className="text-xs font-medium hover:underline" style={{ color: '#b48840' }}>
               Ver todos
             </Link>
           </div>
-          {!recentMembers?.length ? (
+          {!recentMembers.length ? (
             <p className="text-sm text-gray-400 py-4 text-center">Nenhum membro ainda.</p>
           ) : (
-            <div className="space-y-3">
+            <div className="divide-y divide-gray-100">
               {recentMembers.map(m => (
-                <div key={m.id} className="flex items-center gap-3">
+                <div key={m.id} className="flex items-center gap-3 py-3 last:pb-0">
                   <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-gray-100 text-gray-500 shrink-0">
                     {m.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() ?? '?'}
                   </div>
@@ -163,7 +167,7 @@ export default async function AdminPage() {
 
         {/* Recent sales */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between pb-4 border-b border-gray-100">
             <h2 className="font-semibold text-gray-900">Últimas vendas</h2>
             <Link href="/admin/cobranca/vendas" className="text-xs font-medium hover:underline" style={{ color: '#b48840' }}>
               Ver todas
@@ -172,12 +176,12 @@ export default async function AdminPage() {
           {!recentActivity?.length ? (
             <p className="text-sm text-gray-400 py-4 text-center">Nenhuma venda ainda.</p>
           ) : (
-            <div className="space-y-3">
+            <div className="divide-y divide-gray-100">
               {recentActivity.map((v, i) => {
                 const profile = Array.isArray(v.profiles) ? v.profiles[0] : v.profiles
                 const product = Array.isArray(v.products) ? v.products[0] : v.products
                 return (
-                  <div key={i} className="flex items-center gap-3">
+                  <div key={i} className="flex items-center gap-3 py-3 last:pb-0">
                     <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm" style={{ backgroundColor: '#f5efe3' }}>
                       📦
                     </div>

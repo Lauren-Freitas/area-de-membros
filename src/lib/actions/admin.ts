@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { sendWelcomeEmail, sendAccessGrantedEmail } from '@/lib/resend'
+import { sendWelcomeEmail, sendAccessGrantedEmail, sendCollaboratorInviteEmail } from '@/lib/resend'
 
 async function requireAdmin() {
   const supabase = await createClient()
@@ -147,7 +147,11 @@ export async function createUser(
   }
 
   if (isNewUser && inviteLink) {
-    await sendWelcomeEmail({ email, name, productTitle, inviteLink }).catch(() => null)
+    if (role === 'admin' || role === 'equipe') {
+      await sendCollaboratorInviteEmail({ email, name, inviteLink }).catch(() => null)
+    } else {
+      await sendWelcomeEmail({ email, name, productTitle, inviteLink }).catch(() => null)
+    }
   } else if (productIds.length > 0) {
     await sendAccessGrantedEmail({ email, name, productTitle }).catch(() => null)
   }
@@ -185,7 +189,12 @@ export async function resendAdminInvite(userId: string, email: string, name: str
   const inviteLink = linkData?.properties?.action_link
   if (!inviteLink) return { error: 'Não foi possível gerar o link de convite.' }
 
-  await sendWelcomeEmail({ email, name, productTitle: 'Painel Admin', inviteLink }).catch(() => null)
+  try {
+    await sendCollaboratorInviteEmail({ email, name, inviteLink })
+  } catch (err) {
+    console.error('[resendAdminInvite] Resend error:', err)
+    return { error: `Email não enviado: ${err instanceof Error ? err.message : String(err)}` }
+  }
   return { success: true }
 }
 

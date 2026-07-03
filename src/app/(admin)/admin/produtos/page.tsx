@@ -26,55 +26,51 @@ export default async function AdminProdutosPage() {
           <p className="text-sm mt-1">Crie o primeiro produto para começar.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100">
-              <tr>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Produto</th>
-                <th className="text-center px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-                <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide text-left">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {products.map((product) => (
-                <tr key={product.id} className="hover:bg-gray-50 transition">
-                  <td className="px-5 py-3.5">
-                    <p className="font-medium text-gray-900">{product.title}</p>
-                    {product.description && (
-                      <p className="text-xs text-gray-400 truncate max-w-sm mt-0.5">{product.description}</p>
-                    )}
-                    <p className="text-xs text-gray-300 mt-0.5">Ordem {product.sort_order}</p>
-                  </td>
-                  <td className="px-5 py-3.5 text-center">
-                    <form action={toggleProductActive.bind(null, product.id, !product.is_active)}>
-                      <button
-                        type="submit"
-                        className={`text-xs font-medium px-2.5 py-1 rounded-full transition hover:opacity-80 ${
-                          product.is_active
-                            ? 'bg-green-50 text-green-700'
-                            : 'bg-gray-100 text-gray-500'
-                        }`}
-                      >
-                        {product.is_active ? 'Ativo' : 'Inativo'}
-                      </button>
-                    </form>
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/admin/produtos/${product.id}`}
-                        className="text-xs font-medium px-3 py-1.5 rounded-lg border transition hover:bg-gray-50"
-                        style={{ borderColor: '#b48840', color: '#7a5c10' }}
-                      >
-                        Editar
-                      </Link>
-                      <DeleteProductButton id={product.id} />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+          {/* Header */}
+          <div className="flex items-center pb-3 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wide gap-4">
+            <span className="flex-1">Produto</span>
+            <span className="w-20 text-center">Status</span>
+            <span className="w-44">Ações</span>
+          </div>
+          {/* Rows */}
+          <div className="divide-y divide-gray-100">
+            {products.map((product) => (
+              <div key={product.id} className="flex items-center py-3.5 gap-4 hover:bg-gray-50 transition">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900">{product.title}</p>
+                  {product.description && (
+                    <p className="text-xs text-gray-400 truncate max-w-sm mt-0.5">{product.description}</p>
+                  )}
+                  <p className="text-xs text-gray-300 mt-0.5">Ordem {product.sort_order}</p>
+                </div>
+                <div className="w-20 text-center shrink-0">
+                  <form action={toggleProductActive.bind(null, product.id, !product.is_active)}>
+                    <button
+                      type="submit"
+                      className={`text-xs font-medium px-2.5 py-1 rounded-full transition hover:opacity-80 ${
+                        product.is_active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'
+                      }`}
+                    >
+                      {product.is_active ? 'Ativo' : 'Inativo'}
+                    </button>
+                  </form>
+                </div>
+                <div className="w-44 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/admin/produtos/${product.id}`}
+                      className="text-xs font-medium px-3 py-1.5 rounded-lg border transition hover:bg-gray-50"
+                      style={{ borderColor: '#b48840', color: '#7a5c10' }}
+                    >
+                      Editar
+                    </Link>
+                    <DeleteProductButton id={product.id} />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

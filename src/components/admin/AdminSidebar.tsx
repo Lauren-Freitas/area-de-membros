@@ -64,7 +64,7 @@ const nav: NavSection[] = [
     items: [
       { label: 'Assinatura', href: '/admin/cobranca/assinatura', icon: I.card },
       { label: 'Vendas', href: '/admin/cobranca/vendas', icon: I.trending, adminOnly: true },
-      { label: 'Faturas pagas', href: '/admin/cobranca/faturas', icon: I.doc },
+      { label: 'Faturas', href: '/admin/cobranca/faturas', icon: I.doc },
     ],
   },
   {
@@ -233,11 +233,11 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAva
           className={`flex items-center rounded-lg transition text-xs font-medium ${
             collapsed && !mobile ? 'w-10 h-10 justify-center mx-auto' : 'gap-2 px-3 py-2'
           }`}
-          style={{ color: '#7a5c10', backgroundColor: collapsed && !mobile ? 'transparent' : '#f5efe3' }}
+          style={{ color: '#b48840', backgroundColor: collapsed && !mobile ? 'transparent' : '#f5efe3' }}
           onMouseEnter={(e) => collapsed && !mobile && setTooltip({ label: 'Ver área de membros', y: e.currentTarget.getBoundingClientRect().top })}
           onMouseLeave={() => collapsed && !mobile && setTooltip(null)}
         >
-          <Icon d={I.external} className="w-4 h-4 shrink-0" />
+          <Icon d={I.external} className="w-5 h-5 shrink-0" />
           {(!collapsed || mobile) && <span>Ver área de membros</span>}
         </Link>
 
@@ -274,7 +274,7 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAva
         {collapsed && !mobile && (
           <>
             <div className="flex justify-center">
-              <ThemeToggle className="!p-0 w-10 h-10" />
+              <ThemeToggle className="!p-0 w-10 h-10 flex items-center justify-center" />
             </div>
             <form action={logout} className="flex justify-center">
               <button

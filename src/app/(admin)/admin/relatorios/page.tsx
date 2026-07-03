@@ -2,6 +2,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
+export const dynamic = 'force-dynamic'
+
 export default async function RelatoriosPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -12,14 +14,16 @@ export default async function RelatoriosPage() {
   const admin = createAdminClient()
 
   const [
-    { data: members },
+    { data: membroProfiles },
+    { data: nullRoleProfiles },
     { data: products },
     { data: allAccesses },
     { data: allProgress },
     { data: allComments },
     { data: topLessons },
   ] = await Promise.all([
-    admin.from('profiles').select('id, name, email, created_at').eq('role', 'member').order('created_at', { ascending: false }),
+    supabase.from('profiles').select('id, name, email, created_at').eq('role', 'membro').order('created_at', { ascending: false }),
+    supabase.from('profiles').select('id, name, email, created_at').is('role', null).order('created_at', { ascending: false }),
     admin.from('products').select('id, title').eq('is_active', true).order('sort_order'),
     admin.from('user_products').select('user_id, product_id, granted_at'),
     admin.from('lesson_progress').select('user_id, lesson_id, completed_at'),
@@ -30,25 +34,27 @@ export default async function RelatoriosPage() {
       .limit(200),
   ])
 
-  const totalMembers = members?.length ?? 0
+  const members = [
+    ...(membroProfiles ?? []),
+    ...(nullRoleProfiles ?? []),
+  ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+
+  const totalMembers = members.length
   const totalProducts = products?.length ?? 0
   const totalCompletions = allProgress?.length ?? 0
   const totalComments = allComments?.length ?? 0
 
-  // Map para acesso por usuário
   const accessByUser = new Map<string, string[]>()
   for (const a of allAccesses ?? []) {
     if (!accessByUser.has(a.user_id)) accessByUser.set(a.user_id, [])
     accessByUser.get(a.user_id)!.push(a.product_id)
   }
 
-  // Map para progresso por usuário
   const progressByUser = new Map<string, number>()
   for (const p of allProgress ?? []) {
     progressByUser.set(p.user_id, (progressByUser.get(p.user_id) ?? 0) + 1)
   }
 
-  // Top lições concluídas
   const lessonCounts = new Map<string, { title: string; product: string; count: number }>()
   for (const row of topLessons ?? []) {
     const lesson = Array.isArray(row.lessons) ? row.lessons[0] : row.lessons as { title: string; modules: { products: { title: string } } | { products: { title: string } }[] } | null
@@ -81,7 +87,7 @@ export default async function RelatoriosPage() {
           { label: 'Aulas concluídas', value: totalCompletions, icon: '✅' },
           { label: 'Comentários', value: totalComments, icon: '💬' },
         ].map(({ label, value, icon }) => (
-          <div key={label} className="bg-white rounded-xl border border-gray-100 p-4">
+          <div key={label} className="bg-white rounded-2xl border border-gray-100 p-4">
             <p className="text-2xl mb-1">{icon}</p>
             <p className="text-2xl font-bold text-gray-900">{value}</p>
             <p className="text-xs text-gray-500 mt-0.5">{label}</p>
@@ -91,7 +97,7 @@ export default async function RelatoriosPage() {
 
       {/* Top conteúdo */}
       {topContent.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-100 p-5">
+        <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <h2 className="font-bold text-gray-900 mb-4">Aulas mais concluídas</h2>
           <div className="space-y-3">
             {topContent.map((item, idx) => {
@@ -116,59 +122,54 @@ export default async function RelatoriosPage() {
         </div>
       )}
 
-      {/* Tabela de membros */}
-      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-50">
-          <h2 className="font-bold text-gray-900">Membros</h2>
-        </div>
-        {(!members || members.length === 0) ? (
+      {/* Lista de membros */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-5">
+        <h2 className="font-bold text-gray-900 pb-4 border-b border-gray-100">Membros</h2>
+        {members.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-8">Nenhum membro ainda.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-50 text-left">
-                  <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Membro</th>
-                  <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Produtos</th>
-                  <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Aulas concluídas</th>
-                  <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Cadastro</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {members.map(m => {
-                  const userProducts = (accessByUser.get(m.id) ?? []).map(id => productMap[id]).filter(Boolean)
-                  const completed = progressByUser.get(m.id) ?? 0
-                  return (
-                    <tr key={m.id} className="hover:bg-gray-50 transition">
-                      <td className="px-5 py-3">
-                        <p className="font-medium text-gray-900">{m.name}</p>
-                        <p className="text-xs text-gray-400">{m.email}</p>
-                      </td>
-                      <td className="px-5 py-3">
-                        {userProducts.length === 0 ? (
-                          <span className="text-xs text-gray-300">Nenhum</span>
-                        ) : (
-                          <div className="flex flex-wrap gap-1">
-                            {userProducts.map(t => (
-                              <span key={t} className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#f5efe3', color: '#7a5c10' }}>{t}</span>
-                            ))}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-5 py-3">
-                        <span className={`text-sm font-semibold ${completed > 0 ? 'text-green-600' : 'text-gray-300'}`}>
-                          {completed}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 text-xs text-gray-400">
-                        {new Date(m.created_at).toLocaleDateString('pt-BR')}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+          <>
+            {/* Column headers */}
+            <div className="flex items-center py-2 border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+              <span className="flex-1">Membro</span>
+              <span className="flex-1 hidden md:block">Produtos</span>
+              <span className="w-36 shrink-0 hidden lg:block">Aulas concluídas</span>
+              <span className="w-24 shrink-0 text-right">Cadastro</span>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {members.map(m => {
+                const userProducts = (accessByUser.get(m.id) ?? []).map(id => productMap[id]).filter(Boolean)
+                const completed = progressByUser.get(m.id) ?? 0
+                return (
+                  <div key={m.id} className="flex items-center py-3 hover:bg-gray-50 transition">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900">{m.name}</p>
+                      <p className="text-xs text-gray-400">{m.email}</p>
+                    </div>
+                    <div className="flex-1 min-w-0 pr-4 hidden md:block">
+                      {userProducts.length === 0 ? (
+                        <span className="text-xs text-gray-300">Nenhum</span>
+                      ) : (
+                        <div className="flex flex-wrap gap-1">
+                          {userProducts.map(t => (
+                            <span key={t} className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#f5efe3', color: '#7a5c10' }}>{t}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="w-36 shrink-0 hidden lg:block">
+                      <span className={`text-sm font-semibold ${completed > 0 ? 'text-green-600' : 'text-gray-300'}`}>
+                        {completed}
+                      </span>
+                    </div>
+                    <div className="w-24 shrink-0 text-xs text-gray-400 text-right">
+                      {new Date(m.created_at).toLocaleDateString('pt-BR')}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </>
         )}
       </div>
     </div>

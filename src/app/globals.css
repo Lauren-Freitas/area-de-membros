@@ -77,8 +77,6 @@ body {
 
 /* Tabelas */
 .dark [data-admin] .bg-gray-50 { background-color: #0a0f1a; }
-.dark [data-admin] .border-b.border-gray-100 { border-color: #1e2030; }
-.dark [data-admin] .divide-gray-50 > * + * { border-color: #12182a; }
 .dark [data-admin] tr.hover\:bg-gray-50:hover { background-color: #0f1525; }
 
 /* Texto */
@@ -110,6 +108,28 @@ body {
 /* Input range (slider) */
 .dark [data-admin] input[type=range] {
   accent-color: #b48840;
+}
+
+/* Tabela: linhas brancas em dark mode */
+.dark [data-admin] thead tr,
+.dark [data-admin] thead th { border-color: #1e2030 !important; border-top-color: #1e2030 !important; border-bottom-color: #1e2030 !important; }
+.dark [data-admin] .border-b.border-gray-100 { border-color: #1e2030 !important; border-bottom-color: #1e2030 !important; }
+/* divide-y entre linhas */
+.dark [data-admin] .divide-gray-100 > * + *,
+.dark [data-admin] .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #1e2030 !important;
+  border-top-color: #1e2030 !important;
+}
+.dark [data-admin] tbody tr,
+.dark [data-admin] tbody tr + tr,
+.dark [data-admin] .divide-y > *,
+.dark [data-admin] .divide-y > * + *,
+.dark [data-admin] .divide-gray-50 > *,
+.dark [data-admin] .divide-gray-50 > * + *,
+.dark [data-admin] .divide-gray-50 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #12182a !important;
+  border-top-color: #12182a !important;
+  border-bottom-color: #12182a !important;
 }
 
 /* Secondary buttons (border + bg-white) */

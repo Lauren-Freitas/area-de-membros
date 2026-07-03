@@ -177,7 +177,7 @@ export function EditarUsuarioForm({ profile, action, products, userId }: Props) 
                 onClick={handleSendInvite}
                 className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition disabled:opacity-60"
               >
-                {invitePending ? 'Enviando...' : 'Enviar convite'}
+                {invitePending ? 'Enviando...' : 'Reenviar convite'}
               </button>
             )}
           </div>

@@ -16,9 +16,11 @@ export default async function ConfiguracoesPage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   const [{ data: profile }, { data: teamMembers }] = await Promise.all([
-    supabase.from('profiles').select('name, email, avatar_url').eq('id', user?.id ?? '').single(),
+    supabase.from('profiles').select('name, email, avatar_url, role').eq('id', user?.id ?? '').single(),
     adminClient.from('profiles').select('id, name, email, avatar_url, role').in('role', ['admin', 'equipe']).order('created_at'),
   ])
+
+  const currentUserIsAdmin = profile?.role === 'admin'
 
   return (
     <div className="max-w-lg space-y-6">
@@ -96,8 +98,8 @@ export default async function ConfiguracoesPage() {
                     </p>
                     <p className="text-xs text-gray-400 truncate">{member.email}</p>
                   </div>
-                  {/* Contas Admin não podem ser editadas/excluídas — apenas contas Equipe */}
-                  {member.role === 'equipe' && (
+                  {/* Admin vê botões para todos; Equipe só vê botões para outros de Equipe */}
+                  {(currentUserIsAdmin || member.role === 'equipe') && (
                     <div className="flex items-center gap-1.5 shrink-0">
                       <Link
                         href={`/admin/usuarios/${member.id}?from=equipe`}
