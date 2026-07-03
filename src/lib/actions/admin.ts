@@ -151,11 +151,36 @@ export async function createUser(
   redirect('/admin/usuarios')
 }
 
-export async function deleteUser(userId: string) {
+export async function deleteUser(userId: string): Promise<{ success?: boolean; error?: string }> {
   await requireAdmin()
   const admin = createAdminClient()
-  await admin.auth.admin.deleteUser(userId)
+  const { error } = await admin.auth.admin.deleteUser(userId)
+  if (error) return { error: error.message }
   revalidatePath('/admin/usuarios')
+  revalidatePath('/admin/configuracoes')
+  return { success: true }
+}
+
+export async function resendAdminInvite(userId: string, email: string, name: string): Promise<{ success?: boolean; error?: string }> {
+  await requireAdmin()
+  const admin = createAdminClient()
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL!
+  const { data: linkData, error } = await admin.auth.admin.generateLink({
+    type: 'invite',
+    email,
+    options: {
+      redirectTo: `${appUrl}/auth/callback?next=/criar-senha`,
+      data: { name },
+    },
+  })
+
+  if (error) return { error: error.message }
+  const inviteLink = linkData?.properties?.action_link
+  if (!inviteLink) return { error: 'Não foi possível gerar o link de convite.' }
+
+  await sendWelcomeEmail({ email, name, productTitle: 'Painel Admin', inviteLink }).catch(() => null)
+  return { success: true }
 }
 
 export async function updateUser(

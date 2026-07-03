@@ -1,10 +1,11 @@
 'use client'
 
-import { useActionState, useEffect, useState } from 'react'
+import { useActionState, useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ProductAccessPill } from '@/components/admin/ProductAccessPill'
 import type { AdminActionState } from '@/lib/actions/admin'
+import { resendAdminInvite } from '@/lib/actions/admin'
 
 interface Profile {
   id: string
@@ -36,6 +37,17 @@ export function EditarUsuarioForm({ profile, action, products, userId }: Props) 
   const isAdmin = profile.role === 'admin'
   const backHref = isAdmin ? '/admin/configuracoes' : '/admin/usuarios'
   const backLabel = isAdmin ? 'Conta & Equipe' : 'Membros'
+
+  const [inviteState, setInviteState] = useState<{ success?: boolean; error?: string } | null>(null)
+  const [invitePending, startInviteTransition] = useTransition()
+
+  function handleSendInvite() {
+    setInviteState(null)
+    startInviteTransition(async () => {
+      const result = await resendAdminInvite(userId, profile.email, profile.name)
+      setInviteState(result)
+    })
+  }
 
   useEffect(() => {
     if (state?.success) router.push(backHref)
@@ -127,17 +139,17 @@ export function EditarUsuarioForm({ profile, action, products, userId }: Props) 
               {isActive && <input type="hidden" name="is_active" value="on" />}
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900">Membro ativo</p>
+              <p className="text-sm font-medium text-gray-900">{isAdmin ? 'Colaborador ativo' : 'Membro ativo'}</p>
               <p className="text-xs text-gray-400">{isActive ? 'Com acesso à plataforma' : 'Acesso suspenso'}</p>
             </div>
           </div>
 
           <p className="text-xs text-gray-400 border-t border-gray-100 pt-4">
-            Membro desde {new Date(profile.created_at).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
+            {isAdmin ? 'Colaborador' : 'Membro'} desde {new Date(profile.created_at).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
 
           {/* Botões */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <button
               type="submit"
               disabled={isPending}
@@ -152,32 +164,46 @@ export function EditarUsuarioForm({ profile, action, products, userId }: Props) 
             >
               Cancelar
             </Link>
+            {isAdmin && (
+              <button
+                type="button"
+                disabled={invitePending}
+                onClick={handleSendInvite}
+                className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition disabled:opacity-60"
+              >
+                {invitePending ? 'Enviando...' : 'Enviar convite'}
+              </button>
+            )}
           </div>
+          {inviteState?.success && <p className="text-xs text-green-600 mt-1">Convite enviado com sucesso!</p>}
+          {inviteState?.error && <p className="text-xs text-red-600 mt-1">{inviteState.error}</p>}
         </form>
       </div>
 
-      {/* Acesso aos produtos */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <h2 className="font-semibold text-gray-900 mb-1">Acesso aos produtos</h2>
-        <p className="text-sm text-gray-500 mb-4">
-          Clique para liberar ou revogar o acesso. A alteração é imediata.
-        </p>
-        {products.length === 0 ? (
-          <p className="text-sm text-gray-400">Nenhum produto ativo cadastrado.</p>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {products.map(p => (
-              <ProductAccessPill
-                key={p.id}
-                title={p.title}
-                hasAccess={p.hasAccess}
-                userId={userId}
-                productId={p.id}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Acesso aos produtos — só para membros */}
+      {!isAdmin && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-6">
+          <h2 className="font-semibold text-gray-900 mb-1">Acesso aos produtos</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Clique para liberar ou revogar o acesso. A alteração é imediata.
+          </p>
+          {products.length === 0 ? (
+            <p className="text-sm text-gray-400">Nenhum produto ativo cadastrado.</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {products.map(p => (
+                <ProductAccessPill
+                  key={p.id}
+                  title={p.title}
+                  hasAccess={p.hasAccess}
+                  userId={userId}
+                  productId={p.id}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

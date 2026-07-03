@@ -103,15 +103,26 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAva
   const [mobileOpen, setMobileOpen] = useState(false)
   const [tooltip, setTooltip] = useState<{ label: string; y: number } | null>(null)
   const [hash, setHash] = useState('')
+  const [fromEquipe, setFromEquipe] = useState(false)
+
+  useEffect(() => {
+    setHash(window.location.hash)
+    setFromEquipe(new URLSearchParams(window.location.search).get('from') === 'equipe')
+  }, [pathname])
 
   useEffect(() => {
     const update = () => setHash(window.location.hash)
-    update()
     window.addEventListener('hashchange', update)
     return () => window.removeEventListener('hashchange', update)
   }, [])
 
   function isActive(href: string, exact?: boolean) {
+    // Quando vem de Equipe (?from=equipe), /admin/usuarios/[id] deve ativar Conta & Equipe
+    if (fromEquipe && pathname.startsWith('/admin/usuarios/')) {
+      if (href === '/admin/configuracoes') return true
+      if (href === '/admin/usuarios') return false
+    }
+
     if (href.includes('#')) {
       const [hrefPath, hrefHash] = href.split('#')
       return pathname === hrefPath && hash === `#${hrefHash}`

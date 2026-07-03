@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ConfiguracoesForm } from './ConfiguracoesForm'
 import { ThemeSection } from './ThemeSection'
+import { EquipeExcluirButton } from '@/components/admin/EquipeExcluirButton'
 import Link from 'next/link'
 
 function initials(name: string) {
@@ -88,12 +89,17 @@ export default async function ConfiguracoesPage() {
                     </p>
                     <p className="text-xs text-gray-400 truncate">{member.email}</p>
                   </div>
-                  <Link
-                    href={`/admin/usuarios/${member.id}`}
-                    className="shrink-0 text-xs font-medium px-2.5 py-1 rounded-full border border-gray-200 dark:border-gray-600 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600 transition"
-                  >
-                    Editar
-                  </Link>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <Link
+                      href={`/admin/usuarios/${member.id}?from=equipe`}
+                      className="text-xs font-medium px-2.5 py-1 rounded-full border border-gray-200 dark:border-gray-600 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600 transition"
+                    >
+                      Editar
+                    </Link>
+                    {!isMe && (
+                      <EquipeExcluirButton userId={member.id} name={member.name ?? '(sem nome)'} />
+                    )}
+                  </div>
                 </div>
               )
             })}
