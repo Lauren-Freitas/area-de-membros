@@ -34,7 +34,7 @@ export function EditarUsuarioForm({ profile, action, products, userId }: Props) 
   const [state, formAction, isPending] = useActionState(action, undefined)
   const [isActive, setIsActive] = useState(profile.is_active)
 
-  const isAdmin = profile.role === 'admin'
+  const isAdmin = profile.role === 'admin' || profile.role === 'equipe'
   const backHref = isAdmin ? '/admin/configuracoes' : '/admin/usuarios'
   const backLabel = isAdmin ? 'Conta & Equipe' : 'Membros'
 
@@ -93,8 +93,14 @@ export function EditarUsuarioForm({ profile, action, products, userId }: Props) 
                 defaultValue={profile.role}
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300"
               >
-                <option value="membro">Membro</option>
-                <option value="admin">Admin</option>
+                {isAdmin ? (
+                  <>
+                    <option value="admin">Admin</option>
+                    <option value="equipe">Equipe</option>
+                  </>
+                ) : (
+                  <option value="membro">Membro</option>
+                )}
               </select>
             </div>
           </div>

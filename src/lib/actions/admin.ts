@@ -17,7 +17,7 @@ async function requireAdmin() {
     .eq('id', user.id)
     .single()
 
-  if (profile?.role !== 'admin') redirect('/dashboard')
+  if (profile?.role !== 'admin' && profile?.role !== 'equipe') redirect('/dashboard')
 
   return supabase
 }
@@ -82,7 +82,7 @@ export async function createUser(
 
   const name = (formData.get('name') as string)?.trim()
   const email = (formData.get('email') as string)?.trim().toLowerCase()
-  const role = ((formData.get('role') as string) || 'membro') as 'admin' | 'membro'
+  const role = ((formData.get('role') as string) || 'membro') as 'admin' | 'equipe' | 'membro'
   const productIds = formData.getAll('products') as string[]
 
   if (!name) return { error: 'O nome é obrigatório.' }
@@ -147,7 +147,7 @@ export async function createUser(
 
   revalidatePath('/admin/usuarios')
   revalidatePath('/admin/configuracoes')
-  if (role === 'admin') redirect('/admin/configuracoes')
+  if (role === 'admin' || role === 'equipe') redirect('/admin/configuracoes')
   redirect('/admin/usuarios')
 }
 
@@ -192,7 +192,7 @@ export async function updateUser(
   const admin = createAdminClient()
 
   const name = (formData.get('name') as string)?.trim()
-  const role = (formData.get('role') as string) as 'admin' | 'membro'
+  const role = (formData.get('role') as string) as 'admin' | 'equipe' | 'membro'
   const is_active = formData.get('is_active') === 'on'
 
   if (!name) return { error: 'O nome é obrigatório.' }

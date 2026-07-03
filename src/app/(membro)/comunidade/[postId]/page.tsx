@@ -34,7 +34,7 @@ export default async function PostPage({ params }: { params: Promise<{ postId: s
 
   if (!post) redirect('/comunidade')
 
-  const isAdmin = profile?.role === 'admin'
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'equipe'
   const postAuthor = Array.isArray(post.profiles) ? post.profiles[0] : post.profiles
   const isMyPost = post.user_id === user.id
 

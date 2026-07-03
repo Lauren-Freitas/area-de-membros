@@ -39,7 +39,7 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
   const p = product as Product
   const mods = (modules ?? []) as (Module & { lessons: Lesson[] })[]
   const completedSet = new Set(progressRows?.map(r => r.lesson_id) ?? [])
-  const isAdmin = profile?.role === 'admin'
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'equipe'
   const isProductCompleted = (access as { is_completed?: boolean | null })?.is_completed ?? false
   const userInitials = (profile as { name?: string } | null)?.name
     ? (profile as { name: string }).name.split(' ').slice(0, 2).map((n: string) => n[0]).join('').toUpperCase()

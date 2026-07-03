@@ -92,7 +92,7 @@ export async function deleteProductComment(commentId: string, productId: string)
   if (!user) return { error: 'Não autenticado' }
 
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  const isAdmin = profile?.role === 'admin'
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'equipe'
 
   await supabase
     .from('product_comments')

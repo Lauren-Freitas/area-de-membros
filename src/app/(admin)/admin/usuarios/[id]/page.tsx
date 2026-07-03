@@ -16,7 +16,7 @@ export default async function EditarUsuarioPage({ params }: { params: Promise<{ 
     .select('role')
     .eq('id', user.id)
     .single()
-  if (me?.role !== 'admin') redirect('/dashboard')
+  if (me?.role !== 'admin' && me?.role !== 'equipe') redirect('/dashboard')
 
   const admin = createAdminClient()
   const [{ data: target }, { data: products }, { data: accesses }] = await Promise.all([

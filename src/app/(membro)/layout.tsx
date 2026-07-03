@@ -52,7 +52,7 @@ export default async function MemberLayout({ children }: { children: React.React
           </div>
 
           <div className="flex items-center gap-1.5">
-            {profile?.role === 'admin' && (
+            {(profile?.role === 'admin' || profile?.role === 'equipe') && (
               <a
                 href="/admin"
                 className="hidden sm:inline-flex text-xs font-medium px-3 py-1.5 rounded-full transition"

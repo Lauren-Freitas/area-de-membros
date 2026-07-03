@@ -17,7 +17,7 @@ export default async function ConfiguracoesPage() {
 
   const [{ data: profile }, { data: teamMembers }] = await Promise.all([
     supabase.from('profiles').select('name, email, avatar_url').eq('id', user?.id ?? '').single(),
-    adminClient.from('profiles').select('id, name, email, avatar_url').eq('role', 'admin').order('created_at'),
+    adminClient.from('profiles').select('id, name, email, avatar_url, role').in('role', ['admin', 'equipe']).order('created_at'),
   ])
 
   return (
@@ -86,6 +86,13 @@ export default async function ConfiguracoesPage() {
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                       {member.name ?? '(sem nome)'}
                       {isMe && <span className="ml-1.5 text-xs text-gray-400 font-normal">(você)</span>}
+                      <span className={`ml-1.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                        member.role === 'admin'
+                          ? 'bg-purple-100 text-purple-600'
+                          : 'bg-blue-100 text-blue-600'
+                      }`}>
+                        {member.role === 'admin' ? 'Admin' : 'Equipe'}
+                      </span>
                     </p>
                     <p className="text-xs text-gray-400 truncate">{member.email}</p>
                   </div>

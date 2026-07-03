@@ -26,7 +26,7 @@ export async function deletePost(postId: string) {
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   const adminClient = createAdminClient()
 
-  if (profile?.role === 'admin') {
+  if (profile?.role === 'admin' || profile?.role === 'equipe') {
     await adminClient.from('community_posts').delete().eq('id', postId)
   } else {
     await supabase.from('community_posts').delete().eq('id', postId).eq('user_id', user.id)
@@ -85,7 +85,7 @@ export async function deleteReply(replyId: string, postId: string) {
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   const adminClient = createAdminClient()
 
-  if (profile?.role === 'admin') {
+  if (profile?.role === 'admin' || profile?.role === 'equipe') {
     await adminClient.from('community_replies').delete().eq('id', replyId)
   } else {
     await supabase.from('community_replies').delete().eq('id', replyId).eq('user_id', user.id)

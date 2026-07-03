@@ -13,7 +13,7 @@ export default async function AdminUsuariosPage() {
     { data: products },
     { data: accesses },
   ] = await Promise.all([
-    supabase.from('profiles').select('*').or('role.neq.admin,role.is.null').order('created_at', { ascending: false }),
+    supabase.from('profiles').select('*').eq('role', 'membro').order('created_at', { ascending: false }),
     supabase.from('products').select('id, title').eq('is_active', true).order('sort_order'),
     supabase.from('user_products').select('user_id, product_id'),
   ])
@@ -70,9 +70,7 @@ export default async function AdminUsuariosPage() {
                   >
                     Editar
                   </Link>
-                  {profile.role !== 'admin' && (
-                    <DeleteUserButton userId={profile.id} userName={profile.name || profile.email} />
-                  )}
+                  <DeleteUserButton userId={profile.id} userName={profile.name || profile.email} />
                 </div>
               </div>
 

@@ -13,7 +13,7 @@ export function NovoUsuarioForm({ products, isEquipe = false }: { products: Prod
 
   return (
     <form action={action} className="space-y-6">
-      <input type="hidden" name="role" value={isEquipe ? 'admin' : 'membro'} />
+      {!isEquipe && <input type="hidden" name="role" value="membro" />}
 
       {state?.error && (
         <div className="p-3 rounded-lg bg-red-50 border border-red-100 text-sm text-red-700">
@@ -35,31 +35,71 @@ export function NovoUsuarioForm({ products, isEquipe = false }: { products: Prod
           </div>
         )}
 
-        <div className={isEquipe ? 'grid grid-cols-1 sm:grid-cols-2 gap-4' : 'space-y-4'}>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nome completo</label>
-            <input
-              name="name"
-              type="text"
-              required
-              className={inputClass}
-              style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
-              placeholder="Ex: João Silva"
-            />
+        {isEquipe ? (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nome completo</label>
+                <input
+                  name="name"
+                  type="text"
+                  required
+                  className={inputClass}
+                  style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+                  placeholder="Ex: João Silva"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de conta</label>
+                <select
+                  name="role"
+                  defaultValue="admin"
+                  className={inputClass}
+                  style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+                >
+                  <option value="admin">Admin</option>
+                  <option value="equipe">Equipe</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                name="email"
+                type="email"
+                required
+                className={inputClass}
+                style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+                placeholder="Ex: joao@email.com"
+              />
+            </div>
+          </>
+        ) : (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nome completo</label>
+              <input
+                name="name"
+                type="text"
+                required
+                className={inputClass}
+                style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+                placeholder="Ex: João Silva"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                name="email"
+                type="email"
+                required
+                className={inputClass}
+                style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+                placeholder="Ex: joao@email.com"
+              />
+            </div>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              name="email"
-              type="email"
-              required
-              className={inputClass}
-              style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
-              placeholder="Ex: joao@email.com"
-            />
-          </div>
-        </div>
+        )}
       </div>
 
       {!isEquipe && products.length > 0 && (

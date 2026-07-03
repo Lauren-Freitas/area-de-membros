@@ -7,7 +7,7 @@ export default async function RelatoriosPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') redirect('/dashboard')
+  if (profile?.role !== 'admin' && profile?.role !== 'equipe') redirect('/dashboard')
 
   const admin = createAdminClient()
 

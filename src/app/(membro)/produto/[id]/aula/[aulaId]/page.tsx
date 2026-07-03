@@ -67,7 +67,7 @@ export default async function AulaPage({
 
   const completedSet = new Set(progressRows?.map(p => p.lesson_id) ?? [])
   const isCompleted = completedSet.has(aulaId)
-  const isAdmin = profile?.role === 'admin'
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'equipe'
   const userInitials = (profile as { name?: string } | null)?.name
     ? (profile as { name: string }).name.split(' ').slice(0, 2).map((n: string) => n[0]).join('').toUpperCase()
     : 'EU'
