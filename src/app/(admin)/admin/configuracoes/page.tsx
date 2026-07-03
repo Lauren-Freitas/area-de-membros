@@ -64,7 +64,7 @@ export default async function ConfiguracoesPage() {
               return (
                 <div
                   key={member.id}
-                  className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 transition"
+                  className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
                 >
                   {member.avatar_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -82,7 +82,7 @@ export default async function ConfiguracoesPage() {
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                       {member.name ?? '(sem nome)'}
                       {isMe && <span className="ml-1.5 text-xs text-gray-400 font-normal">(você)</span>}
                     </p>
@@ -90,7 +90,7 @@ export default async function ConfiguracoesPage() {
                   </div>
                   <Link
                     href={`/admin/usuarios/${member.id}`}
-                    className="shrink-0 text-xs font-medium px-2.5 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-100 transition"
+                    className="shrink-0 text-xs font-medium px-2.5 py-1 rounded-full border border-gray-200 dark:border-gray-600 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-600 transition"
                   >
                     Editar
                   </Link>

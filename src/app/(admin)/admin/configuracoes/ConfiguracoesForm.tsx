@@ -43,7 +43,7 @@ export function ConfiguracoesForm({ name, email, avatarUrl }: Props) {
   const inputClass = 'w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300 focus:border-transparent'
 
   return (
-    <>
+    <div className="space-y-6">
       {cropSrc && (
         <AvatarCropper
           src={cropSrc}
@@ -167,6 +167,6 @@ export function ConfiguracoesForm({ name, email, avatarUrl }: Props) {
           </div>
         </form>
       </div>
-    </>
+    </div>
   )
 }

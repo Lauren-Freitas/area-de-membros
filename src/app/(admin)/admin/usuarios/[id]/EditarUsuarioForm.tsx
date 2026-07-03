@@ -33,20 +33,24 @@ export function EditarUsuarioForm({ profile, action, products, userId }: Props) 
   const [state, formAction, isPending] = useActionState(action, undefined)
   const [isActive, setIsActive] = useState(profile.is_active)
 
+  const isAdmin = profile.role === 'admin'
+  const backHref = isAdmin ? '/admin/configuracoes' : '/admin/usuarios'
+  const backLabel = isAdmin ? 'Conta & Equipe' : 'Membros'
+
   useEffect(() => {
-    if (state?.success) router.push('/admin/usuarios')
-  }, [state?.success, router])
+    if (state?.success) router.push(backHref)
+  }, [state?.success, router, backHref])
 
   return (
     <div className="space-y-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-500">
-        <Link href="/admin/usuarios" className="hover:text-gray-800 transition">← Membros</Link>
+        <Link href={backHref} className="hover:text-gray-800 transition">{backLabel}</Link>
         <span>/</span>
         <span className="text-gray-800 font-medium truncate">{profile.name || profile.email}</span>
       </div>
 
-      <h1 className="text-2xl font-bold text-gray-900">Editar membro</h1>
+      <h1 className="text-2xl font-bold text-gray-900">{isAdmin ? 'Editar colaborador' : 'Editar membro'}</h1>
 
       {/* Formulário principal */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6">
@@ -143,7 +147,7 @@ export function EditarUsuarioForm({ profile, action, products, userId }: Props) 
               {isPending ? 'Salvando...' : 'Salvar alterações'}
             </button>
             <Link
-              href="/admin/usuarios"
+              href={backHref}
               className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition"
             >
               Cancelar

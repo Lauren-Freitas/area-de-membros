@@ -35,28 +35,30 @@ export function NovoUsuarioForm({ products, isEquipe = false }: { products: Prod
           </div>
         )}
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Nome completo</label>
-          <input
-            name="name"
-            type="text"
-            required
-            className={inputClass}
-            style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
-            placeholder="Ex: João Silva"
-          />
-        </div>
+        <div className={isEquipe ? 'grid grid-cols-1 sm:grid-cols-2 gap-4' : 'space-y-4'}>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Nome completo</label>
+            <input
+              name="name"
+              type="text"
+              required
+              className={inputClass}
+              style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+              placeholder="Ex: João Silva"
+            />
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-          <input
-            name="email"
-            type="email"
-            required
-            className={inputClass}
-            style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
-            placeholder="Ex: joao@email.com"
-          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input
+              name="email"
+              type="email"
+              required
+              className={inputClass}
+              style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+              placeholder="Ex: joao@email.com"
+            />
+          </div>
         </div>
       </div>
 
