@@ -135,8 +135,15 @@ export async function createUser(
     ? (await admin.from('products').select('title').eq('id', productIds[0]).single()).data?.title ?? 'Área de Membros'
     : productIds.length > 1 ? 'seus produtos' : 'Área de Membros'
 
-  if (role !== 'membro') {
-    await admin.from('profiles').update({ role }).eq('id', userId)
+  const is_active = formData.get('is_active') === 'on'
+
+  if (role !== 'membro' || !is_active) {
+    const profileUpdate: Record<string, unknown> = {}
+    if (role !== 'membro') profileUpdate.role = role
+    if (!is_active) profileUpdate.is_active = false
+
+    const { error: roleError } = await admin.from('profiles').update(profileUpdate).eq('id', userId)
+    if (roleError) return { error: `Erro ao configurar o perfil: ${roleError.message}` }
   }
 
   if (isNewUser && inviteLink) {
