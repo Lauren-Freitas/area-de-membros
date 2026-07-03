@@ -20,6 +20,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       userName={profile?.name ?? ''}
       userEmail={profile?.email ?? user.email ?? ''}
       userAvatar={profile?.avatar_url ?? null}
+      userRole={profile?.role ?? 'equipe'}
       userId={user.id}
     >
       {children}

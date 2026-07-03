@@ -39,7 +39,9 @@ function Icon({ d, className = 'w-5 h-5' }: { d: React.ReactNode; className?: st
 }
 
 // ── Nav definition ──────────────────────────────────────────────────────────
-const nav = [
+interface NavItem { label: string; href: string; exact?: boolean; icon: React.ReactNode; adminOnly?: boolean }
+interface NavSection { section: string; items: NavItem[] }
+const nav: NavSection[] = [
   {
     section: 'Conteúdo',
     items: [
@@ -61,7 +63,7 @@ const nav = [
     section: 'Cobrança',
     items: [
       { label: 'Assinatura', href: '/admin/cobranca/assinatura', icon: I.card },
-      { label: 'Vendas', href: '/admin/cobranca/vendas', icon: I.trending },
+      { label: 'Vendas', href: '/admin/cobranca/vendas', icon: I.trending, adminOnly: true },
       { label: 'Faturas pagas', href: '/admin/cobranca/faturas', icon: I.doc },
     ],
   },
@@ -96,9 +98,11 @@ interface Props {
   userName: string
   userEmail: string
   userAvatar: string | null
+  userRole?: string
 }
 
-export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAvatar }: Props) {
+export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAvatar, userRole = 'equipe' }: Props) {
+  const isAdminRole = userRole === 'admin'
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [tooltip, setTooltip] = useState<{ label: string; y: number } | null>(null)
@@ -192,7 +196,7 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAva
               </p>
             )}
             {collapsed && !mobile && <div className="mx-auto w-6 h-px bg-gray-100 my-2" />}
-            {items.map(({ label, href, exact, icon }) => {
+            {items.filter(item => !('adminOnly' in item && item.adminOnly && !isAdminRole)).map(({ label, href, exact, icon }) => {
               const active = isActive(href, exact)
               return (
                 <Link

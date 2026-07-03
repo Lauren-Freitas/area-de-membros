@@ -9,10 +9,11 @@ interface Props {
   userName: string
   userEmail: string
   userAvatar?: string | null
+  userRole?: string
   userId?: string
 }
 
-export function AdminShell({ children, userName, userEmail, userAvatar }: Props) {
+export function AdminShell({ children, userName, userEmail, userAvatar, userRole }: Props) {
   const [collapsed, setCollapsed] = useState(false)
   const [mounted, setMounted] = useState(false)
 
@@ -60,6 +61,7 @@ export function AdminShell({ children, userName, userEmail, userAvatar }: Props)
         userName={userName}
         userEmail={userEmail}
         userAvatar={userAvatar ?? null}
+        userRole={userRole ?? 'equipe'}
       />
       <main className={`transition-[margin] duration-200 pt-14 lg:pt-0 ${collapsed ? 'lg:ml-16' : 'lg:ml-60'}`}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">{children}</div>

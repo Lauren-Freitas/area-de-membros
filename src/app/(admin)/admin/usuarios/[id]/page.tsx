@@ -27,6 +27,9 @@ export default async function EditarUsuarioPage({ params }: { params: Promise<{ 
 
   if (!target) redirect('/admin/usuarios')
 
+  // Equipe não pode editar contas Admin
+  if (me?.role === 'equipe' && target.role === 'admin') redirect('/admin/configuracoes')
+
   const accessSet = new Set((accesses ?? []).map((a: { product_id: string }) => a.product_id))
 
   const productList = (products ?? []).map((p: { id: string; title: string }) => ({

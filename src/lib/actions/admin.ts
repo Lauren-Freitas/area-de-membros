@@ -167,11 +167,10 @@ export async function resendAdminInvite(userId: string, email: string, name: str
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL!
   const { data: linkData, error } = await admin.auth.admin.generateLink({
-    type: 'invite',
+    type: 'recovery',
     email,
     options: {
       redirectTo: `${appUrl}/auth/callback?next=/criar-senha`,
-      data: { name },
     },
   })
 
