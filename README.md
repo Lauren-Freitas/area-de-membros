@@ -183,6 +183,12 @@ Deploy automático na **Vercel** a cada push na branch `main`. Produção em `me
 
 ---
 
+## Documentação da API
+
+A referência completa dos endpoints REST está em **[API.md](./API.md)**, incluindo exemplos de integração com n8n, Make e Zapier.
+
+---
+
 ## Créditos
 
 Desenvolvido por **Lauren Freitas** para o nutricionista **Thiago Cantalovo**.
