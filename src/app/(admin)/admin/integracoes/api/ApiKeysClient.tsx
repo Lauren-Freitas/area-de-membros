@@ -54,9 +54,9 @@ export function ApiKeysClient({ keys }: { keys: ApiKey[] }) {
         <h1 className="text-xl font-bold text-gray-900">API</h1>
       </div>
 
-      {/* New key created — show once */}
+      {/* New key created */}
       {justCreated && (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4 space-y-2">
+        <div className="bg-green-50 border border-green-200 rounded-2xl p-4 space-y-2">
           <p className="text-sm font-semibold text-green-800">🎉 Chave criada — salve agora, ela não será exibida novamente</p>
           <div className="flex items-center gap-3 bg-white rounded-lg px-4 py-3 border border-green-200">
             <code className="flex-1 text-sm font-mono text-gray-800 break-all select-all">{state.key}</code>
@@ -72,7 +72,7 @@ export function ApiKeysClient({ keys }: { keys: ApiKey[] }) {
       )}
 
       {/* Toolbar */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
+      <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-4 flex items-center gap-3">
         <div className="flex items-center gap-2 flex-1 border border-gray-200 rounded-lg px-3 py-2">
           <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -96,17 +96,15 @@ export function ApiKeysClient({ keys }: { keys: ApiKey[] }) {
 
       {/* Create form */}
       {showForm && (
-        <form action={action} className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+        <form action={action} className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5 space-y-4">
           <h2 className="font-semibold text-gray-900">Nova chave de API</h2>
-          {state?.error && (
-            <p className="text-sm text-red-600">{state.error}</p>
-          )}
+          {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Nome da chave</label>
             <input
               name="name"
               placeholder="Ex: n8n Produção, Make Automação..."
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300"
+              className="w-full px-3 py-2 border border-gray-200 dark:border-[#374151] rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-[#111827] focus:outline-none focus:ring-2 focus:ring-yellow-300"
               required
             />
             <p className="text-xs text-gray-400 mt-1">Use um nome descritivo para identificar onde essa chave está sendo usada.</p>
@@ -127,63 +125,57 @@ export function ApiKeysClient({ keys }: { keys: ApiKey[] }) {
         </form>
       )}
 
-      {/* Table */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-100">
-              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Nome</th>
-              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">API Key</th>
-              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Criada em</th>
-              <th className="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Último uso</th>
-              <th className="px-5 py-3" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {filtered.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-5 py-16 text-center text-gray-400 text-sm">
-                  Nenhuma chave criada ainda.
-                </td>
-              </tr>
-            ) : filtered.map(k => (
-              <tr key={k.id} className="hover:bg-gray-50 transition">
-                <td className="px-5 py-3.5 font-medium text-gray-900">{k.name}</td>
-                <td className="px-5 py-3.5">
-                  <div className="flex items-center gap-2">
-                    <code className="text-xs font-mono text-gray-500">{maskKey(k.key)}</code>
-                    <button
-                      onClick={() => copy(k.key, k.id)}
-                      className="text-xs text-gray-400 hover:text-gray-700 transition"
-                      title="Copiar chave"
-                    >
-                      {copiedId === k.id ? (
-                        <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      ) : (
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                      )}
-                    </button>
-                  </div>
-                </td>
-                <td className="px-5 py-3.5 text-gray-500">{fmt(k.created_at)}</td>
-                <td className="px-5 py-3.5 text-gray-400">{fmt(k.last_used_at)}</td>
-                <td className="px-5 py-3.5 text-right">
-                  <form action={deleteApiKey.bind(null, k.id)}>
-                    <button type="submit" className="text-xs text-red-400 hover:text-red-600 transition font-medium">
-                      Excluir
-                    </button>
-                  </form>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-center gap-2 text-sm text-gray-400">
+      {/* List */}
+      <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5">
+        {/* Header row */}
+        <div className="flex items-center pb-3 border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+          <span className="flex-1">Nome</span>
+          <span className="flex-1">API Key</span>
+          <span className="w-32 shrink-0">Criada em</span>
+          <span className="w-32 shrink-0">Último uso</span>
+          <span className="w-16 shrink-0" />
+        </div>
+        {/* Rows */}
+        <div className="divide-y divide-gray-100">
+          {filtered.length === 0 ? (
+            <div className="py-16 text-center text-gray-400 text-sm">
+              Nenhuma chave criada ainda.
+            </div>
+          ) : filtered.map(k => (
+            <div key={k.id} className="flex items-center py-3.5 hover:bg-gray-50 transition">
+              <span className="flex-1 font-medium text-gray-900 text-sm">{k.name}</span>
+              <div className="flex-1 flex items-center gap-2">
+                <code className="text-xs font-mono text-gray-500">{maskKey(k.key)}</code>
+                <button
+                  onClick={() => copy(k.key, k.id)}
+                  className="text-gray-400 hover:text-gray-700 transition"
+                  title="Copiar chave"
+                >
+                  {copiedId === k.id ? (
+                    <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+              <span className="w-32 shrink-0 text-sm text-gray-500">{fmt(k.created_at)}</span>
+              <span className="w-32 shrink-0 text-sm text-gray-400">{fmt(k.last_used_at)}</span>
+              <div className="w-16 shrink-0 flex justify-end">
+                <form action={deleteApiKey.bind(null, k.id)}>
+                  <button type="submit" className="text-xs text-red-400 hover:text-red-600 transition font-medium">
+                    Excluir
+                  </button>
+                </form>
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Footer */}
+        <div className="pt-3 mt-1 border-t border-gray-100 flex items-center justify-center gap-2 text-sm text-gray-400">
           <svg className="w-4 h-4 text-blue-400 shrink-0" fill="currentColor" viewBox="0 0 24 24">
             <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 01.67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 11-.671-1.34l.041-.022zM12 9a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
           </svg>

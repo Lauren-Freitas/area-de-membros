@@ -69,10 +69,10 @@ body {
 
 /* Cards (rounded-2xl + bg-white → escuro) */
 .dark [data-admin] .rounded-2xl.bg-white {
-  background-color: #0d1020;
+  background-color: #0d1020 !important;
 }
 .dark [data-admin] .rounded-2xl.border-gray-100 {
-  border-color: #1e2030;
+  border-color: #1e2030 !important;
 }
 
 /* Tabelas */

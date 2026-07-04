@@ -1,108 +1,202 @@
 'use client'
 import { useState } from 'react'
-import { saveAppearance, restoreAppearanceDefaults, APPEARANCE_DEFAULTS } from '@/lib/actions/appearance'
+import { APPEARANCE_DEFAULTS } from '@/lib/appearance-defaults'
 
-const inputClass = 'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300'
+const inputClass = 'w-full px-3 py-2 border border-gray-200 dark:border-[#374151] rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-[#111827] focus:outline-none focus:ring-2 focus:ring-yellow-300'
+
+function Section({ title, description, children }: {
+  title: string
+  description: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="grid md:grid-cols-[260px_1fr] gap-8 py-8 border-b border-gray-100 last:border-b-0">
+      <div className="shrink-0">
+        <h2 className="font-semibold text-gray-900">{title}</h2>
+        <p className="text-sm text-gray-500 mt-1 leading-relaxed">{description}</p>
+      </div>
+      <div>{children}</div>
+    </div>
+  )
+}
+
+function ColorCircle({ label, hint, value, onChange }: {
+  label: string
+  hint: string
+  value: string
+  onChange: (v: string) => void
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <div className="flex items-center gap-3">
+        <div className="relative w-10 h-10 shrink-0">
+          <input
+            type="color"
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            onInput={e => onChange((e.target as HTMLInputElement).value)}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
+          <div
+            className="w-10 h-10 rounded-full border-2 border-white shadow ring-1 ring-gray-200 pointer-events-none"
+            style={{ backgroundColor: value }}
+          />
+        </div>
+        <div>
+          <code className="text-xs font-mono text-gray-500 bg-gray-50 px-2 py-0.5 rounded">{value}</code>
+          <p className="text-xs text-gray-400 mt-0.5">{hint}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export function AparenciaForm({ config }: { config: Record<string, string> }) {
   const [values, setValues] = useState<Record<string, string>>(config)
-  const [savePending, setSavePending] = useState(false)
-  const [restorePending, setRestorePending] = useState(false)
-  const [saveMsg, setSaveMsg] = useState<{ ok: boolean; msg: string } | null>(null)
-  const [restoreMsg, setRestoreMsg] = useState<{ ok: boolean; msg: string } | null>(null)
+  const [pending, setPending] = useState(false)
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
 
   function set(key: string, value: string) {
     setValues(v => ({ ...v, [key]: value }))
-    setSaveMsg(null)
+    setMsg(null)
   }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
-    setSavePending(true)
-    setSaveMsg(null)
+    setPending(true)
+    setMsg(null)
     try {
-      const result = await saveAppearance(values)
-      setSaveMsg(result.ok
-        ? { ok: true, msg: 'Alterações salvas com sucesso!' }
-        : { ok: false, msg: result.error ?? 'Erro desconhecido.' }
+      const res = await fetch('/api/appearance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      })
+      const result = await res.json()
+      setMsg(result.ok
+        ? { ok: true, text: 'Alterações salvas com sucesso!' }
+        : { ok: false, text: result.error ?? 'Erro desconhecido.' }
       )
     } catch (err) {
-      setSaveMsg({ ok: false, msg: String(err) })
+      setMsg({ ok: false, text: String(err) })
     } finally {
-      setSavePending(false)
+      setPending(false)
     }
   }
 
   async function handleRestore() {
-    setRestorePending(true)
-    setRestoreMsg(null)
+    setPending(true)
+    setMsg(null)
     try {
-      const result = await restoreAppearanceDefaults()
+      const res = await fetch('/api/appearance', { method: 'DELETE' })
+      const result = await res.json()
       if (result.ok) {
         setValues({ ...APPEARANCE_DEFAULTS })
-        setRestoreMsg({ ok: true, msg: 'Padrões restaurados!' })
+        setMsg({ ok: true, text: 'Padrões restaurados!' })
       } else {
-        setRestoreMsg({ ok: false, msg: result.error ?? 'Erro desconhecido.' })
+        setMsg({ ok: false, text: result.error ?? 'Erro desconhecido.' })
       }
     } catch (err) {
-      setRestoreMsg({ ok: false, msg: String(err) })
+      setMsg({ ok: false, text: String(err) })
     } finally {
-      setRestorePending(false)
+      setPending(false)
     }
   }
 
-  const colorFields = [
-    { key: 'primary_color',  label: 'Cor primária',        hint: 'Botões e destaques' },
-    { key: 'brand_light',    label: 'Cor de destaque',     hint: 'Acento secundário' },
-    { key: 'bg_light',       label: 'Fundo — Modo Claro',  hint: 'Fundo da página (☀️)' },
-    { key: 'bg_dark',        label: 'Fundo — Modo Escuro', hint: 'Fundo da página (🌙)' },
-    { key: 'card_bg_light',  label: 'Cards — Modo Claro',  hint: 'Cards e painéis (☀️)' },
-    { key: 'card_bg_dark',   label: 'Cards — Modo Escuro', hint: 'Cards e painéis (🌙)' },
-  ]
-
   return (
-    <div className="space-y-6 max-w-xl">
-      <div className="flex items-start justify-between gap-4">
+    <form onSubmit={handleSave} className="max-w-4xl">
+
+      {/* Page header */}
+      <div className="flex items-start justify-between gap-6 mb-0 pb-6 border-b border-gray-100">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Aparência</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Personalize textos e cores da plataforma.</p>
+          <p className="text-sm text-gray-500 mt-0.5">Personalize a identidade visual da sua plataforma.</p>
         </div>
-        <div className="flex flex-col items-end gap-1">
-          <button
-            type="button"
-            onClick={handleRestore}
-            disabled={restorePending}
-            className="shrink-0 px-4 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition disabled:opacity-60"
-          >
-            {restorePending ? 'Restaurando…' : 'Restaurar padrão'}
-          </button>
-          {restoreMsg && (
-            <p className={`text-xs ${restoreMsg.ok ? 'text-green-600' : 'text-red-500'}`}>
-              {restoreMsg.msg}
+        <div className="flex flex-col items-end gap-2 shrink-0">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleRestore}
+              disabled={pending}
+              className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition disabled:opacity-60"
+            >
+              {pending ? '...' : 'Restaurar padrão'}
+            </button>
+            <button
+              type="submit"
+              disabled={pending}
+              className="px-4 py-2 text-sm font-semibold text-white rounded-lg transition hover:opacity-90 disabled:opacity-60"
+              style={{ backgroundColor: '#b48840' }}
+            >
+              {pending ? 'Salvando…' : 'Salvar alterações'}
+            </button>
+          </div>
+          {msg && (
+            <p className={`text-xs font-medium ${msg.ok ? 'text-green-600' : 'text-red-500'}`}>
+              {msg.text}
             </p>
           )}
         </div>
       </div>
 
-      <form onSubmit={handleSave} className="space-y-6 bg-white rounded-2xl border border-gray-100 p-6">
+      {/* Paleta de cores */}
+      <Section
+        title="Paleta de cores"
+        description="Use a cor da sua marca em botões, bordas, ícones e elementos de destaque da plataforma."
+      >
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+          <ColorCircle
+            label="Cor primária"
+            hint="Botões e destaques"
+            value={values.primary_color ?? '#b48840'}
+            onChange={v => set('primary_color', v)}
+          />
+          <ColorCircle
+            label="Cor de destaque"
+            hint="Acento secundário"
+            value={values.brand_light ?? '#d2b17b'}
+            onChange={v => set('brand_light', v)}
+          />
+          <ColorCircle
+            label="Fundo — Claro"
+            hint="Fundo da página ☀️"
+            value={values.bg_light ?? '#e4e4e4'}
+            onChange={v => set('bg_light', v)}
+          />
+          <ColorCircle
+            label="Fundo — Escuro"
+            hint="Fundo da página 🌙"
+            value={values.bg_dark ?? '#00060f'}
+            onChange={v => set('bg_dark', v)}
+          />
+          <ColorCircle
+            label="Cards — Claro"
+            hint="Cards e painéis ☀️"
+            value={values.card_bg_light ?? '#ffffff'}
+            onChange={v => set('card_bg_light', v)}
+          />
+          <ColorCircle
+            label="Cards — Escuro"
+            hint="Cards e painéis 🌙"
+            value={values.card_bg_dark ?? '#0d1020'}
+            onChange={v => set('card_bg_dark', v)}
+          />
+        </div>
+      </Section>
 
-        {saveMsg && (
-          <div className={`px-4 py-2.5 rounded-lg text-sm border ${saveMsg.ok
-            ? 'bg-green-50 border-green-100 text-green-700'
-            : 'bg-red-50 border-red-100 text-red-600'}`}>
-            {saveMsg.msg}
-          </div>
-        )}
-
-        {/* Textos */}
+      {/* Textos */}
+      <Section
+        title="Textos"
+        description="Configure o nome da plataforma e a mensagem de boas-vindas exibida no dashboard dos membros."
+      >
         <div className="space-y-4">
-          <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Textos</h2>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Nome da plataforma</label>
             <input
               className={inputClass}
               value={values.platform_name ?? ''}
               onChange={e => set('platform_name', e.target.value)}
+              placeholder="Ex: Thiago Cantalovo"
             />
           </div>
           <div>
@@ -117,39 +211,18 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
             <p className="text-xs text-gray-400 mt-1">Aparece no topo do dashboard para todos os membros.</p>
           </div>
         </div>
+      </Section>
 
-        <hr className="border-gray-100" />
-
-        {/* Cores */}
+      {/* Suporte */}
+      <Section
+        title="Suporte"
+        description="Dados de contato exibidos na página de suporte para os seus membros entrarem em contato."
+      >
         <div className="space-y-4">
-          <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Cores</h2>
-          <div className="grid grid-cols-2 gap-4">
-            {colorFields.map(({ key, label, hint }) => (
-              <div key={key}>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={values[key] ?? '#000000'}
-                    onChange={e => set(key, e.target.value)}
-                    className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white"
-                  />
-                  <span className="text-xs text-gray-400">{hint}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <hr className="border-gray-100" />
-
-        {/* Suporte */}
-        <div className="space-y-4">
-          <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Suporte</h2>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">WhatsApp de suporte</label>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-400">+</span>
+              <span className="text-sm text-gray-400 shrink-0 font-medium">+</span>
               <input
                 placeholder="5561991900589"
                 className={`flex-1 ${inputClass}`}
@@ -157,7 +230,7 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
                 onChange={e => set('support_whatsapp', e.target.value)}
               />
             </div>
-            <p className="text-xs text-gray-400 mt-1">Número completo com código do país (sem espaços ou +).</p>
+            <p className="text-xs text-gray-400 mt-1">Número completo com código do país, sem espaços ou +.</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">E-mail de suporte</label>
@@ -169,24 +242,8 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
             />
           </div>
         </div>
+      </Section>
 
-        <div className="pt-2 flex items-center gap-3">
-          <button
-            type="submit"
-            disabled={savePending}
-            className="px-5 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 disabled:opacity-60"
-            style={{ backgroundColor: '#b48840' }}
-          >
-            {savePending ? 'Salvando…' : 'Salvar alterações'}
-          </button>
-          <a
-            href="/admin/aparencia"
-            className="px-5 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-          >
-            Cancelar
-          </a>
-        </div>
-      </form>
-    </div>
+    </form>
   )
 }

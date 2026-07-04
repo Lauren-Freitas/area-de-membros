@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { APPEARANCE_DEFAULTS } from '@/lib/actions/appearance'
+import { APPEARANCE_DEFAULTS } from '@/lib/appearance-defaults'
 import { AparenciaForm } from './AparenciaForm'
 
 export const dynamic = 'force-dynamic'

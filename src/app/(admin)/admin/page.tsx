@@ -129,7 +129,7 @@ export default async function AdminPage() {
                 </span>
               )}
             </div>
-            <p className="text-3xl font-bold text-gray-900 group-hover:text-[#b48840] transition">{value}</p>
+            <p className="text-3xl font-bold" style={{ color: '#b48840' }}>{value}</p>
             <p className="text-sm font-medium text-gray-600 mt-0.5">{label}</p>
             <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
           </Link>
