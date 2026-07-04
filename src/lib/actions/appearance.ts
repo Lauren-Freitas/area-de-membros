@@ -33,9 +33,7 @@ export async function saveAppearance(
 
   if (error) return { ok: false, error: error.message }
 
-  revalidatePath('/')
-  revalidatePath('/dashboard')
-  revalidatePath('/admin/aparencia')
+  revalidatePath('/', 'layout')
   return { ok: true }
 }
 
@@ -52,8 +50,6 @@ export async function restoreAppearanceDefaults(
 
   if (error) return { ok: false, error: error.message }
 
-  revalidatePath('/')
-  revalidatePath('/dashboard')
-  revalidatePath('/admin/aparencia')
+  revalidatePath('/', 'layout')
   return { ok: true }
 }

@@ -1,20 +1,47 @@
 'use client'
-import { useActionState } from 'react'
+import { useState, useTransition } from 'react'
 import { saveAppearance, restoreAppearanceDefaults, APPEARANCE_DEFAULTS } from '@/lib/actions/appearance'
 
 const inputClass = 'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300'
 
-interface Props {
-  config: Record<string, string>
-}
+export function AparenciaForm({ config }: { config: Record<string, string> }) {
+  const [values, setValues] = useState<Record<string, string>>(config)
+  const [saveMsg, setSaveMsg] = useState<{ ok: boolean; msg: string } | null>(null)
+  const [restoreMsg, setRestoreMsg] = useState<{ ok: boolean; msg: string } | null>(null)
+  const [savePending, startSave] = useTransition()
+  const [restorePending, startRestore] = useTransition()
 
-export function AparenciaForm({ config }: Props) {
-  function val(key: string) {
-    return config[key] ?? APPEARANCE_DEFAULTS[key] ?? ''
+  function set(key: string, value: string) {
+    setValues(v => ({ ...v, [key]: value }))
+    setSaveMsg(null)
   }
 
-  const [saveState, saveAction, savePending] = useActionState(saveAppearance, null)
-  const [restoreState, restoreAction, restorePending] = useActionState(restoreAppearanceDefaults, null)
+  function handleSave(e: React.FormEvent) {
+    e.preventDefault()
+    setSaveMsg(null)
+    const formData = new FormData()
+    Object.entries(values).forEach(([k, v]) => formData.set(k, v))
+    startSave(async () => {
+      const result = await saveAppearance(null, formData)
+      setSaveMsg(result.ok
+        ? { ok: true, msg: 'Alterações salvas com sucesso!' }
+        : { ok: false, msg: result.error ?? 'Erro ao salvar.' }
+      )
+    })
+  }
+
+  function handleRestore() {
+    setRestoreMsg(null)
+    startRestore(async () => {
+      const result = await restoreAppearanceDefaults(null)
+      if (result.ok) {
+        setValues({ ...APPEARANCE_DEFAULTS })
+        setRestoreMsg({ ok: true, msg: 'Padrões restaurados!' })
+      } else {
+        setRestoreMsg({ ok: false, msg: result.error ?? 'Erro ao restaurar.' })
+      }
+    })
+  }
 
   return (
     <div className="space-y-6 max-w-xl">
@@ -23,54 +50,52 @@ export function AparenciaForm({ config }: Props) {
           <h1 className="text-xl font-bold text-gray-900">Aparência</h1>
           <p className="text-sm text-gray-500 mt-0.5">Personalize textos e cores da plataforma.</p>
         </div>
-        <form action={restoreAction}>
+        <div className="flex flex-col items-end gap-1">
           <button
-            type="submit"
+            type="button"
+            onClick={handleRestore}
             disabled={restorePending}
             className="shrink-0 px-4 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition disabled:opacity-60"
           >
             {restorePending ? 'Restaurando…' : 'Restaurar padrão'}
           </button>
-          {restoreState?.ok && (
-            <p className="text-xs text-green-600 mt-1 text-right">Padrões restaurados!</p>
+          {restoreMsg && (
+            <p className={`text-xs ${restoreMsg.ok ? 'text-green-600' : 'text-red-500'}`}>
+              {restoreMsg.msg}
+            </p>
           )}
-          {restoreState?.error && (
-            <p className="text-xs text-red-500 mt-1 text-right">{restoreState.error}</p>
-          )}
-        </form>
+        </div>
       </div>
 
-      <form action={saveAction} className="space-y-6 bg-white rounded-2xl border border-gray-100 p-6">
+      <form onSubmit={handleSave} className="space-y-6 bg-white rounded-2xl border border-gray-100 p-6">
 
-        {/* Feedback */}
-        {saveState?.ok && (
-          <div className="px-4 py-2.5 rounded-lg bg-green-50 border border-green-100 text-sm text-green-700">
-            Alterações salvas com sucesso!
-          </div>
-        )}
-        {saveState?.error && (
-          <div className="px-4 py-2.5 rounded-lg bg-red-50 border border-red-100 text-sm text-red-600">
-            Erro: {saveState.error}
+        {saveMsg && (
+          <div className={`px-4 py-2.5 rounded-lg text-sm border ${saveMsg.ok
+            ? 'bg-green-50 border-green-100 text-green-700'
+            : 'bg-red-50 border-red-100 text-red-600'}`}>
+            {saveMsg.msg}
           </div>
         )}
 
         {/* Textos */}
         <div className="space-y-4">
           <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Textos</h2>
-
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Nome da plataforma</label>
-            <input name="platform_name" defaultValue={val('platform_name')} className={inputClass} />
+            <input
+              className={inputClass}
+              value={values.platform_name ?? ''}
+              onChange={e => set('platform_name', e.target.value)}
+            />
           </div>
-
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Mensagem de boas-vindas</label>
             <textarea
-              name="welcome_message"
               rows={2}
-              defaultValue={val('welcome_message')}
               placeholder="Mensagem exibida no topo do dashboard"
               className={`${inputClass} resize-none`}
+              value={values.welcome_message ?? ''}
+              onChange={e => set('welcome_message', e.target.value)}
             />
             <p className="text-xs text-gray-400 mt-1">Aparece no topo do dashboard para todos os membros.</p>
           </div>
@@ -82,54 +107,27 @@ export function AparenciaForm({ config }: Props) {
         <div className="space-y-4">
           <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Cores</h2>
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Cor primária</label>
-              <div className="flex items-center gap-2">
-                <input type="color" name="primary_color" defaultValue={val('primary_color')}
-                  className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white" />
-                <span className="text-xs text-gray-400">Botões e destaques</span>
+            {[
+              { key: 'primary_color',  label: 'Cor primária',        hint: 'Botões e destaques' },
+              { key: 'brand_light',    label: 'Cor de destaque',     hint: 'Acento secundário' },
+              { key: 'bg_light',       label: 'Fundo — Modo Claro',  hint: 'Fundo da página (☀️)' },
+              { key: 'bg_dark',        label: 'Fundo — Modo Escuro', hint: 'Fundo da página (🌙)' },
+              { key: 'card_bg_light',  label: 'Cards — Modo Claro',  hint: 'Cards e painéis (☀️)' },
+              { key: 'card_bg_dark',   label: 'Cards — Modo Escuro', hint: 'Cards e painéis (🌙)' },
+            ].map(({ key, label, hint }) => (
+              <div key={key}>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={values[key] ?? '#000000'}
+                    onChange={e => set(key, e.target.value)}
+                    className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white"
+                  />
+                  <span className="text-xs text-gray-400">{hint}</span>
+                </div>
               </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Cor de destaque</label>
-              <div className="flex items-center gap-2">
-                <input type="color" name="brand_light" defaultValue={val('brand_light')}
-                  className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white" />
-                <span className="text-xs text-gray-400">Acento secundário</span>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Fundo — Modo Claro</label>
-              <div className="flex items-center gap-2">
-                <input type="color" name="bg_light" defaultValue={val('bg_light')}
-                  className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white" />
-                <span className="text-xs text-gray-400">Fundo da página (☀️)</span>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Fundo — Modo Escuro</label>
-              <div className="flex items-center gap-2">
-                <input type="color" name="bg_dark" defaultValue={val('bg_dark')}
-                  className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white" />
-                <span className="text-xs text-gray-400">Fundo da página (🌙)</span>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Cards — Modo Claro</label>
-              <div className="flex items-center gap-2">
-                <input type="color" name="card_bg_light" defaultValue={val('card_bg_light')}
-                  className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white" />
-                <span className="text-xs text-gray-400">Cards e painéis (☀️)</span>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Cards — Modo Escuro</label>
-              <div className="flex items-center gap-2">
-                <input type="color" name="card_bg_dark" defaultValue={val('card_bg_dark')}
-                  className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white" />
-                <span className="text-xs text-gray-400">Cards e painéis (🌙)</span>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
@@ -143,17 +141,22 @@ export function AparenciaForm({ config }: Props) {
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-400">+</span>
               <input
-                name="support_whatsapp"
-                defaultValue={val('support_whatsapp')}
                 placeholder="5561991900589"
                 className={`flex-1 ${inputClass}`}
+                value={values.support_whatsapp ?? ''}
+                onChange={e => set('support_whatsapp', e.target.value)}
               />
             </div>
             <p className="text-xs text-gray-400 mt-1">Número completo com código do país (sem espaços ou +).</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">E-mail de suporte</label>
-            <input name="support_email" type="email" defaultValue={val('support_email')} className={inputClass} />
+            <input
+              type="email"
+              className={inputClass}
+              value={values.support_email ?? ''}
+              onChange={e => set('support_email', e.target.value)}
+            />
           </div>
         </div>
 
