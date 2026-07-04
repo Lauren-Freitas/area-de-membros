@@ -16,40 +16,33 @@ export const APPEARANCE_DEFAULTS: Record<string, string> = {
 }
 
 export async function saveAppearance(
-  _prev: { ok: boolean; error?: string } | null,
-  formData: FormData,
+  values: Record<string, string>,
 ): Promise<{ ok: boolean; error?: string }> {
-  const adminClient = createAdminClient()
-  const fields = Object.keys(APPEARANCE_DEFAULTS)
-
-  const rows = fields.map(key => ({
-    key,
-    value: ((formData.get(key) as string) ?? '').trim(),
-  }))
-
-  const { error } = await adminClient
-    .from('site_config')
-    .upsert(rows, { onConflict: 'key' })
-
-  if (error) return { ok: false, error: error.message }
-
-  revalidatePath('/', 'layout')
-  return { ok: true }
+  try {
+    const adminClient = createAdminClient()
+    const rows = Object.entries(values).map(([key, value]) => ({ key, value: String(value) }))
+    const { error } = await adminClient
+      .from('site_config')
+      .upsert(rows, { onConflict: 'key' })
+    if (error) return { ok: false, error: error.message }
+    revalidatePath('/', 'layout')
+    return { ok: true }
+  } catch (err) {
+    return { ok: false, error: String(err) }
+  }
 }
 
-export async function restoreAppearanceDefaults(
-  _prev: { ok: boolean; error?: string } | null,
-): Promise<{ ok: boolean; error?: string }> {
-  const adminClient = createAdminClient()
-
-  const rows = Object.entries(APPEARANCE_DEFAULTS).map(([key, value]) => ({ key, value }))
-
-  const { error } = await adminClient
-    .from('site_config')
-    .upsert(rows, { onConflict: 'key' })
-
-  if (error) return { ok: false, error: error.message }
-
-  revalidatePath('/', 'layout')
-  return { ok: true }
+export async function restoreAppearanceDefaults(): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const adminClient = createAdminClient()
+    const rows = Object.entries(APPEARANCE_DEFAULTS).map(([key, value]) => ({ key, value }))
+    const { error } = await adminClient
+      .from('site_config')
+      .upsert(rows, { onConflict: 'key' })
+    if (error) return { ok: false, error: error.message }
+    revalidatePath('/', 'layout')
+    return { ok: true }
+  } catch (err) {
+    return { ok: false, error: String(err) }
+  }
 }

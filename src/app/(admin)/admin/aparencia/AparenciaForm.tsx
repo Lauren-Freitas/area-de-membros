@@ -1,47 +1,64 @@
 'use client'
-import { useState, useTransition } from 'react'
+import { useState } from 'react'
 import { saveAppearance, restoreAppearanceDefaults, APPEARANCE_DEFAULTS } from '@/lib/actions/appearance'
 
 const inputClass = 'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300'
 
 export function AparenciaForm({ config }: { config: Record<string, string> }) {
   const [values, setValues] = useState<Record<string, string>>(config)
+  const [savePending, setSavePending] = useState(false)
+  const [restorePending, setRestorePending] = useState(false)
   const [saveMsg, setSaveMsg] = useState<{ ok: boolean; msg: string } | null>(null)
   const [restoreMsg, setRestoreMsg] = useState<{ ok: boolean; msg: string } | null>(null)
-  const [savePending, startSave] = useTransition()
-  const [restorePending, startRestore] = useTransition()
 
   function set(key: string, value: string) {
     setValues(v => ({ ...v, [key]: value }))
     setSaveMsg(null)
   }
 
-  function handleSave(e: React.FormEvent) {
+  async function handleSave(e: React.FormEvent) {
     e.preventDefault()
+    setSavePending(true)
     setSaveMsg(null)
-    const formData = new FormData()
-    Object.entries(values).forEach(([k, v]) => formData.set(k, v))
-    startSave(async () => {
-      const result = await saveAppearance(null, formData)
+    try {
+      const result = await saveAppearance(values)
       setSaveMsg(result.ok
         ? { ok: true, msg: 'Alterações salvas com sucesso!' }
-        : { ok: false, msg: result.error ?? 'Erro ao salvar.' }
+        : { ok: false, msg: result.error ?? 'Erro desconhecido.' }
       )
-    })
+    } catch (err) {
+      setSaveMsg({ ok: false, msg: String(err) })
+    } finally {
+      setSavePending(false)
+    }
   }
 
-  function handleRestore() {
+  async function handleRestore() {
+    setRestorePending(true)
     setRestoreMsg(null)
-    startRestore(async () => {
-      const result = await restoreAppearanceDefaults(null)
+    try {
+      const result = await restoreAppearanceDefaults()
       if (result.ok) {
         setValues({ ...APPEARANCE_DEFAULTS })
         setRestoreMsg({ ok: true, msg: 'Padrões restaurados!' })
       } else {
-        setRestoreMsg({ ok: false, msg: result.error ?? 'Erro ao restaurar.' })
+        setRestoreMsg({ ok: false, msg: result.error ?? 'Erro desconhecido.' })
       }
-    })
+    } catch (err) {
+      setRestoreMsg({ ok: false, msg: String(err) })
+    } finally {
+      setRestorePending(false)
+    }
   }
+
+  const colorFields = [
+    { key: 'primary_color',  label: 'Cor primária',        hint: 'Botões e destaques' },
+    { key: 'brand_light',    label: 'Cor de destaque',     hint: 'Acento secundário' },
+    { key: 'bg_light',       label: 'Fundo — Modo Claro',  hint: 'Fundo da página (☀️)' },
+    { key: 'bg_dark',        label: 'Fundo — Modo Escuro', hint: 'Fundo da página (🌙)' },
+    { key: 'card_bg_light',  label: 'Cards — Modo Claro',  hint: 'Cards e painéis (☀️)' },
+    { key: 'card_bg_dark',   label: 'Cards — Modo Escuro', hint: 'Cards e painéis (🌙)' },
+  ]
 
   return (
     <div className="space-y-6 max-w-xl">
@@ -107,14 +124,7 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
         <div className="space-y-4">
           <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Cores</h2>
           <div className="grid grid-cols-2 gap-4">
-            {[
-              { key: 'primary_color',  label: 'Cor primária',        hint: 'Botões e destaques' },
-              { key: 'brand_light',    label: 'Cor de destaque',     hint: 'Acento secundário' },
-              { key: 'bg_light',       label: 'Fundo — Modo Claro',  hint: 'Fundo da página (☀️)' },
-              { key: 'bg_dark',        label: 'Fundo — Modo Escuro', hint: 'Fundo da página (🌙)' },
-              { key: 'card_bg_light',  label: 'Cards — Modo Claro',  hint: 'Cards e painéis (☀️)' },
-              { key: 'card_bg_dark',   label: 'Cards — Modo Escuro', hint: 'Cards e painéis (🌙)' },
-            ].map(({ key, label, hint }) => (
+            {colorFields.map(({ key, label, hint }) => (
               <div key={key}>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
                 <div className="flex items-center gap-2">
