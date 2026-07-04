@@ -1,9 +1,8 @@
 'use server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 
-const DEFAULTS: Record<string, string> = {
+export const APPEARANCE_DEFAULTS: Record<string, string> = {
   platform_name: 'Thiago Cantalovo',
   primary_color: '#b48840',
   brand_light: '#d2b17b',
@@ -16,32 +15,45 @@ const DEFAULTS: Record<string, string> = {
   support_email: 'contato@thiagocantalovo.com',
 }
 
-export async function restoreAppearanceDefaults() {
+export async function saveAppearance(
+  _prev: { ok: boolean; error?: string } | null,
+  formData: FormData,
+): Promise<{ ok: boolean; error?: string }> {
   const adminClient = createAdminClient()
-  await Promise.all(
-    Object.entries(DEFAULTS).map(([key, value]) =>
-      adminClient.from('site_config').upsert({ key, value }, { onConflict: 'key' })
-    )
-  )
+  const fields = Object.keys(APPEARANCE_DEFAULTS)
+
+  const rows = fields.map(key => ({
+    key,
+    value: ((formData.get(key) as string) ?? '').trim(),
+  }))
+
+  const { error } = await adminClient
+    .from('site_config')
+    .upsert(rows, { onConflict: 'key' })
+
+  if (error) return { ok: false, error: error.message }
+
   revalidatePath('/')
   revalidatePath('/dashboard')
   revalidatePath('/admin/aparencia')
+  return { ok: true }
 }
 
-export async function saveAppearance(formData: FormData) {
+export async function restoreAppearanceDefaults(
+  _prev: { ok: boolean; error?: string } | null,
+): Promise<{ ok: boolean; error?: string }> {
   const adminClient = createAdminClient()
-  const fields = [
-    'platform_name', 'primary_color', 'brand_light',
-    'bg_light', 'bg_dark', 'card_bg_light', 'card_bg_dark',
-    'welcome_message', 'support_whatsapp', 'support_email',
-  ]
 
-  for (const key of fields) {
-    const value = (formData.get(key) as string).trim()
-    await adminClient.from('site_config').upsert({ key, value }, { onConflict: 'key' })
-  }
+  const rows = Object.entries(APPEARANCE_DEFAULTS).map(([key, value]) => ({ key, value }))
+
+  const { error } = await adminClient
+    .from('site_config')
+    .upsert(rows, { onConflict: 'key' })
+
+  if (error) return { ok: false, error: error.message }
 
   revalidatePath('/')
   revalidatePath('/dashboard')
   revalidatePath('/admin/aparencia')
+  return { ok: true }
 }
