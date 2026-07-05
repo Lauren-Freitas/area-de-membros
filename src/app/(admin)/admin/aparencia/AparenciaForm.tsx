@@ -20,33 +20,44 @@ function Section({ title, description, children }: {
   )
 }
 
-function ColorCircle({ label, hint, value, onChange }: {
+function ColorPicker({ label, hint, value, onChange }: {
   label: string
   hint: string
   value: string
   onChange: (v: string) => void
 }) {
+  function handleHex(raw: string) {
+    const v = raw.startsWith('#') ? raw : '#' + raw
+    if (/^#[0-9a-fA-F]{0,6}$/.test(v)) onChange(v)
+  }
+
   return (
     <div className="flex flex-col gap-2">
-      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <span className="text-sm font-medium text-gray-700">{label}</span>
       <div className="flex items-center gap-3">
-        <div className="relative w-10 h-10 shrink-0">
+        {/* label wrapping both circle + native picker */}
+        <label
+          className="w-10 h-10 rounded-full border-2 border-white shadow ring-1 ring-gray-200 cursor-pointer shrink-0 overflow-hidden"
+          style={{ backgroundColor: value }}
+          title="Clique para escolher a cor"
+        >
           <input
             type="color"
-            value={value}
+            value={value.length === 7 ? value : '#000000'}
             onChange={e => onChange(e.target.value)}
-            onInput={e => onChange((e.target as HTMLInputElement).value)}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            style={{ opacity: 0, width: '1px', height: '1px', position: 'absolute' }}
           />
-          <div
-            className="w-10 h-10 rounded-full border-2 border-white shadow ring-1 ring-gray-200 pointer-events-none"
-            style={{ backgroundColor: value }}
-          />
-        </div>
-        <div>
-          <code className="text-xs font-mono text-gray-500 bg-gray-50 px-2 py-0.5 rounded">{value}</code>
-          <p className="text-xs text-gray-400 mt-0.5">{hint}</p>
-        </div>
+        </label>
+        {/* hex text input */}
+        <input
+          type="text"
+          value={value}
+          onChange={e => handleHex(e.target.value)}
+          maxLength={7}
+          spellCheck={false}
+          className="w-24 px-2 py-1 border border-gray-200 dark:border-[#374151] rounded text-xs font-mono text-gray-700 dark:text-gray-200 bg-white dark:bg-[#111827] focus:outline-none focus:ring-2 focus:ring-yellow-300"
+        />
+        <span className="text-xs text-gray-400">{hint}</span>
       </div>
     </div>
   )
@@ -62,8 +73,7 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
     setMsg(null)
   }
 
-  async function handleSave(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleSave() {
     setPending(true)
     setMsg(null)
     try {
@@ -104,10 +114,10 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
   }
 
   return (
-    <form onSubmit={handleSave} className="max-w-4xl">
+    <div className="max-w-4xl">
 
       {/* Page header */}
-      <div className="flex items-start justify-between gap-6 mb-0 pb-6 border-b border-gray-100">
+      <div className="flex items-start justify-between gap-6 pb-6 border-b border-gray-100">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Aparência</h1>
           <p className="text-sm text-gray-500 mt-0.5">Personalize a identidade visual da sua plataforma.</p>
@@ -123,7 +133,8 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
               {pending ? '...' : 'Restaurar padrão'}
             </button>
             <button
-              type="submit"
+              type="button"
+              onClick={handleSave}
               disabled={pending}
               className="px-4 py-2 text-sm font-semibold text-white rounded-lg transition hover:opacity-90 disabled:opacity-60"
               style={{ backgroundColor: '#b48840' }}
@@ -145,42 +156,12 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
         description="Use a cor da sua marca em botões, bordas, ícones e elementos de destaque da plataforma."
       >
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
-          <ColorCircle
-            label="Cor primária"
-            hint="Botões e destaques"
-            value={values.primary_color ?? '#b48840'}
-            onChange={v => set('primary_color', v)}
-          />
-          <ColorCircle
-            label="Cor de destaque"
-            hint="Acento secundário"
-            value={values.brand_light ?? '#d2b17b'}
-            onChange={v => set('brand_light', v)}
-          />
-          <ColorCircle
-            label="Fundo — Claro"
-            hint="Fundo da página ☀️"
-            value={values.bg_light ?? '#e4e4e4'}
-            onChange={v => set('bg_light', v)}
-          />
-          <ColorCircle
-            label="Fundo — Escuro"
-            hint="Fundo da página 🌙"
-            value={values.bg_dark ?? '#00060f'}
-            onChange={v => set('bg_dark', v)}
-          />
-          <ColorCircle
-            label="Cards — Claro"
-            hint="Cards e painéis ☀️"
-            value={values.card_bg_light ?? '#ffffff'}
-            onChange={v => set('card_bg_light', v)}
-          />
-          <ColorCircle
-            label="Cards — Escuro"
-            hint="Cards e painéis 🌙"
-            value={values.card_bg_dark ?? '#0d1020'}
-            onChange={v => set('card_bg_dark', v)}
-          />
+          <ColorPicker label="Cor primária"   hint="Botões e destaques"   value={values.primary_color  ?? '#b48840'} onChange={v => set('primary_color',  v)} />
+          <ColorPicker label="Cor de destaque" hint="Acento secundário"   value={values.brand_light    ?? '#d2b17b'} onChange={v => set('brand_light',    v)} />
+          <ColorPicker label="Fundo — Claro"  hint="Fundo da página ☀️"  value={values.bg_light       ?? '#e4e4e4'} onChange={v => set('bg_light',       v)} />
+          <ColorPicker label="Fundo — Escuro" hint="Fundo da página 🌙"  value={values.bg_dark        ?? '#00060f'} onChange={v => set('bg_dark',        v)} />
+          <ColorPicker label="Cards — Claro"  hint="Cards e painéis ☀️"  value={values.card_bg_light  ?? '#ffffff'} onChange={v => set('card_bg_light',  v)} />
+          <ColorPicker label="Cards — Escuro" hint="Cards e painéis 🌙"  value={values.card_bg_dark   ?? '#0d1020'} onChange={v => set('card_bg_dark',   v)} />
         </div>
       </Section>
 
@@ -244,6 +225,6 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
         </div>
       </Section>
 
-    </form>
+    </div>
   )
 }

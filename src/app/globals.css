@@ -94,7 +94,7 @@ body {
 .dark [data-admin] .border-gray-200 { border-color: #2a3050; }
 
 /* Inputs, textareas, selects */
-.dark [data-admin] input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=submit]):not([type=button]):not([type=file]),
+.dark [data-admin] input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=submit]):not([type=button]):not([type=file]):not([type=color]),
 .dark [data-admin] textarea,
 .dark [data-admin] select {
   background-color: #111827 !important;
