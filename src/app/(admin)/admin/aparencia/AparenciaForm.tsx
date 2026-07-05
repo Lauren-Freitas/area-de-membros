@@ -26,36 +26,29 @@ function ColorPicker({ label, hint, value, onChange }: {
   value: string
   onChange: (v: string) => void
 }) {
-  function handleHex(raw: string) {
-    const v = raw.startsWith('#') ? raw : '#' + raw
-    if (/^#[0-9a-fA-F]{0,6}$/.test(v)) onChange(v)
-  }
-
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-sm font-medium text-gray-700">{label}</span>
+      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</span>
       <div className="flex items-center gap-3">
-        {/* label wrapping both circle + native picker */}
-        <label
-          className="w-10 h-10 rounded-full border-2 border-white shadow ring-1 ring-gray-200 cursor-pointer shrink-0 overflow-hidden"
-          style={{ backgroundColor: value }}
-          title="Clique para escolher a cor"
-        >
-          <input
-            type="color"
-            value={value.length === 7 ? value : '#000000'}
-            onChange={e => onChange(e.target.value)}
-            style={{ opacity: 0, width: '1px', height: '1px', position: 'absolute' }}
-          />
-        </label>
+        {/* native color input — sem truques, sempre funciona */}
+        <input
+          type="color"
+          value={value.match(/^#[0-9a-fA-F]{6}$/) ? value : '#000000'}
+          onChange={e => onChange(e.target.value)}
+          className="w-10 h-10 rounded-full cursor-pointer border-2 border-gray-200 p-0.5 bg-transparent"
+          title={label}
+        />
         {/* hex text input */}
         <input
           type="text"
           value={value}
-          onChange={e => handleHex(e.target.value)}
+          onChange={e => {
+            const v = e.target.value.startsWith('#') ? e.target.value : '#' + e.target.value
+            if (/^#[0-9a-fA-F]{0,6}$/.test(v)) onChange(v)
+          }}
           maxLength={7}
           spellCheck={false}
-          className="w-24 px-2 py-1 border border-gray-200 dark:border-[#374151] rounded text-xs font-mono text-gray-700 dark:text-gray-200 bg-white dark:bg-[#111827] focus:outline-none focus:ring-2 focus:ring-yellow-300"
+          className="w-24 px-2 py-1.5 border border-gray-200 dark:border-[#374151] rounded text-xs font-mono text-gray-700 dark:text-gray-200 bg-white dark:bg-[#111827] focus:outline-none focus:ring-2 focus:ring-yellow-300"
         />
         <span className="text-xs text-gray-400">{hint}</span>
       </div>
@@ -74,6 +67,7 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
   }
 
   async function handleSave() {
+    console.log('[Aparência] Salvando...', values)
     setPending(true)
     setMsg(null)
     try {
@@ -83,11 +77,13 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
         body: JSON.stringify(values),
       })
       const result = await res.json()
+      console.log('[Aparência] Resultado:', result)
       setMsg(result.ok
         ? { ok: true, text: 'Alterações salvas com sucesso!' }
         : { ok: false, text: result.error ?? 'Erro desconhecido.' }
       )
     } catch (err) {
+      console.error('[Aparência] Erro:', err)
       setMsg({ ok: false, text: String(err) })
     } finally {
       setPending(false)
@@ -156,12 +152,12 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
         description="Use a cor da sua marca em botões, bordas, ícones e elementos de destaque da plataforma."
       >
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
-          <ColorPicker label="Cor primária"   hint="Botões e destaques"   value={values.primary_color  ?? '#b48840'} onChange={v => set('primary_color',  v)} />
+          <ColorPicker label="Cor primária"    hint="Botões e destaques"  value={values.primary_color  ?? '#b48840'} onChange={v => set('primary_color',  v)} />
           <ColorPicker label="Cor de destaque" hint="Acento secundário"   value={values.brand_light    ?? '#d2b17b'} onChange={v => set('brand_light',    v)} />
-          <ColorPicker label="Fundo — Claro"  hint="Fundo da página ☀️"  value={values.bg_light       ?? '#e4e4e4'} onChange={v => set('bg_light',       v)} />
-          <ColorPicker label="Fundo — Escuro" hint="Fundo da página 🌙"  value={values.bg_dark        ?? '#00060f'} onChange={v => set('bg_dark',        v)} />
-          <ColorPicker label="Cards — Claro"  hint="Cards e painéis ☀️"  value={values.card_bg_light  ?? '#ffffff'} onChange={v => set('card_bg_light',  v)} />
-          <ColorPicker label="Cards — Escuro" hint="Cards e painéis 🌙"  value={values.card_bg_dark   ?? '#0d1020'} onChange={v => set('card_bg_dark',   v)} />
+          <ColorPicker label="Fundo — Claro"   hint="Fundo da página ☀️" value={values.bg_light       ?? '#e4e4e4'} onChange={v => set('bg_light',       v)} />
+          <ColorPicker label="Fundo — Escuro"  hint="Fundo da página 🌙" value={values.bg_dark        ?? '#00060f'} onChange={v => set('bg_dark',        v)} />
+          <ColorPicker label="Cards — Claro"   hint="Cards e painéis ☀️" value={values.card_bg_light  ?? '#ffffff'} onChange={v => set('card_bg_light',  v)} />
+          <ColorPicker label="Cards — Escuro"  hint="Cards e painéis 🌙" value={values.card_bg_dark   ?? '#0d1020'} onChange={v => set('card_bg_dark',   v)} />
         </div>
       </Section>
 
