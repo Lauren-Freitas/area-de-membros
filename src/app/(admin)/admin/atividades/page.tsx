@@ -14,6 +14,7 @@ const ACTION_STYLE: Record<string, { label: string; bg: string; text: string }> 
   remover_turma:     { label: 'Removeu da turma',  bg: '#fce7f3', text: '#9d174d' },
   salvar_aparencia:  { label: 'Salvou aparência',  bg: '#ede9fe', text: '#7c3aed' },
   restaurar_aparencia: { label: 'Restaurou aparência', bg: '#fef3c7', text: '#92400e' },
+  ver_como:          { label: 'Visualizou como',   bg: '#e0f2fe', text: '#0369a1' },
 }
 
 const ENTITY_LABEL: Record<string, string> = {

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import Image from 'next/image'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { NotificationBell } from '@/components/NotificationBell'
@@ -8,6 +9,7 @@ import { NavLink } from '@/components/NavLink'
 import { ProfileMenu } from '@/components/ProfileMenu'
 import { MobileSidebar } from '@/components/MobileSidebar'
 import { ProteinoFAB } from '@/components/ProteinoFAB'
+import { ViewAsBanner } from '@/components/ViewAsBanner'
 
 export default async function MemberLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -16,20 +18,34 @@ export default async function MemberLayout({ children }: { children: React.React
 
   const adminClient = createAdminClient()
 
+  // Verifica modo "ver como membro"
+  const cookieStore = await cookies()
+  const viewAsMemberId = cookieStore.get('view_as')?.value
+  const viewAsName = cookieStore.get('view_as_name')?.value ?? 'Membro'
+
+  // Em modo view-as, valida que quem está logado é admin/equipe
+  let isViewingAs = false
+  if (viewAsMemberId) {
+    const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    isViewingAs = me?.role === 'admin' || me?.role === 'equipe'
+  }
+
+  // ID efetivo: o membro alvo (view-as) ou o próprio usuário
+  const targetId = isViewingAs ? viewAsMemberId! : user.id
+
   const [{ data: profile }, { data: notifData }, { data: userProducts }, { data: allProducts }] = await Promise.all([
-    supabase.from('profiles').select('name, role, avatar_url, is_active').eq('id', user.id).single(),
-    supabase
-      .from('notifications')
+    adminClient.from('profiles').select('name, role, avatar_url, is_active').eq('id', targetId).single(),
+    adminClient.from('notifications')
       .select('id, title, body, link, read, created_at')
-      .eq('user_id', user.id)
+      .eq('user_id', targetId)
       .order('created_at', { ascending: false })
       .limit(20),
-    supabase.from('user_products').select('product_id').eq('user_id', user.id),
+    adminClient.from('user_products').select('product_id').eq('user_id', targetId),
     adminClient.from('products').select('id, title').eq('is_active', true).order('sort_order'),
   ])
 
-  // Membro desativado não tem acesso mesmo autenticado
-  if (profile && (profile as { is_active?: boolean }).is_active === false) {
+  // Membro desativado não tem acesso (só aplica quando não estamos em modo view-as)
+  if (!isViewingAs && profile && (profile as { is_active?: boolean }).is_active === false) {
     redirect('/login?erro=conta-desativada')
   }
 
@@ -37,13 +53,16 @@ export default async function MemberLayout({ children }: { children: React.React
   const unreadCount = notifications.filter(n => !n.read).length
   const unlockedIds = new Set((userProducts ?? []).map(p => p.product_id))
   const myProducts = (allProducts ?? []).filter(p => unlockedIds.has(p.id))
-  const hasLocked = (allProducts ?? []).some(p => !unlockedIds.has(p.id))
 
   const userName = profile?.name ?? 'Usuário'
   const avatarUrl = (profile as { avatar_url?: string | null } | null)?.avatar_url ?? null
 
   return (
-    <div className="min-h-screen bg-[#e4e4e4] dark:bg-[#00060f] transition-colors duration-200">
+    <div className={`min-h-screen bg-[#e4e4e4] dark:bg-[#00060f] transition-colors duration-200 ${isViewingAs ? 'pt-10' : ''}`}>
+
+      {/* Banner de "ver como membro" */}
+      {isViewingAs && <ViewAsBanner memberName={viewAsName} />}
+
       <header className="bg-white dark:bg-[#0d1020] border-b border-gray-100 dark:border-[#1e2030] sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -57,7 +76,8 @@ export default async function MemberLayout({ children }: { children: React.React
           </div>
 
           <div className="flex items-center gap-1.5">
-            {(profile?.role === 'admin' || profile?.role === 'equipe') && (
+            {/* Botão Admin — oculto em modo view-as para não confundir */}
+            {!isViewingAs && (profile?.role === 'admin' || profile?.role === 'equipe') && (
               <a
                 href="/admin"
                 className="hidden sm:inline-flex text-xs font-medium px-3 py-1.5 rounded-full transition"
@@ -86,7 +106,8 @@ export default async function MemberLayout({ children }: { children: React.React
         {children}
       </main>
 
-      {user && <ProteinoFAB />}
+      {/* FAB do Proteíno — oculto em modo view-as */}
+      {!isViewingAs && user && <ProteinoFAB />}
     </div>
   )
 }

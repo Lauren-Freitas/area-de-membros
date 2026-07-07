@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { ProductCard } from '@/components/ProductCard'
 import { BannerList } from '@/components/BannerList'
 import { OfertaCard } from '@/components/OfertaCard'
@@ -16,12 +17,21 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const adminClient = createAdminClient()
   const now = new Date().toISOString()
 
+  // Suporte a modo "ver como membro"
+  const cookieStore = await cookies()
+  const viewAsMemberId = cookieStore.get('view_as')?.value
+  let targetUserId = user.id
+  if (viewAsMemberId) {
+    const { data: me } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    if (me?.role === 'admin' || me?.role === 'equipe') targetUserId = viewAsMemberId
+  }
+
   const [{ data: products }, { data: accesses }, { data: bannersData }, { data: certsData }, { data: cohortMembership }, { data: offersData }, { data: siteConfigData }] = await Promise.all([
-    supabase.from('products').select('*').eq('is_active', true).order('sort_order'),
-    supabase.from('user_products').select('product_id, expires_at').eq('user_id', user.id),
+    adminClient.from('products').select('*').eq('is_active', true).order('sort_order'),
+    adminClient.from('user_products').select('product_id, expires_at').eq('user_id', targetUserId),
     adminClient.from('banners').select('*').eq('is_active', true).or(`expires_at.is.null,expires_at.gt.${now}`).order('sort_order'),
-    supabase.from('certificates').select('id, product_id').eq('user_id', user.id),
-    adminClient.from('cohort_members').select('cohorts(id, name, description, starts_at, ends_at, products(title))').eq('user_id', user.id).limit(1).maybeSingle(),
+    adminClient.from('certificates').select('id, product_id').eq('user_id', targetUserId),
+    adminClient.from('cohort_members').select('cohorts(id, name, description, starts_at, ends_at, products(title))').eq('user_id', targetUserId).limit(1).maybeSingle(),
     adminClient.from('offers').select('id, title, description, original_price, promo_price, coupon_code, ends_at, product_id, products(title, buy_url)').eq('is_active', true).or(`ends_at.is.null,ends_at.gt.${now}`).order('sort_order'),
     adminClient.from('site_config').select('key, value').in('key', ['welcome_message']),
   ])

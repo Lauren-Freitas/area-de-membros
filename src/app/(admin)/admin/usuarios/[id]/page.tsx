@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { updateUser } from '@/lib/actions/admin'
+import { startViewAs } from '@/lib/actions/view-as'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { EditarUsuarioForm } from './EditarUsuarioForm'
@@ -38,12 +39,29 @@ export default async function EditarUsuarioPage({ params }: { params: Promise<{ 
     hasAccess: accessSet.has(p.id),
   }))
 
+  const canViewAs = target.role === 'membro' && target.id !== user.id
+
   return (
-    <EditarUsuarioForm
-      profile={{ ...target, is_active: target.is_active !== false }}
-      action={updateUser.bind(null, id)}
-      products={productList}
-      userId={id}
-    />
+    <div>
+      {canViewAs && (
+        <div className="mb-4 flex justify-end">
+          <form action={startViewAs.bind(null, id)}>
+            <button
+              type="submit"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition"
+            >
+              <span>👁️</span>
+              Ver como este membro
+            </button>
+          </form>
+        </div>
+      )}
+      <EditarUsuarioForm
+        profile={{ ...target, is_active: target.is_active !== false }}
+        action={updateUser.bind(null, id)}
+        products={productList}
+        userId={id}
+      />
+    </div>
   )
 }
