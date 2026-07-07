@@ -83,8 +83,8 @@ const nav: NavSection[] = [
   {
     section: 'Configurações',
     items: [
-      { label: 'Aparência', href: '/admin/aparencia', icon: I.brush },
-      { label: 'Integrações', href: '/admin/integracoes', icon: I.puzzle },
+      { label: 'Aparência', href: '/admin/aparencia', icon: I.brush, adminOnly: true },
+      { label: 'Integrações', href: '/admin/integracoes', icon: I.puzzle, adminOnly: true },
       { label: 'Conta & Equipe', href: '/admin/configuracoes', exact: true, icon: I.user },
       { label: 'Suporte & FAQ', href: '/admin/suporte', icon: I.question },
     ],
