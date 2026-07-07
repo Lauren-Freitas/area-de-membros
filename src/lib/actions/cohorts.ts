@@ -2,6 +2,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { logActivity } from '@/lib/log-activity'
 
 export async function saveCohort(formData: FormData) {
   const adminClient = createAdminClient()
@@ -18,6 +19,7 @@ export async function saveCohort(formData: FormData) {
     await adminClient.from('cohorts').insert({ name, description, product_id, starts_at, ends_at })
   }
 
+  await logActivity({ action: id ? 'editar' : 'criar', entity: 'turma', entityName: name })
   revalidatePath('/admin/turmas')
   redirect('/admin/turmas')
 }
@@ -25,6 +27,7 @@ export async function saveCohort(formData: FormData) {
 export async function deleteCohort(id: string) {
   const adminClient = createAdminClient()
   await adminClient.from('cohorts').delete().eq('id', id)
+  await logActivity({ action: 'excluir', entity: 'turma', entityId: id })
   revalidatePath('/admin/turmas')
 }
 
@@ -34,6 +37,7 @@ export async function addCohortMember(cohortId: string, userId: string) {
     { cohort_id: cohortId, user_id: userId },
     { onConflict: 'cohort_id,user_id' }
   )
+  await logActivity({ action: 'adicionar_turma', entity: 'turma', entityId: cohortId })
   revalidatePath(`/admin/turmas/${cohortId}`)
 }
 
@@ -41,5 +45,6 @@ export async function removeCohortMember(cohortId: string, userId: string) {
   const adminClient = createAdminClient()
   await adminClient.from('cohort_members').delete()
     .eq('cohort_id', cohortId).eq('user_id', userId)
+  await logActivity({ action: 'remover_turma', entity: 'turma', entityId: cohortId })
   revalidatePath(`/admin/turmas/${cohortId}`)
 }

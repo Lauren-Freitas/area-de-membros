@@ -2,6 +2,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { logActivity } from '@/lib/log-activity'
 
 export async function saveOffer(formData: FormData) {
   const adminClient = createAdminClient()
@@ -23,6 +24,7 @@ export async function saveOffer(formData: FormData) {
     await adminClient.from('offers').insert({ ...payload, is_active: true })
   }
 
+  await logActivity({ action: id ? 'editar' : 'criar', entity: 'oferta', entityName: title })
   revalidatePath('/admin/ofertas')
   revalidatePath('/dashboard')
   redirect('/admin/ofertas')
@@ -31,6 +33,7 @@ export async function saveOffer(formData: FormData) {
 export async function toggleOffer(id: string, is_active: boolean) {
   const adminClient = createAdminClient()
   await adminClient.from('offers').update({ is_active }).eq('id', id)
+  await logActivity({ action: is_active ? 'ativar' : 'desativar', entity: 'oferta', entityId: id })
   revalidatePath('/admin/ofertas')
   revalidatePath('/dashboard')
 }
@@ -38,6 +41,7 @@ export async function toggleOffer(id: string, is_active: boolean) {
 export async function deleteOffer(id: string) {
   const adminClient = createAdminClient()
   await adminClient.from('offers').delete().eq('id', id)
+  await logActivity({ action: 'excluir', entity: 'oferta', entityId: id })
   revalidatePath('/admin/ofertas')
   revalidatePath('/dashboard')
 }

@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { sendWelcomeEmail, sendAccessGrantedEmail, sendCollaboratorInviteEmail } from '@/lib/resend'
+import { logActivity } from '@/lib/log-activity'
 
 async function requireAdmin() {
   const supabase = await createClient()
@@ -52,6 +53,7 @@ export async function saveProduct(
 
   if (error) return { error: error.message }
 
+  await logActivity({ action: isNew ? 'criar' : 'editar', entity: 'produto', entityName: title })
   revalidatePath('/admin/produtos')
   revalidatePath('/dashboard')
   redirect('/admin/produtos')
@@ -60,6 +62,7 @@ export async function saveProduct(
 export async function toggleProductActive(id: string, isActive: boolean) {
   const supabase = await requireAdmin()
   await supabase.from('products').update({ is_active: isActive }).eq('id', id)
+  await logActivity({ action: isActive ? 'ativar' : 'desativar', entity: 'produto', entityId: id })
   revalidatePath('/admin/produtos')
   revalidatePath('/dashboard')
 }
@@ -67,6 +70,7 @@ export async function toggleProductActive(id: string, isActive: boolean) {
 export async function deleteProduct(id: string) {
   const supabase = await requireAdmin()
   await supabase.from('products').delete().eq('id', id)
+  await logActivity({ action: 'excluir', entity: 'produto', entityId: id })
   revalidatePath('/admin/produtos')
   revalidatePath('/dashboard')
 }
@@ -156,6 +160,7 @@ export async function createUser(
     await sendAccessGrantedEmail({ email, name, productTitle }).catch(() => null)
   }
 
+  await logActivity({ action: 'criar', entity: 'membro', entityName: `${name} (${email})` })
   revalidatePath('/admin/usuarios')
   revalidatePath('/admin/configuracoes')
   if (role === 'admin' || role === 'equipe') redirect('/admin/configuracoes')
@@ -165,8 +170,10 @@ export async function createUser(
 export async function deleteUser(userId: string): Promise<{ success?: boolean; error?: string }> {
   await requireAdmin()
   const admin = createAdminClient()
+  const { data: profile } = await admin.from('profiles').select('name, email').eq('id', userId).single()
   const { error } = await admin.auth.admin.deleteUser(userId)
   if (error) return { error: error.message }
+  await logActivity({ action: 'excluir', entity: 'membro', entityId: userId, entityName: profile?.name ?? profile?.email ?? null })
   revalidatePath('/admin/usuarios')
   revalidatePath('/admin/configuracoes')
   return { success: true }
@@ -219,6 +226,7 @@ export async function updateUser(
 
   if (error) return { error: error.message }
 
+  await logActivity({ action: 'editar', entity: 'membro', entityId: userId, entityName: name })
   revalidatePath('/admin/usuarios')
   revalidatePath(`/admin/usuarios/${userId}`)
   return { success: true }
@@ -254,6 +262,7 @@ export async function saveModule(
     : await supabase.from('modules').update(payload).eq('id', id)
 
   if (error) return { error: error.message }
+  await logActivity({ action: isNew ? 'criar' : 'editar', entity: 'modulo', entityName: title })
   revalidatePath(`/admin/produtos/${product_id}`)
   redirect(`/admin/produtos/${product_id}`)
 }
@@ -261,6 +270,7 @@ export async function saveModule(
 export async function deleteModule(moduleId: string, productId: string) {
   const supabase = await requireAdmin()
   await supabase.from('modules').delete().eq('id', moduleId)
+  await logActivity({ action: 'excluir', entity: 'modulo', entityId: moduleId })
   revalidatePath(`/admin/produtos/${productId}`)
 }
 
@@ -292,6 +302,7 @@ export async function saveLesson(
     : await supabase.from('lessons').update(payload).eq('id', id)
 
   if (error) return { error: error.message }
+  await logActivity({ action: isNew ? 'criar' : 'editar', entity: 'aula', entityName: title })
   revalidatePath(`/admin/produtos/${product_id}/modulos/${module_id}`)
   redirect(`/admin/produtos/${product_id}/modulos/${module_id}`)
 }
@@ -299,6 +310,7 @@ export async function saveLesson(
 export async function deleteLesson(lessonId: string, moduleId: string, productId: string) {
   const supabase = await requireAdmin()
   await supabase.from('lessons').delete().eq('id', lessonId)
+  await logActivity({ action: 'excluir', entity: 'aula', entityId: lessonId })
   revalidatePath(`/admin/produtos/${productId}/modulos/${moduleId}`)
 }
 
@@ -411,6 +423,7 @@ export async function saveBanner(
 
   if (error) return { error: error.message }
 
+  await logActivity({ action: isNew ? 'criar' : 'editar', entity: 'banner', entityName: title })
   revalidatePath('/admin/banners')
   revalidatePath('/dashboard')
   redirect('/admin/banners')
@@ -420,6 +433,7 @@ export async function deleteBanner(id: string) {
   await requireAdmin()
   const admin = createAdminClient()
   await admin.from('banners').delete().eq('id', id)
+  await logActivity({ action: 'excluir', entity: 'banner', entityId: id })
   revalidatePath('/admin/banners')
   revalidatePath('/dashboard')
 }
@@ -449,6 +463,7 @@ export async function createInvite(
   })
 
   if (error) return { error: error.message }
+  await logActivity({ action: 'criar', entity: 'convite', entityName: note ?? code })
   revalidatePath('/admin/convites')
   redirect('/admin/convites')
 }
@@ -457,6 +472,7 @@ export async function deleteInvite(id: string) {
   await requireAdmin()
   const admin = createAdminClient()
   await admin.from('invites').delete().eq('id', id)
+  await logActivity({ action: 'excluir', entity: 'convite', entityId: id })
   revalidatePath('/admin/convites')
 }
 
@@ -498,13 +514,23 @@ export async function deleteCertificate(id: string) {
 export async function grantAccess(userId: string, productId: string) {
   const supabase = await requireAdmin()
   await supabase.from('user_products').insert({ user_id: userId, product_id: productId, granted_by: 'manual' })
+  const [{ data: member }, { data: product }] = await Promise.all([
+    supabase.from('profiles').select('name').eq('id', userId).single(),
+    supabase.from('products').select('title').eq('id', productId).single(),
+  ])
+  await logActivity({ action: 'conceder_acesso', entity: 'acesso', entityId: userId, entityName: `${member?.name ?? userId} → ${product?.title ?? productId}` })
   revalidatePath('/admin/usuarios')
   revalidatePath(`/admin/usuarios/${userId}`)
 }
 
 export async function revokeAccess(userId: string, productId: string) {
   const supabase = await requireAdmin()
+  const [{ data: member }, { data: product }] = await Promise.all([
+    supabase.from('profiles').select('name').eq('id', userId).single(),
+    supabase.from('products').select('title').eq('id', productId).single(),
+  ])
   await supabase.from('user_products').delete().eq('user_id', userId).eq('product_id', productId)
+  await logActivity({ action: 'revogar_acesso', entity: 'acesso', entityId: userId, entityName: `${member?.name ?? userId} → ${product?.title ?? productId}` })
   revalidatePath('/admin/usuarios')
   revalidatePath(`/admin/usuarios/${userId}`)
 }
