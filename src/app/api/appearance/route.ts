@@ -1,10 +1,22 @@
-import { NextResponse } from 'next/server'
-
-export const dynamic = 'force-dynamic'
+import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 import { APPEARANCE_DEFAULTS } from '@/lib/appearance-defaults'
 
-export async function POST(request: Request) {
+export const dynamic = 'force-dynamic'
+
+async function requireAdmin(): Promise<boolean> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return false
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  return profile?.role === 'admin' || profile?.role === 'equipe'
+}
+
+export async function POST(request: NextRequest) {
+  if (!await requireAdmin()) {
+    return NextResponse.json({ ok: false, error: 'Não autorizado.' }, { status: 401 })
+  }
   try {
     const values: Record<string, string> = await request.json()
     const adminClient = createAdminClient()
@@ -17,7 +29,10 @@ export async function POST(request: Request) {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(request: NextRequest) {
+  if (!await requireAdmin()) {
+    return NextResponse.json({ ok: false, error: 'Não autorizado.' }, { status: 401 })
+  }
   try {
     const adminClient = createAdminClient()
     const rows = Object.entries(APPEARANCE_DEFAULTS).map(([key, value]) => ({ key, value }))

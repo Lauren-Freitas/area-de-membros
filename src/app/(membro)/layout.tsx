@@ -17,7 +17,7 @@ export default async function MemberLayout({ children }: { children: React.React
   const adminClient = createAdminClient()
 
   const [{ data: profile }, { data: notifData }, { data: userProducts }, { data: allProducts }] = await Promise.all([
-    supabase.from('profiles').select('name, role, avatar_url').eq('id', user.id).single(),
+    supabase.from('profiles').select('name, role, avatar_url, is_active').eq('id', user.id).single(),
     supabase
       .from('notifications')
       .select('id, title, body, link, read, created_at')
@@ -27,6 +27,11 @@ export default async function MemberLayout({ children }: { children: React.React
     supabase.from('user_products').select('product_id').eq('user_id', user.id),
     adminClient.from('products').select('id, title').eq('is_active', true).order('sort_order'),
   ])
+
+  // Membro desativado não tem acesso mesmo autenticado
+  if (profile && (profile as { is_active?: boolean }).is_active === false) {
+    redirect('/login?erro=conta-desativada')
+  }
 
   const notifications = notifData ?? []
   const unreadCount = notifications.filter(n => !n.read).length
