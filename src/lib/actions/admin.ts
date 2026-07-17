@@ -31,7 +31,8 @@ export async function saveProduct(
   prevState: AdminActionState,
   formData: FormData
 ): Promise<AdminActionState> {
-  const supabase = await requireAdmin()
+  await requireAdmin()
+  const admin = createAdminClient()
 
   const id = formData.get('id') as string | null
   const title = (formData.get('title') as string)?.trim()
@@ -51,8 +52,8 @@ export async function saveProduct(
 
   const isNew = !id || id === 'novo'
   const { error } = isNew
-    ? await supabase.from('products').insert(payload)
-    : await supabase.from('products').update(payload).eq('id', id)
+    ? await admin.from('products').insert(payload)
+    : await admin.from('products').update(payload).eq('id', id)
 
   if (error) return { error: error.message }
 
@@ -63,16 +64,18 @@ export async function saveProduct(
 }
 
 export async function toggleProductActive(id: string, isActive: boolean) {
-  const supabase = await requireAdmin()
-  await supabase.from('products').update({ is_active: isActive }).eq('id', id)
+  await requireAdmin()
+  const admin = createAdminClient()
+  await admin.from('products').update({ is_active: isActive }).eq('id', id)
   await logActivity({ action: isActive ? 'ativar' : 'desativar', entity: 'produto', entityId: id })
   revalidatePath('/admin/produtos')
   revalidatePath('/dashboard')
 }
 
 export async function deleteProduct(id: string) {
-  const supabase = await requireAdmin()
-  await supabase.from('products').delete().eq('id', id)
+  await requireAdmin()
+  const admin = createAdminClient()
+  await admin.from('products').delete().eq('id', id)
   await logActivity({ action: 'excluir', entity: 'produto', entityId: id })
   revalidatePath('/admin/produtos')
   revalidatePath('/dashboard')
@@ -241,7 +244,8 @@ export async function saveModule(
   prevState: AdminActionState,
   formData: FormData
 ): Promise<AdminActionState> {
-  const supabase = await requireAdmin()
+  await requireAdmin()
+  const admin = createAdminClient()
   const id = formData.get('id') as string | null
   const product_id = formData.get('product_id') as string
   const title = (formData.get('title') as string)?.trim()
@@ -261,8 +265,8 @@ export async function saveModule(
 
   const isNew = !id
   const { error } = isNew
-    ? await supabase.from('modules').insert({ product_id, ...payload })
-    : await supabase.from('modules').update(payload).eq('id', id)
+    ? await admin.from('modules').insert({ product_id, ...payload })
+    : await admin.from('modules').update(payload).eq('id', id)
 
   if (error) return { error: error.message }
   await logActivity({ action: isNew ? 'criar' : 'editar', entity: 'modulo', entityName: title })
@@ -271,8 +275,9 @@ export async function saveModule(
 }
 
 export async function deleteModule(moduleId: string, productId: string) {
-  const supabase = await requireAdmin()
-  await supabase.from('modules').delete().eq('id', moduleId)
+  await requireAdmin()
+  const admin = createAdminClient()
+  await admin.from('modules').delete().eq('id', moduleId)
   await logActivity({ action: 'excluir', entity: 'modulo', entityId: moduleId })
   revalidatePath(`/admin/produtos/${productId}`)
 }
@@ -283,7 +288,8 @@ export async function saveLesson(
   prevState: AdminActionState,
   formData: FormData
 ): Promise<AdminActionState> {
-  const supabase = await requireAdmin()
+  await requireAdmin()
+  const admin = createAdminClient()
   const id = formData.get('id') as string | null
   const module_id = formData.get('module_id') as string
   const product_id = formData.get('product_id') as string
@@ -301,8 +307,8 @@ export async function saveLesson(
   const payload = { module_id, title, description, lesson_type, content_url, content_text, sort_order, is_published }
   const isNew = !id
   const { error } = isNew
-    ? await supabase.from('lessons').insert(payload)
-    : await supabase.from('lessons').update(payload).eq('id', id)
+    ? await admin.from('lessons').insert(payload)
+    : await admin.from('lessons').update(payload).eq('id', id)
 
   if (error) return { error: error.message }
   await logActivity({ action: isNew ? 'criar' : 'editar', entity: 'aula', entityName: title })
@@ -311,8 +317,9 @@ export async function saveLesson(
 }
 
 export async function deleteLesson(lessonId: string, moduleId: string, productId: string) {
-  const supabase = await requireAdmin()
-  await supabase.from('lessons').delete().eq('id', lessonId)
+  await requireAdmin()
+  const admin = createAdminClient()
+  await admin.from('lessons').delete().eq('id', lessonId)
   await logActivity({ action: 'excluir', entity: 'aula', entityId: lessonId })
   revalidatePath(`/admin/produtos/${productId}/modulos/${moduleId}`)
 }
@@ -507,19 +514,21 @@ export async function updateInvite(
 // ─── Certificados ─────────────────────────────────────────────────────────────
 
 export async function deleteCertificate(id: string) {
-  const supabase = await requireAdmin()
-  await supabase.from('certificates').delete().eq('id', id)
+  await requireAdmin()
+  const admin = createAdminClient()
+  await admin.from('certificates').delete().eq('id', id)
   revalidatePath('/admin/certificados')
 }
 
 // ─── Acesso ──────────────────────────────────────────────────────────────────
 
 export async function grantAccess(userId: string, productId: string) {
-  const supabase = await requireAdmin()
-  await supabase.from('user_products').insert({ user_id: userId, product_id: productId, granted_by: 'manual' })
+  await requireAdmin()
+  const admin = createAdminClient()
+  await admin.from('user_products').insert({ user_id: userId, product_id: productId, granted_by: 'manual' })
   const [{ data: member }, { data: product }] = await Promise.all([
-    supabase.from('profiles').select('name').eq('id', userId).single(),
-    supabase.from('products').select('title').eq('id', productId).single(),
+    admin.from('profiles').select('name').eq('id', userId).single(),
+    admin.from('products').select('title').eq('id', productId).single(),
   ])
   await logActivity({ action: 'conceder_acesso', entity: 'acesso', entityId: userId, entityName: `${member?.name ?? userId} → ${product?.title ?? productId}` })
   revalidatePath('/admin/usuarios')
@@ -527,12 +536,13 @@ export async function grantAccess(userId: string, productId: string) {
 }
 
 export async function revokeAccess(userId: string, productId: string) {
-  const supabase = await requireAdmin()
+  await requireAdmin()
+  const admin = createAdminClient()
   const [{ data: member }, { data: product }] = await Promise.all([
-    supabase.from('profiles').select('name').eq('id', userId).single(),
-    supabase.from('products').select('title').eq('id', productId).single(),
+    admin.from('profiles').select('name').eq('id', userId).single(),
+    admin.from('products').select('title').eq('id', productId).single(),
   ])
-  await supabase.from('user_products').delete().eq('user_id', userId).eq('product_id', productId)
+  await admin.from('user_products').delete().eq('user_id', userId).eq('product_id', productId)
   await logActivity({ action: 'revogar_acesso', entity: 'acesso', entityId: userId, entityName: `${member?.name ?? userId} → ${product?.title ?? productId}` })
   revalidatePath('/admin/usuarios')
   revalidatePath(`/admin/usuarios/${userId}`)
