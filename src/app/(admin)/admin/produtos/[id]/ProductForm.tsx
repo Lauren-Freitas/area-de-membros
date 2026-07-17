@@ -50,6 +50,7 @@ function GeneratePaymentLinkButton({ productId, buyUrlInputRef }: { productId: s
 export function ProductForm({ product }: { product?: Product }) {
   const [state, action, isPending] = useActionState(saveProduct, undefined)
   const buyUrlInputRef = useRef<HTMLInputElement>(null)
+  const [contentType, setContentType] = useState(product?.content_type ?? 'file')
   const isEditing = !!product
 
   return (
@@ -100,6 +101,41 @@ export function ProductForm({ product }: { product?: Product }) {
           className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
           placeholder="https://..."
         />
+      </div>
+
+      {/* Conteúdo simples (usado quando o produto não tem módulos/aulas) */}
+      <div className="flex flex-wrap gap-4 p-4 rounded-lg bg-gray-50 border border-gray-100">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Tipo de conteúdo
+            <span className="text-gray-400 font-normal ml-1 text-xs">(só é usado se o produto não tiver módulos/aulas)</span>
+          </label>
+          <select
+            name="content_type"
+            value={contentType}
+            onChange={e => setContentType(e.target.value as 'file' | 'video')}
+            className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
+          >
+            <option value="file">Arquivo</option>
+            <option value="video">Vídeo</option>
+          </select>
+        </div>
+        {contentType === 'video' && (
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-sm font-medium text-gray-700 mb-1">URL do vídeo</label>
+            <input
+              name="content_url"
+              defaultValue={product?.content_url ?? ''}
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
+              placeholder="https://youtube.com/watch?v=... ou https://vimeo.com/..."
+            />
+          </div>
+        )}
+        {contentType === 'file' && (
+          <p className="text-xs text-gray-400 self-end pb-2.5">
+            O arquivo é enviado direto no Storage do Supabase (bucket <code className="bg-gray-100 px-1 rounded">produtos</code>, caminho <code className="bg-gray-100 px-1 rounded">{'{id do produto}'}/arquivo</code>).
+          </p>
+        )}
       </div>
 
       {/* Preço + Ciclo de cobrança */}
