@@ -1,23 +1,32 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { PaymentStatusBadge } from '@/components/admin/PaymentStatusBadge'
+import { PaymentStatus } from '@/types'
 
 interface Venda {
   id: string
   granted_at: string
   product_id: string | null
+  value: number | null
+  payment_status: PaymentStatus | null
+  invoice_url: string | null
   profiles: { name: string; email: string } | null
   products: { title: string } | null
 }
 
 const PAGE_SIZE = 20
 
+function fmtCurrency(value: number) {
+  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}
+
 export function VendasClient({ vendas }: { vendas: Venda[] }) {
   const [search, setSearch] = useState('')
   const [tab, setTab] = useState<'aprovadas' | 'reprovadas' | 'todas'>('aprovadas')
   const [page, setPage] = useState(1)
 
-  const filtered = useMemo(() => {
+  const searched = useMemo(() => {
     const q = search.toLowerCase()
     return vendas.filter(v => {
       const name = v.profiles?.name?.toLowerCase() ?? ''
@@ -26,6 +35,14 @@ export function VendasClient({ vendas }: { vendas: Venda[] }) {
       return !q || name.includes(q) || email.includes(q) || title.includes(q)
     })
   }, [vendas, search])
+
+  const filtered = useMemo(() => {
+    if (tab === 'todas') return searched
+    if (tab === 'aprovadas') return searched.filter(v => v.payment_status === 'confirmed' || v.payment_status === null)
+    return searched.filter(v => v.payment_status === 'overdue')
+  }, [searched, tab])
+
+  const totalValue = useMemo(() => filtered.reduce((sum, v) => sum + (v.value ?? 0), 0), [filtered])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const safePage = Math.min(page, totalPages)
@@ -36,14 +53,22 @@ export function VendasClient({ vendas }: { vendas: Venda[] }) {
     setPage(1)
   }
 
+  function handleTab(t: typeof tab) {
+    setTab(t)
+    setPage(1)
+  }
+
   function exportCSV() {
-    const header = 'Data,Produto,Cliente,Email,Status,Valor Líquido'
+    const header = 'Data,Produto,Cliente,Email,Status,Valor'
+    const statusLabel = { confirmed: 'Aprovada', overdue: 'Em atraso', refunded: 'Reembolsada', chargeback: 'Chargeback' }
     const rows = filtered.map(v => {
       const date = new Date(v.granted_at).toLocaleDateString('pt-BR')
       const product = v.products?.title ?? '—'
       const name = v.profiles?.name ?? '—'
       const email = v.profiles?.email ?? '—'
-      return `${date},"${product}","${name}",${email},Aprovada,—`
+      const status = v.payment_status ? statusLabel[v.payment_status] : 'Acesso manual'
+      const value = v.value != null ? v.value.toFixed(2).replace('.', ',') : '—'
+      return `${date},"${product}","${name}",${email},${status},${value}`
     })
     const csv = [header, ...rows].join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
@@ -106,9 +131,8 @@ export function VendasClient({ vendas }: { vendas: Venda[] }) {
           <p className="text-3xl font-bold text-gray-900">{filtered.length}</p>
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          <p className="text-sm text-gray-500 mb-1">Valor líquido</p>
-          <p className="text-3xl font-bold text-gray-900">R$ 0,00</p>
-          <p className="text-xs text-gray-400 mt-1">Integre com Asaas para ver valores</p>
+          <p className="text-sm text-gray-500 mb-1">Valor total</p>
+          <p className="text-3xl font-bold text-gray-900">{fmtCurrency(totalValue)}</p>
         </div>
       </div>
 
@@ -117,7 +141,7 @@ export function VendasClient({ vendas }: { vendas: Venda[] }) {
         {(['aprovadas', 'reprovadas', 'todas'] as const).map(t => (
           <button
             key={t}
-            onClick={() => { setTab(t); setPage(1) }}
+            onClick={() => handleTab(t)}
             className={`px-4 py-1.5 rounded-lg text-sm font-medium transition capitalize ${
               tab === t ? 'text-white' : 'text-gray-500 hover:bg-gray-100'
             }`}
@@ -136,18 +160,13 @@ export function VendasClient({ vendas }: { vendas: Venda[] }) {
           <span className="flex-1">Produto</span>
           <span className="flex-1">Cliente</span>
           <span className="w-28 shrink-0">Status</span>
-          <span className="w-24 shrink-0">Valor líquido</span>
+          <span className="w-24 shrink-0 text-right">Valor</span>
         </div>
         {/* Rows */}
         <div className="divide-y divide-gray-100">
-          {tab === 'reprovadas' ? (
-            <div className="py-16 text-center space-y-2">
-              <p className="text-gray-400 text-sm">Nenhuma venda reprovada.</p>
-              <p className="text-xs text-gray-300">Esta aba exibirá pagamentos recusados quando integrado com o Asaas.</p>
-            </div>
-          ) : pageItems.length === 0 ? (
+          {pageItems.length === 0 ? (
             <div className="py-16 text-center text-gray-400 text-sm">
-              Nenhuma venda encontrada.
+              {tab === 'reprovadas' ? 'Nenhuma venda em atraso.' : 'Nenhuma venda encontrada.'}
             </div>
           ) : (
             pageItems.map(v => (
@@ -159,11 +178,11 @@ export function VendasClient({ vendas }: { vendas: Venda[] }) {
                   <p className="text-xs text-gray-400 truncate">{v.profiles?.email}</p>
                 </div>
                 <div className="w-28 shrink-0">
-                  <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium bg-green-50 text-green-700">
-                    ✓ Aprovada
-                  </span>
+                  <PaymentStatusBadge status={v.payment_status} />
                 </div>
-                <div className="w-24 shrink-0 text-gray-400">—</div>
+                <div className="w-24 shrink-0 text-right text-gray-700">
+                  {v.value != null ? fmtCurrency(v.value) : '—'}
+                </div>
               </div>
             ))
           )}

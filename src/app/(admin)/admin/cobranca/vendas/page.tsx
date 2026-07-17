@@ -15,13 +15,16 @@ export default async function VendasPage() {
 
   const { data } = await adminClient
     .from('user_products')
-    .select('id, granted_at, product_id, profiles(name, email), products(title)')
+    .select('id, granted_at, product_id, value, payment_status, invoice_url, profiles(name, email), products(title)')
     .order('granted_at', { ascending: false })
 
   const vendas = (data ?? []).map(v => ({
     id: v.id,
     granted_at: v.granted_at,
     product_id: v.product_id,
+    value: v.value,
+    payment_status: v.payment_status,
+    invoice_url: v.invoice_url,
     profiles: Array.isArray(v.profiles) ? v.profiles[0] : v.profiles,
     products: Array.isArray(v.products) ? v.products[0] : v.products,
   }))

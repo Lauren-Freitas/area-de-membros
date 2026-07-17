@@ -1,24 +1,63 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Geist } from 'next/font/google'
 import './globals.css'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { cache } from 'react'
 
 const geist = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
 })
 
-export const metadata: Metadata = {
-  title: 'Área de Membros — Thiago Cantalovo Nutricionista',
-  description: 'Acesse seus conteúdos exclusivos.',
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://membros.thiagocantalovo.com'
+
+const getSiteConfig = cache(async (): Promise<Record<string, string>> => {
+  try {
+    const adminClient = createAdminClient()
+    const { data: rows } = await adminClient.from('site_config').select('key, value')
+    return Object.fromEntries((rows ?? []).map(r => [r.key, r.value]))
+  } catch {
+    return {}
+  }
+})
+
+export async function generateMetadata(): Promise<Metadata> {
+  const cfg = await getSiteConfig()
+  const platformName = cfg.platform_name || 'Thiago Cantalovo'
+  const title = `Área de Membros — ${platformName}`
+  const description = cfg.welcome_message || 'Acesse seus conteúdos exclusivos.'
+
+  return {
+    metadataBase: new URL(APP_URL),
+    title: { default: title, template: `%s — ${platformName}` },
+    description,
+    openGraph: {
+      title,
+      description,
+      siteName: platformName,
+      url: APP_URL,
+      locale: 'pt_BR',
+      type: 'website',
+      images: [{ url: '/iav_1024.png', width: 400, height: 400, alt: platformName }],
+    },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+      images: ['/iav_1024.png'],
+    },
+  }
+}
+
+export async function generateViewport(): Promise<Viewport> {
+  const cfg = await getSiteConfig()
+  return { themeColor: cfg.primary_color || '#b48840' }
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   let customCss = ''
   try {
-    const adminClient = createAdminClient()
-    const { data: rows } = await adminClient.from('site_config').select('key, value')
-    const cfg = Object.fromEntries((rows ?? []).map(r => [r.key, r.value]))
+    const cfg = await getSiteConfig()
     const light: string[] = []
     const dark: string[] = []
     if (cfg.primary_color) { light.push(`--brand:${cfg.primary_color}`); dark.push(`--brand:${cfg.primary_color}`) }

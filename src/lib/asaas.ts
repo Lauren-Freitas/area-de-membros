@@ -9,6 +9,23 @@ async function asaasGet(path: string) {
   return res.json()
 }
 
+async function asaasPost(path: string, body: unknown) {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method: 'POST',
+    headers: {
+      access_token: process.env.ASAAS_API_KEY!,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  })
+  const data = await res.json()
+  if (!res.ok) {
+    const message = data?.errors?.[0]?.description ?? `Asaas API ${path} → ${res.status}`
+    throw new Error(message)
+  }
+  return data
+}
+
 export async function getAsaasCustomer(customerId: string): Promise<{
   id: string
   name: string
@@ -79,4 +96,25 @@ export async function findCustomerByEmail(email: string): Promise<{ id: string; 
   } catch {
     return null
   }
+}
+
+export type AsaasSubscriptionCycle =
+  | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'BIMONTHLY' | 'QUARTERLY' | 'SEMIANNUALLY' | 'YEARLY'
+
+export async function createAsaasPaymentLink(params: {
+  name: string
+  value: number
+  externalReference: string
+  chargeType: 'DETACHED' | 'RECURRENT'
+  subscriptionCycle?: AsaasSubscriptionCycle
+}): Promise<{ id: string; url: string }> {
+  const { name, value, externalReference, chargeType, subscriptionCycle } = params
+  return asaasPost('/paymentLinks', {
+    name,
+    billingType: 'UNDEFINED',
+    chargeType,
+    value,
+    externalReference,
+    ...(chargeType === 'RECURRENT' ? { subscriptionCycle } : {}),
+  })
 }

@@ -2,6 +2,8 @@ export type UserRole = 'member' | 'admin'
 export type ContentType = 'video' | 'file'
 export type GrantedBy = 'purchase' | 'manual' | 'pack'
 export type WebhookStatus = 'processed' | 'failed' | 'ignored'
+export type BillingCycle = 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'BIMONTHLY' | 'QUARTERLY' | 'SEMIANNUALLY' | 'YEARLY'
+export type PaymentStatus = 'confirmed' | 'overdue' | 'refunded' | 'chargeback'
 
 export interface Profile {
   id: string
@@ -26,6 +28,8 @@ export interface Product {
   content_url: string | null
   asaas_product_id: string | null
   buy_url: string | null
+  price: number | null
+  billing_cycle: BillingCycle | null
   is_active: boolean
   is_pack: boolean
   sort_order: number
@@ -109,4 +113,8 @@ export interface UserProduct {
   granted_at: string
   granted_by: GrantedBy
   asaas_payment_id: string | null
+  value: number | null
+  billing_type: string | null
+  payment_status: PaymentStatus | null
+  invoice_url: string | null
 }

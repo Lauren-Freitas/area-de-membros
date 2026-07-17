@@ -1,11 +1,55 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useRef, useState, useTransition } from 'react'
 import { saveProduct } from '@/lib/actions/admin'
+import { generatePaymentLink } from '@/lib/actions/asaas'
 import { Product } from '@/types'
+
+const BILLING_CYCLES: { value: string; label: string }[] = [
+  { value: '', label: 'Avulso (pagamento único)' },
+  { value: 'WEEKLY', label: 'Semanal' },
+  { value: 'BIWEEKLY', label: 'Quinzenal' },
+  { value: 'MONTHLY', label: 'Mensal' },
+  { value: 'BIMONTHLY', label: 'Bimestral' },
+  { value: 'QUARTERLY', label: 'Trimestral' },
+  { value: 'SEMIANNUALLY', label: 'Semestral' },
+  { value: 'YEARLY', label: 'Anual' },
+]
+
+function GeneratePaymentLinkButton({ productId, buyUrlInputRef }: { productId: string; buyUrlInputRef: React.RefObject<HTMLInputElement | null> }) {
+  const [isPending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+
+  function handleClick() {
+    setError(null)
+    startTransition(async () => {
+      const result = await generatePaymentLink(productId)
+      if (result.error) {
+        setError(result.error)
+      } else if (result.url && buyUrlInputRef.current) {
+        buyUrlInputRef.current.value = result.url
+      }
+    })
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={isPending}
+        className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition disabled:opacity-60"
+      >
+        {isPending ? 'Gerando...' : 'Gerar link de pagamento no Asaas'}
+      </button>
+      {error && <p className="text-xs text-red-600">{error}</p>}
+    </div>
+  )
+}
 
 export function ProductForm({ product }: { product?: Product }) {
   const [state, action, isPending] = useActionState(saveProduct, undefined)
+  const buyUrlInputRef = useRef<HTMLInputElement>(null)
   const isEditing = !!product
 
   return (
@@ -58,18 +102,51 @@ export function ProductForm({ product }: { product?: Product }) {
         />
       </div>
 
+      {/* Preço + Ciclo de cobrança */}
+      <div className="flex flex-wrap gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Preço (R$)
+            <span className="text-gray-400 font-normal ml-1 text-xs">(usado ao gerar o link no Asaas)</span>
+          </label>
+          <input
+            name="price"
+            type="number"
+            step="0.01"
+            min="0"
+            defaultValue={product?.price ?? ''}
+            className="w-40 px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
+            placeholder="297.00"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Ciclo de cobrança</label>
+          <select
+            name="billing_cycle"
+            defaultValue={product?.billing_cycle ?? ''}
+            className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
+          >
+            {BILLING_CYCLES.map(c => (
+              <option key={c.value} value={c.value}>{c.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       {/* Link de compra */}
-      <div>
+      <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Link de compra
           <span className="text-gray-400 font-normal ml-1 text-xs">(aparece na vitrine para quem ainda não tem acesso)</span>
         </label>
         <input
           name="buy_url"
+          ref={buyUrlInputRef}
           defaultValue={product?.buy_url ?? ''}
           className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
           placeholder="https://www.asaas.com/c/... ou link do WhatsApp"
         />
+        {isEditing && <GeneratePaymentLinkButton productId={product.id} buyUrlInputRef={buyUrlInputRef} />}
       </div>
 
       {/* Ordem + Ativo + Pack (pack só no modo edição) */}

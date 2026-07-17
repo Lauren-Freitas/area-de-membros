@@ -44,7 +44,10 @@ export async function saveProduct(
   if (!title) return { error: 'O título é obrigatório.' }
 
   const buy_url = (formData.get('buy_url') as string)?.trim() || null
-  const payload = { title, description: description || '', banner_url, buy_url, is_pack, sort_order, is_active }
+  const priceRaw = (formData.get('price') as string)?.trim()
+  const price = priceRaw ? parseFloat(priceRaw) : null
+  const billing_cycle = (formData.get('billing_cycle') as string)?.trim() || null
+  const payload = { title, description: description || '', banner_url, buy_url, price, billing_cycle, is_pack, sort_order, is_active }
 
   const isNew = !id || id === 'novo'
   const { error } = isNew
