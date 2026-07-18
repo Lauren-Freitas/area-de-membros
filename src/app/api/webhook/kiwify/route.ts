@@ -18,6 +18,23 @@ const REVOKE_EVENTS = [
   'subscription_canceled', 'subscription_cancelled',
 ]
 
+/** Erros do Supabase (Postgrest/Auth) nem sempre são instância de Error — extrai o que der. */
+function errorMessage(err: unknown): string {
+  if (err instanceof Error && err.message) return err.message
+  if (err && typeof err === 'object') {
+    const anyErr = err as Record<string, unknown>
+    const parts = ['message', 'details', 'hint', 'code']
+      .map(k => anyErr[k])
+      .filter((v): v is string => typeof v === 'string' && v.length > 0)
+    if (parts.length) return parts.join(' | ')
+  }
+  try {
+    return JSON.stringify(err)
+  } catch {
+    return String(err)
+  }
+}
+
 /** A Kiwify usa nomes de campo inconsistentes entre versões do payload — tenta várias chaves. */
 function pick(obj: Json | undefined, keys: string[]): unknown {
   if (!obj) return undefined
@@ -210,7 +227,7 @@ export async function POST(req: NextRequest) {
     await admin.from('webhook_logs').insert({ event_type: event, provider: 'kiwify', status: 'processed', payload })
     return NextResponse.json({ received: true })
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err)
+    const message = errorMessage(err)
     await admin.from('webhook_logs').insert({
       event_type: event,
       provider: 'kiwify',
