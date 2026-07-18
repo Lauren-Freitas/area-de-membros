@@ -5,9 +5,18 @@ import { sendWelcomeEmail, sendAccessGrantedEmail } from '@/lib/resend'
 type AdminClient = ReturnType<typeof createAdminClient>
 type Json = Record<string, unknown>
 
-const GRANT_EVENTS = ['compra_aprovada', 'subscription_renewed']
+// A Kiwify entrega webhook_event_type em inglês (confirmado com payload real: "order_approved"),
+// mesmo a documentação/API de criação de webhook usando nomes em português ("compra_aprovada").
+// Mantém os dois por segurança; os de estorno/chargeback/assinatura ainda não foram confirmados
+// com payload real, então cobre as variantes mais prováveis.
+const GRANT_EVENTS = ['order_approved', 'compra_aprovada', 'subscription_renewed']
 const OVERDUE_EVENTS = ['subscription_late']
-const REVOKE_EVENTS = ['compra_reembolsada', 'chargeback', 'subscription_canceled']
+const REVOKE_EVENTS = [
+  'order_refunded', 'compra_reembolsada', 'refunded',
+  'order_rejected', 'compra_recusada',
+  'chargeback', 'chargedback',
+  'subscription_canceled', 'subscription_cancelled',
+]
 
 /** A Kiwify usa nomes de campo inconsistentes entre versões do payload — tenta várias chaves. */
 function pick(obj: Json | undefined, keys: string[]): unknown {
@@ -28,11 +37,16 @@ interface ParsedKiwifyEvent {
 function parseKiwifyPayload(body: Json): ParsedKiwifyEvent {
   const customer = pick(body, ['Customer', 'customer']) as Json | undefined
   const product = pick(body, ['Product', 'product']) as Json | undefined
+  const commissions = pick(body, ['Commissions', 'commissions']) as Json | undefined
 
   const email = (pick(customer, ['email', 'Email']) as string | undefined)?.toLowerCase().trim() ?? null
   const name = (pick(customer, ['full_name', 'name', 'Name']) as string | undefined) ?? null
   const kiwifyProductId = (pick(product, ['product_id', 'id']) as string | undefined) ?? null
-  const value = (pick(body, ['net_amount', 'charge_amount', 'amount']) as number | undefined) ?? null
+
+  // Valores vêm em centavos, aninhados em Commissions (confirmado com payload real).
+  const rawValue = (pick(commissions, ['product_base_price', 'charge_amount', 'settlement_amount']) as number | undefined)
+    ?? (pick(body, ['net_amount', 'charge_amount', 'amount']) as number | undefined)
+  const value = rawValue != null ? rawValue / 100 : null
 
   return { email, name, kiwifyProductId, value }
 }
