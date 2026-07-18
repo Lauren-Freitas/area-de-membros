@@ -49,10 +49,6 @@ export default async function AdminProdutoPage({
         <span className="text-gray-900">{isNew ? 'Novo produto' : product?.title}</span>
       </div>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-8">
-        {isNew ? 'Criar produto' : 'Editar produto'}
-      </h1>
-
       <div className="bg-white rounded-2xl border border-gray-100 p-6 sm:p-8 mb-8">
         <ProductForm product={product} />
       </div>

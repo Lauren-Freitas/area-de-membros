@@ -51,11 +51,34 @@ export function ProductForm({ product }: { product?: Product }) {
   const [state, action, isPending] = useActionState(saveProduct, undefined)
   const buyUrlInputRef = useRef<HTMLInputElement>(null)
   const [contentType, setContentType] = useState(product?.content_type ?? 'file')
+  const [isActive, setIsActive] = useState(product?.is_active ?? true)
   const isEditing = !!product
 
   return (
     <form action={action} className="space-y-6">
       {product && <input type="hidden" name="id" value={product.id} />}
+
+      {/* Título + switch de ativo/inativo */}
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold text-gray-900">
+          {isEditing ? 'Editar produto' : 'Criar produto'}
+        </h1>
+        <label htmlFor="is_active" title="Aparece na área de membros" className="flex items-center gap-2 cursor-pointer select-none shrink-0">
+          <span className="text-sm font-medium text-gray-600">{isActive ? 'Ativo' : 'Inativo'}</span>
+          <span className="relative inline-block w-11 h-6">
+            <input
+              type="checkbox"
+              name="is_active"
+              id="is_active"
+              checked={isActive}
+              onChange={e => setIsActive(e.target.checked)}
+              className="peer sr-only"
+            />
+            <span className="absolute inset-0 rounded-full bg-gray-300 peer-checked:bg-emerald-500 transition-colors" />
+            <span className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5" />
+          </span>
+        </label>
+      </div>
 
       {state?.error && (
         <div className="p-3 rounded-lg bg-red-50 border border-red-100 text-sm text-red-700">
@@ -185,7 +208,7 @@ export function ProductForm({ product }: { product?: Product }) {
         {isEditing && <GeneratePaymentLinkButton productId={product.id} buyUrlInputRef={buyUrlInputRef} />}
       </div>
 
-      {/* Ordem + Ativo + Pack (pack só no modo edição) */}
+      {/* Ordem + Pack (pack só no modo edição) */}
       <div className="flex flex-wrap items-center gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Ordem de exibição</label>
@@ -196,20 +219,6 @@ export function ProductForm({ product }: { product?: Product }) {
             defaultValue={product?.sort_order ?? 0}
             className="w-32 px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
           />
-        </div>
-
-        <div className="flex items-center gap-3 pt-5">
-          <input
-            type="checkbox"
-            name="is_active"
-            id="is_active"
-            defaultChecked={product?.is_active ?? true}
-            className="w-4 h-4 rounded accent-emerald-600"
-          />
-          <label htmlFor="is_active" className="text-sm font-medium text-gray-700">
-            Produto ativo
-            <p className="text-xs text-gray-400 font-normal">Aparece na área de membros</p>
-          </label>
         </div>
 
         {isEditing && (
