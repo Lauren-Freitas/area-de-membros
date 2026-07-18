@@ -170,7 +170,8 @@ export async function POST(req: NextRequest) {
 
   if (!event) {
     await admin.from('webhook_logs').insert({
-      event_type: 'kiwify_unknown',
+      event_type: 'unknown',
+      provider: 'kiwify',
       status: 'failed',
       error_message: 'Evento não identificado no payload (campo webhook_event_type/event/type ausente)',
       payload,
@@ -188,16 +189,17 @@ export async function POST(req: NextRequest) {
     } else if (REVOKE_EVENTS.includes(event)) {
       await handleRevoke(admin, parsed)
     } else {
-      await admin.from('webhook_logs').insert({ event_type: `kiwify_${event}`, status: 'ignored', payload })
+      await admin.from('webhook_logs').insert({ event_type: event, provider: 'kiwify', status: 'ignored', payload })
       return NextResponse.json({ received: true })
     }
 
-    await admin.from('webhook_logs').insert({ event_type: `kiwify_${event}`, status: 'processed', payload })
+    await admin.from('webhook_logs').insert({ event_type: event, provider: 'kiwify', status: 'processed', payload })
     return NextResponse.json({ received: true })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err)
     await admin.from('webhook_logs').insert({
-      event_type: `kiwify_${event}`,
+      event_type: event,
+      provider: 'kiwify',
       status: 'failed',
       error_message: message,
       payload,

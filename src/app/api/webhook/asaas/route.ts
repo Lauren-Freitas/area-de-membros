@@ -183,6 +183,7 @@ export async function POST(req: NextRequest) {
     } else {
       await admin.from('webhook_logs').insert({
         event_type: event,
+        provider: 'asaas',
         asaas_payment_id: payment?.id ?? null,
         status: 'ignored',
         payload,
@@ -192,6 +193,7 @@ export async function POST(req: NextRequest) {
 
     await admin.from('webhook_logs').insert({
       event_type: event,
+      provider: 'asaas',
       asaas_payment_id: payment.id,
       status: 'processed',
       payload,
@@ -202,6 +204,7 @@ export async function POST(req: NextRequest) {
     const message = err instanceof Error ? err.message : String(err)
     await admin.from('webhook_logs').insert({
       event_type: event,
+      provider: 'asaas',
       asaas_payment_id: payment?.id ?? null,
       status: 'failed',
       error_message: message,
