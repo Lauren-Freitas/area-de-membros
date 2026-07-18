@@ -107,7 +107,7 @@ async function handleGrant(admin: AdminClient, parsed: ParsedKiwifyEvent) {
   } else {
     const { data: created, error: createError } = await admin.auth.admin.createUser({
       email,
-      email_confirm: false,
+      email_confirm: true,
       user_metadata: { name: displayName },
     })
     if (createError || !created.user) throw createError ?? new Error('Falha ao criar usuário')

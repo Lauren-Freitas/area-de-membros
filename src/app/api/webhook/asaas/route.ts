@@ -65,7 +65,7 @@ async function handleGrant(admin: AdminClient, payment: Record<string, unknown>)
   } else {
     const { data: created, error: createError } = await admin.auth.admin.createUser({
       email,
-      email_confirm: false,
+      email_confirm: true,
       user_metadata: { name },
     })
     if (createError || !created.user) throw createError ?? new Error('Falha ao criar usuário')

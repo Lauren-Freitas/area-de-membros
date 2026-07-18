@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   } else {
     const { data: created, error: createError } = await admin.auth.admin.createUser({
       email,
-      email_confirm: false,
+      email_confirm: true,
       user_metadata: { name },
     })
     if (createError || !created.user) return NextResponse.json({ error: createError?.message ?? 'Erro ao criar usuário' }, { status: 500 })

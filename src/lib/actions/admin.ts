@@ -25,6 +25,22 @@ async function requireAdmin() {
 
 export type AdminActionState = { error?: string; success?: boolean } | undefined
 
+/**
+ * Erros da API de Auth do Supabase (ex: AuthRetryableFetchError em falha de rede)
+ * às vezes têm `.message` vazio ou "{}" — nesse caso usa nome/status pra dar
+ * uma pista legível em vez de mostrar "{}" cru na tela.
+ */
+function authErrorMessage(err: unknown, fallback: string): string {
+  if (err && typeof err === 'object') {
+    const anyErr = err as Record<string, unknown>
+    const message = typeof anyErr.message === 'string' ? anyErr.message : ''
+    if (message && message !== '{}') return message
+    const name = typeof anyErr.name === 'string' ? anyErr.name : ''
+    if (name) return `${name}${typeof anyErr.status === 'number' ? ` (status ${anyErr.status})` : ''} — tente novamente em instantes`
+  }
+  return fallback
+}
+
 // ─── Produtos ───────────────────────────────────────────────────────────────
 
 export async function saveProduct(
@@ -116,10 +132,10 @@ export async function createUser(
   } else {
     const { data: created, error: createError } = await admin.auth.admin.createUser({
       email,
-      email_confirm: false,
+      email_confirm: true,
       user_metadata: { name },
     })
-    if (createError || !created.user) return { error: createError?.message ?? 'Erro ao criar usuário.' }
+    if (createError || !created.user) return { error: authErrorMessage(createError, 'Erro ao criar usuário.') }
     userId = created.user.id
     isNewUser = true
 
@@ -355,7 +371,7 @@ export async function updateProfile(
 
   if (email !== user.email) {
     const { error: authError } = await admin.auth.admin.updateUserById(user.id, { email })
-    if (authError) return { error: authError.message }
+    if (authError) return { error: authErrorMessage(authError, 'Erro ao atualizar email.') }
   }
 
   let avatar_url: string | null | undefined
