@@ -150,11 +150,19 @@ export async function createUser(
 
   const is_active = formData.get('is_active') === 'on'
 
-  if (role !== 'membro' || !is_active) {
-    const profileUpdate: Record<string, unknown> = {}
+  const profileUpdate: Record<string, unknown> = {}
+  if (isNewUser) {
+    // O profile é criado por trigger a partir do auth.users, com role no valor
+    // padrão da coluna ('member', em inglês) — sempre sobrescreve pro valor que
+    // o resto do app espera ('membro'/'admin'/'equipe'), não só quando != membro.
+    profileUpdate.role = role
+    if (!is_active) profileUpdate.is_active = false
+  } else {
     if (role !== 'membro') profileUpdate.role = role
     if (!is_active) profileUpdate.is_active = false
+  }
 
+  if (Object.keys(profileUpdate).length > 0) {
     const { error: roleError } = await admin.from('profiles').update(profileUpdate).eq('id', userId)
     if (roleError) return { error: `Erro ao configurar o perfil: ${roleError.message}` }
   }
