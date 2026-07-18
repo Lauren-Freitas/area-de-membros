@@ -27,6 +27,7 @@ export interface Product {
   content_type: ContentType
   content_url: string | null
   asaas_product_id: string | null
+  kiwify_product_id: string | null
   buy_url: string | null
   price: number | null
   billing_cycle: BillingCycle | null

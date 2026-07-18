@@ -50,7 +50,8 @@ export async function saveProduct(
   const billing_cycle = (formData.get('billing_cycle') as string)?.trim() || null
   const content_type = (formData.get('content_type') as string) || 'file'
   const content_url = (formData.get('content_url') as string)?.trim() || null
-  const payload = { title, description: description || '', banner_url, buy_url, price, billing_cycle, content_type, content_url, is_pack, sort_order, is_active }
+  const kiwify_product_id = (formData.get('kiwify_product_id') as string)?.trim() || null
+  const payload = { title, description: description || '', banner_url, buy_url, price, billing_cycle, content_type, content_url, kiwify_product_id, is_pack, sort_order, is_active }
 
   const isNew = !id || id === 'novo'
   const { error } = isNew

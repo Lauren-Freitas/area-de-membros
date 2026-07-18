@@ -208,6 +208,20 @@ export function ProductForm({ product }: { product?: Product }) {
         {isEditing && <GeneratePaymentLinkButton productId={product.id} buyUrlInputRef={buyUrlInputRef} />}
       </div>
 
+      {/* ID do produto na Kiwify */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          ID do produto na Kiwify
+          <span className="text-gray-400 font-normal ml-1 text-xs">(opcional — necessário só se vender esse produto pela Kiwify)</span>
+        </label>
+        <input
+          name="kiwify_product_id"
+          defaultValue={product?.kiwify_product_id ?? ''}
+          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
+          placeholder="Copie em Kiwify → Produtos → abra o produto → ID na URL"
+        />
+      </div>
+
       {/* Ordem + Pack (pack só no modo edição) */}
       <div className="flex flex-wrap items-center gap-6">
         <div>
