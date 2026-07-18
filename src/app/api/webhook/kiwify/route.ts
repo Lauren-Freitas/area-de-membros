@@ -18,21 +18,21 @@ const REVOKE_EVENTS = [
   'subscription_canceled', 'subscription_cancelled',
 ]
 
-/** Erros do Supabase (Postgrest/Auth) nem sempre são instância de Error — extrai o que der. */
+/**
+ * Erros do Supabase (Postgrest/Auth) nem sempre são instância de Error, e Error
+ * "de verdade" também não serializa em JSON.stringify normal (message/stack não
+ * são enumeráveis) — por isso lista as próprias propriedades explicitamente.
+ */
 function errorMessage(err: unknown): string {
-  if (err instanceof Error && err.message) return err.message
-  if (err && typeof err === 'object') {
-    const anyErr = err as Record<string, unknown>
-    const parts = ['message', 'details', 'hint', 'code']
-      .map(k => anyErr[k])
-      .filter((v): v is string => typeof v === 'string' && v.length > 0)
-    if (parts.length) return parts.join(' | ')
-  }
+  if (!err || typeof err !== 'object') return String(err)
   try {
-    return JSON.stringify(err)
+    const props = Object.getOwnPropertyNames(err)
+    const dump = JSON.stringify(err, props)
+    if (dump && dump !== '{}') return dump
   } catch {
-    return String(err)
+    /* ignore */
   }
+  return String(err)
 }
 
 /** A Kiwify usa nomes de campo inconsistentes entre versões do payload — tenta várias chaves. */
