@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import Image from 'next/image'
+import { BrandLogo } from '@/components/BrandLogo'
 import { PrintButton } from './PrintButton'
 
 export default async function CertificadoPage({ params }: { params: Promise<{ id: string }> }) {
@@ -51,29 +51,29 @@ export default async function CertificadoPage({ params }: { params: Promise<{ id
       {/* Certificado */}
       <div
         id="cert"
-        className="relative max-w-3xl mx-auto bg-white rounded-2xl overflow-hidden"
-        style={{ boxShadow: '0 0 0 8px #b48840, 0 0 0 12px #dfc99a' }}
+        className="relative max-w-3xl mx-auto bg-card rounded-2xl overflow-hidden"
+        style={{ boxShadow: '0 0 0 8px var(--brand), 0 0 0 12px var(--brand-border)' }}
       >
         {/* Fundo decorativo */}
         <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: 'repeating-linear-gradient(45deg, #b48840 0, #b48840 1px, transparent 0, transparent 50%)',
+          backgroundImage: 'repeating-linear-gradient(45deg, var(--brand) 0, var(--brand) 1px, transparent 0, transparent 50%)',
           backgroundSize: '20px 20px',
         }} />
 
         <div className="relative px-10 py-14 text-center">
           {/* Logo */}
           <div className="flex justify-center mb-6">
-            <Image src="/iav_1024.png" alt="Thiago Cantalovo" width={72} height={72} className="rounded-full" />
+            <BrandLogo size={72} />
           </div>
 
           {/* Título */}
-          <p className="text-xs font-bold tracking-[0.3em] uppercase mb-2" style={{ color: '#b48840' }}>
+          <p className="text-xs font-bold tracking-[0.3em] uppercase mb-2" style={{ color: 'var(--brand)' }}>
             Thiago Cantalovo · Nutricionista
           </p>
           <h1 className="text-3xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Georgia, serif' }}>
             Certificado de Conclusão
           </h1>
-          <div className="w-24 h-0.5 mx-auto my-6" style={{ backgroundColor: '#b48840' }} />
+          <div className="w-24 h-0.5 mx-auto my-6" style={{ backgroundColor: 'var(--brand)' }} />
 
           {/* Texto principal */}
           <p className="text-base text-gray-500 mb-3">Certificamos que</p>
@@ -81,7 +81,7 @@ export default async function CertificadoPage({ params }: { params: Promise<{ id
             {memberName}
           </p>
           <p className="text-base text-gray-500 mb-2">concluiu com êxito o curso</p>
-          <p className="text-2xl font-bold mb-8" style={{ color: '#b48840', fontFamily: 'Georgia, serif' }}>
+          <p className="text-2xl font-bold mb-8" style={{ color: 'var(--brand)', fontFamily: 'Georgia, serif' }}>
             {productTitle}
           </p>
 
@@ -93,7 +93,7 @@ export default async function CertificadoPage({ params }: { params: Promise<{ id
           <div className="flex items-end justify-center gap-16">
             <div className="text-center">
               {/* Assinatura cursiva */}
-              <p className="text-3xl mb-1" style={{ fontFamily: "'Dancing Script', cursive", color: '#b48840', lineHeight: 1.2 }}>
+              <p className="text-3xl mb-1" style={{ fontFamily: "'Dancing Script', cursive", color: 'var(--brand)', lineHeight: 1.2 }}>
                 Thiago Cantalovo
               </p>
               <div className="w-48 h-px bg-gray-300 mb-2 mx-auto" />

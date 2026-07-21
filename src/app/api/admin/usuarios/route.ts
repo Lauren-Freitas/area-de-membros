@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const name = body.name?.trim()
   const email = body.email?.trim().toLowerCase()
+  const phone = body.phone?.trim() || null
   const productIds: string[] = body.products ?? []
 
   if (!name || !email) return NextResponse.json({ error: 'name e email são obrigatórios' }, { status: 400 })
@@ -55,6 +56,8 @@ export async function POST(req: NextRequest) {
     })
     inviteLink = linkData?.properties?.action_link ?? null
   }
+
+  if (phone) await admin.from('profiles').update({ phone }).eq('id', userId)
 
   if (productIds.length > 0) {
     await admin.from('user_products').upsert(

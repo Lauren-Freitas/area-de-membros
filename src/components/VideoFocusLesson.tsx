@@ -21,7 +21,7 @@ export function VideoFocusLesson({ url }: { url: string | null }) {
   }, [])
 
   if (!url) return (
-    <div className="aspect-video flex items-center justify-center bg-[#e4e4e4] dark:bg-[#00060f] text-gray-400 text-sm">
+    <div className="aspect-video flex items-center justify-center bg-[var(--background)] dark:bg-[var(--background)] text-gray-400 text-sm">
       Vídeo não configurado.
     </div>
   )

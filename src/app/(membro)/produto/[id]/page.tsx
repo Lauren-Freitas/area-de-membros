@@ -6,6 +6,7 @@ import { ProductCompleteButton } from '@/components/ProductCompleteButton'
 import { ProductRating } from '@/components/ProductRating'
 import { ProductComments } from '@/components/ProductComments'
 import { LessonVideoPlayer } from '@/components/LessonVideoPlayer'
+import { computeReleaseState } from '@/lib/release'
 
 export default async function ProdutoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -16,7 +17,7 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
 
   const [{ data: product }, { data: access }, { data: modules }, { data: progressRows }, { data: certificate }, { data: profile }] = await Promise.all([
     supabase.from('products').select('*').eq('id', id).eq('is_active', true).single(),
-    supabase.from('user_products').select('id, is_completed').eq('user_id', user.id).eq('product_id', id).single(),
+    supabase.from('user_products').select('id, is_completed, granted_at').eq('user_id', user.id).eq('product_id', id).single(),
     supabase.from('modules').select('*, lessons(*)').eq('product_id', id).order('sort_order'),
     supabase.from('lesson_progress').select('lesson_id').eq('user_id', user.id),
     supabase.from('certificates').select('id').eq('user_id', user.id).eq('product_id', id).maybeSingle(),
@@ -37,7 +38,23 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
     : [{ data: null, error: null }, { data: null, error: null }]
 
   const p = product as Product
-  const mods = (modules ?? []) as (Module & { lessons: Lesson[] })[]
+  const grantedAt = (access as { granted_at?: string | null }).granted_at ?? null
+  const now = new Date()
+  const mods = ((modules ?? []) as (Module & { lessons: Lesson[] })[])
+    .filter(m => computeReleaseState({
+      releaseType: m.release_type, releaseAfterDays: m.release_after_days, releaseAt: m.release_at, grantedAt, now,
+    }).isReleased)
+    .map(m => ({
+      ...m,
+      lessons: (m.lessons ?? []).filter(l => {
+        if (!l.is_published) return false
+        const state = computeReleaseState({
+          releaseType: l.release_type, releaseAfterDays: l.release_after_days, releaseAt: l.release_at,
+          accessDurationDays: l.access_duration_days, grantedAt, now,
+        })
+        return state.isReleased && !state.isExpired
+      }),
+    }))
   const completedSet = new Set(progressRows?.map(r => r.lesson_id) ?? [])
   const isAdmin = profile?.role === 'admin' || profile?.role === 'equipe'
   const isProductCompleted = (access as { is_completed?: boolean | null })?.is_completed ?? false
@@ -86,18 +103,18 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
 
       {/* Banner de certificado */}
       {certificate && (
-        <div className="mb-6 flex items-center justify-between gap-4 px-5 py-4 rounded-xl border" style={{ backgroundColor: '#f5efe3', borderColor: '#dfc99a' }}>
+        <div className="mb-6 flex items-center justify-between gap-4 px-5 py-4 rounded-xl border" style={{ backgroundColor: 'var(--brand-bg)', borderColor: 'var(--brand-border)' }}>
           <div className="flex items-center gap-3">
             <span className="text-2xl">🎓</span>
             <div>
-              <p className="font-semibold text-sm" style={{ color: '#7a5c10' }}>Curso concluído! Parabéns!</p>
+              <p className="font-semibold text-sm" style={{ color: 'var(--brand-text)' }}>Curso concluído! Parabéns!</p>
               <p className="text-xs" style={{ color: '#9a7230' }}>Seu certificado está disponível.</p>
             </div>
           </div>
           <a
             href={`/certificado/${certificate.id}`}
             className="shrink-0 px-4 py-2 text-sm font-semibold text-white rounded-lg transition hover:opacity-90"
-            style={{ backgroundColor: '#b48840' }}
+            style={{ backgroundColor: 'var(--brand)' }}
           >
             Ver certificado
           </a>
@@ -109,12 +126,12 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
         <div className="mb-6">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1.5">
             <span>{completedLessons} de {totalLessons} aulas concluídas</span>
-            <span className="font-semibold" style={{ color: '#b48840' }}>{overallPct}%</span>
+            <span className="font-semibold" style={{ color: 'var(--brand)' }}>{overallPct}%</span>
           </div>
           <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${overallPct}%`, backgroundColor: '#b48840' }}
+              style={{ width: `${overallPct}%`, backgroundColor: 'var(--brand)' }}
             />
           </div>
         </div>
@@ -128,7 +145,7 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
             const modPct = lessons.length > 0 ? Math.round((modCompleted / lessons.length) * 100) : 0
 
             return (
-              <div key={mod.id} className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
+              <div key={mod.id} className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
                 <div className="px-5 py-4 border-b border-gray-50 dark:border-[#1e2030]">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div>
@@ -146,7 +163,7 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
                     <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${modPct}%`, backgroundColor: '#b48840' }}
+                        style={{ width: `${modPct}%`, backgroundColor: 'var(--brand)' }}
                       />
                     </div>
                   )}
@@ -228,7 +245,7 @@ function SimpleProductView({
   return (
     <div className="space-y-4">
       {/* Conteúdo principal */}
-      <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
+      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
         {product.content_type === 'video' ? (
           <LessonVideoPlayer
             url={product.content_url}
@@ -250,7 +267,7 @@ function SimpleProductView({
 
       {/* Comentários + Ações */}
       <div className="grid grid-cols-1 sm:grid-cols-[1fr_220px] gap-4 items-start">
-        <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
+        <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
           <ProductComments
             productId={productId}
             currentUserId={userId}
@@ -261,7 +278,7 @@ function SimpleProductView({
           />
         </div>
 
-        <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5 flex flex-col gap-5">
+        <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5 flex flex-col gap-5">
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Avaliação</p>
             <ProductRating productId={productId} initialRating={myRating} />
@@ -280,28 +297,13 @@ function SimpleProductView({
   )
 }
 
-function VideoContent({ url }: { url: string | null }) {
-  if (!url) return (
-    <div className="aspect-video flex items-center justify-center bg-[#e4e4e4] dark:bg-[#00060f] text-gray-400">Vídeo não configurado.</div>
-  )
-  const embedUrl = url
-    .replace('watch?v=', 'embed/')
-    .replace('youtu.be/', 'www.youtube.com/embed/')
-    .replace('vimeo.com/', 'player.vimeo.com/video/')
-  return (
-    <div className="aspect-video">
-      <iframe src={embedUrl} className="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
-    </div>
-  )
-}
-
 async function FileContent({ productId, title }: { productId: string; title: string }) {
   const supabase = await createClient()
   const { data } = await supabase.storage.from('produtos').createSignedUrl(`${productId}/arquivo`, 3600)
   return (
     <div className="p-8 flex flex-col items-center text-center gap-4">
-      <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f5efe3' }}>
-        <svg className="w-8 h-8" style={{ color: '#b48840' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--brand-bg)' }}>
+        <svg className="w-8 h-8" style={{ color: 'var(--brand)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
         </svg>
       </div>
@@ -310,7 +312,7 @@ async function FileContent({ productId, title }: { productId: string; title: str
         <p className="text-sm text-gray-500 mt-1">Clique para baixar o arquivo</p>
       </div>
       {data?.signedUrl ? (
-        <a href={data.signedUrl} download className="inline-flex items-center gap-2 px-6 py-3 text-white text-sm font-semibold rounded-lg transition hover:opacity-90" style={{ backgroundColor: '#b48840' }}>
+        <a href={data.signedUrl} download className="inline-flex items-center gap-2 px-6 py-3 text-white text-sm font-semibold rounded-lg transition hover:opacity-90" style={{ backgroundColor: 'var(--brand)' }}>
           Baixar arquivo
         </a>
       ) : (

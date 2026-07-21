@@ -31,7 +31,7 @@ export default function SuportePage() {
       <h1 className="text-2xl font-bold text-gray-900">Suporte & FAQ</h1>
 
       {/* Suporte */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      <div className="bg-card rounded-2xl border border-gray-100 p-6">
         <h2 className="font-semibold text-gray-900 mb-1">Suporte</h2>
         <p className="text-sm text-gray-500 mb-5">Precisa de ajuda? Entre em contato.</p>
         <div className="flex flex-wrap gap-3">
@@ -61,7 +61,7 @@ export default function SuportePage() {
       </div>
 
       {/* Perguntas Frequentes */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      <div className="bg-card rounded-2xl border border-gray-100 p-6">
         <h2 className="font-semibold text-gray-900 pb-4 border-b border-gray-100 mb-1">Perguntas frequentes</h2>
         <div className="divide-y divide-gray-100">
           {faq.map(({ q, a }) => (

@@ -72,15 +72,17 @@ POST /api/admin/usuarios
 {
   "name": "João Silva",
   "email": "joao@email.com",
+  "phone": "5561999999999",
   "products": ["product-uuid-1", "product-uuid-2"]
 }
 ```
+> `phone` é opcional. Formato livre (o app não normaliza) — recomendado DDI + DDD + número, sem espaços ou símbolos.
 
 **Response:**
 ```json
 {
-  "ok": true,
-  "user_id": "uuid"
+  "userId": "uuid",
+  "isNewUser": true
 }
 ```
 

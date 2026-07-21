@@ -124,7 +124,7 @@ export function ChatInterface({
                 <button
                   key={s}
                   onClick={() => sendMessage(s)}
-                  className="text-left text-sm px-4 py-3 bg-white dark:bg-[#0d1020] rounded-xl border border-gray-100 dark:border-[#1e2030] hover:border-yellow-300 hover:bg-yellow-50 dark:hover:bg-gray-700 transition text-gray-600 dark:text-gray-300"
+                  className="text-left text-sm px-4 py-3 bg-card rounded-xl border border-gray-100 dark:border-[#1e2030] hover:border-yellow-300 hover:bg-yellow-50 dark:hover:bg-gray-700 transition text-gray-600 dark:text-gray-300"
                 >
                   {s}
                 </button>
@@ -136,7 +136,7 @@ export function ChatInterface({
         {messages.map((msg, idx) => (
           <div key={idx} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             {msg.role === 'assistant' && (
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0 mt-0.5" style={{ backgroundColor: '#f5efe3' }}>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0 mt-0.5" style={{ backgroundColor: 'var(--brand-bg)' }}>
                 🤖
               </div>
             )}
@@ -144,9 +144,9 @@ export function ChatInterface({
               className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
                 msg.role === 'user'
                   ? 'text-white rounded-tr-sm'
-                  : 'bg-white dark:bg-[#0d1020] text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-[#1e2030] rounded-tl-sm'
+                  : 'bg-card text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-[#1e2030] rounded-tl-sm'
               }`}
-              style={msg.role === 'user' ? { backgroundColor: '#b48840' } : {}}
+              style={msg.role === 'user' ? { backgroundColor: 'var(--brand)' } : {}}
             >
               {msg.content || (streaming && idx === messages.length - 1 ? (
                 <span className="inline-flex gap-1">
@@ -184,7 +184,7 @@ export function ChatInterface({
             onClick={() => sendMessage(input)}
             disabled={streaming || !input.trim()}
             className="w-10 h-10 rounded-xl flex items-center justify-center text-white transition hover:opacity-90 disabled:opacity-40 shrink-0"
-            style={{ backgroundColor: '#b48840' }}
+            style={{ backgroundColor: 'var(--brand)' }}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 19V5M5 12l7-7 7 7" />

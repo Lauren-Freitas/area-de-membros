@@ -63,7 +63,7 @@ export function ConfiguracoesForm({ name, email, avatarUrl }: Props) {
       )}
 
       {/* Informações pessoais */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      <div className="bg-card rounded-2xl border border-gray-100 p-6">
         <h2 className="font-semibold text-gray-900 mb-4">Informações pessoais</h2>
 
         <form action={profileAction} className="space-y-4">
@@ -87,7 +87,7 @@ export function ConfiguracoesForm({ name, email, avatarUrl }: Props) {
                   <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
                 </div>
               ) : (
-                <div className="w-20 h-20 rounded-full flex items-center justify-center text-xl font-bold text-white" style={{ backgroundColor: '#b48840' }}>
+                <div className="w-20 h-20 rounded-full flex items-center justify-center text-xl font-bold text-white" style={{ backgroundColor: 'var(--brand)' }}>
                   {getInitials(name)}
                 </div>
               )}
@@ -118,7 +118,7 @@ export function ConfiguracoesForm({ name, email, avatarUrl }: Props) {
             type="submit"
             disabled={profilePending}
             className="px-6 py-2.5 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 disabled:opacity-60"
-            style={{ backgroundColor: '#b48840' }}
+            style={{ backgroundColor: 'var(--brand)' }}
           >
             {profilePending ? 'Salvando...' : 'Salvar alterações'}
           </button>
@@ -126,7 +126,7 @@ export function ConfiguracoesForm({ name, email, avatarUrl }: Props) {
       </div>
 
       {/* Alteração de senha */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      <div className="bg-card rounded-2xl border border-gray-100 p-6">
         <h2 className="font-semibold text-gray-900 mb-1">Alterar senha</h2>
         <p className="text-sm text-gray-500 mb-4">Informe a senha atual e depois a nova senha desejada.</p>
 
@@ -157,11 +157,11 @@ export function ConfiguracoesForm({ name, email, avatarUrl }: Props) {
               type="submit"
               disabled={passwordPending}
               className="px-6 py-2.5 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 disabled:opacity-60"
-              style={{ backgroundColor: '#b48840' }}
+              style={{ backgroundColor: 'var(--brand)' }}
             >
               {passwordPending ? 'Alterando...' : 'Atualizar senha'}
             </button>
-            <button type="reset" className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition">
+            <button type="reset" className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-card border border-gray-200 hover:bg-gray-50 rounded-lg transition">
               Cancelar
             </button>
           </div>

@@ -14,7 +14,7 @@ export default async function NovoModuloPage({ params }: { params: Promise<{ id:
         <span className="text-gray-900">Novo módulo</span>
       </div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Novo módulo</h1>
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      <div className="bg-card rounded-2xl border border-gray-100 p-6">
         <ModuloForm productId={id} />
       </div>
     </div>

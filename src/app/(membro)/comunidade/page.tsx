@@ -40,14 +40,14 @@ export default async function ComunidadePage() {
         <Link
           href="/comunidade/nova"
           className="inline-flex items-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-          style={{ backgroundColor: '#b48840' }}
+          style={{ backgroundColor: 'var(--brand)' }}
         >
           + Publicar
         </Link>
       </div>
 
       {!posts?.length ? (
-        <div className="text-center py-20 bg-white dark:bg-[#0d1020] rounded-2xl border border-dashed border-gray-200 dark:border-[#1e2030] text-gray-400">
+        <div className="text-center py-20 bg-card rounded-2xl border border-dashed border-gray-200 dark:border-[#1e2030] text-gray-400">
           <p className="text-4xl mb-3">💬</p>
           <p className="font-medium">Seja o primeiro a publicar!</p>
           <p className="text-sm mt-1">Faça uma pergunta ou compartilhe algo com a turma.</p>
@@ -63,13 +63,13 @@ export default async function ComunidadePage() {
               <Link
                 key={post.id}
                 href={`/comunidade/${post.id}`}
-                className="block bg-white dark:bg-[#0d1020] rounded-xl border border-gray-100 dark:border-[#1e2030] px-5 py-4 hover:shadow-sm transition group"
-                style={post.pinned ? { borderColor: '#dfc99a' } : {}}
+                className="block bg-card rounded-xl border border-gray-100 dark:border-[#1e2030] px-5 py-4 hover:shadow-sm transition group"
+                style={post.pinned ? { borderColor: 'var(--brand-border)' } : {}}
               >
                 <div className="flex items-start gap-3">
                   <div
                     className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5"
-                    style={{ backgroundColor: '#f5efe3', color: '#7a5c10' }}
+                    style={{ backgroundColor: 'var(--brand-bg)', color: 'var(--brand-text)' }}
                   >
                     {initials(author?.name ?? '?')}
                   </div>

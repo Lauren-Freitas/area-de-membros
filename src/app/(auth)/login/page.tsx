@@ -1,32 +1,47 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { Suspense, useActionState, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { login } from '@/lib/actions/auth'
-import Image from 'next/image'
+import { BrandLogo } from '@/components/BrandLogo'
 import Link from 'next/link'
 
+const URL_ERROR_MESSAGES: Record<string, string> = {
+  'conta-desativada': 'Sua conta foi desativada. Entre em contato com o suporte para reativar o acesso.',
+}
+
 export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  )
+}
+
+function LoginForm() {
   const [state, action, isPending] = useActionState(login, undefined)
   const [showPassword, setShowPassword] = useState(false)
+  const searchParams = useSearchParams()
+  const urlError = searchParams.get('erro')
+  const urlErrorMessage = urlError ? URL_ERROR_MESSAGES[urlError] ?? null : null
 
   return (
     <div className="w-full max-w-md">
       <div className="text-center mb-8">
         <div className="flex justify-center mb-4">
-          <Image src="/iav_1024.png" alt="Thiago Cantalovo" width={80} height={80} className="rounded-full dark:hidden" priority />
-          <Image src="/iav_grafite_1024.png" alt="Thiago Cantalovo" width={80} height={80} className="rounded-full hidden dark:block" priority />
+          <BrandLogo size={80} />
         </div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Thiago Cantalovo</h1>
         <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Nutricionista</p>
       </div>
 
-      <div className="bg-white dark:bg-[#0d1020] rounded-2xl shadow-sm border border-gray-100 dark:border-[#1e2030] p-8">
+      <div className="bg-card rounded-2xl shadow-sm border border-gray-100 dark:border-[#1e2030] p-8">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">Acessar minha área</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Bem-vindo(a) de volta. Entre com seu email e senha.</p>
 
-        {state?.error && (
+        {(state?.error || urlErrorMessage) && (
           <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-sm text-red-700 dark:text-red-400">
-            {state.error}
+            {state?.error ?? urlErrorMessage}
           </div>
         )}
 
@@ -43,7 +58,7 @@ export default function LoginPage() {
           <div>
             <div className="flex items-center justify-between mb-1">
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Senha</label>
-              <Link href="/esqueceu-senha" className="text-xs hover:underline transition" style={{ color: '#b48840' }}>
+              <Link href="/esqueceu-senha" className="text-xs hover:underline transition" style={{ color: 'var(--brand)' }}>
                 Esqueceu a senha?
               </Link>
             </div>
@@ -77,7 +92,7 @@ export default function LoginPage() {
           <button
             type="submit" disabled={isPending}
             className="w-full py-2.5 px-4 hover:opacity-90 disabled:opacity-60 text-white text-sm font-semibold rounded-lg transition"
-            style={{ backgroundColor: '#b48840' }}
+            style={{ backgroundColor: 'var(--brand)' }}
           >
             {isPending ? 'Entrando...' : 'Entrar'}
           </button>

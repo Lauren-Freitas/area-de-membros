@@ -1,6 +1,8 @@
 'use client'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { APPEARANCE_DEFAULTS } from '@/lib/appearance-defaults'
+import { uploadBrandingAsset, removeBrandingAsset } from '@/lib/actions/appearance'
 
 const inputClass = 'w-full px-3 py-2 border border-gray-200 dark:border-[#374151] rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-[#111827] focus:outline-none focus:ring-2 focus:ring-yellow-300'
 
@@ -56,7 +58,85 @@ function ColorPicker({ label, hint, value, onChange }: {
   )
 }
 
+function BrandingAssetUpload({ kind, label, hint, currentUrl, onUpdated }: {
+  kind: 'logo' | 'favicon'
+  label: string
+  hint: string
+  currentUrl: string | null
+  onUpdated: (url: string | null) => void
+}) {
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  async function handleFile(file: File | undefined) {
+    if (!file) return
+    setError(null)
+    setPending(true)
+    const formData = new FormData()
+    formData.set('file', file)
+    const result = await uploadBrandingAsset(kind, formData)
+    if (result.url) onUpdated(result.url)
+    else setError(result.error ?? 'Erro ao enviar arquivo.')
+    setPending(false)
+    if (fileRef.current) fileRef.current.value = ''
+  }
+
+  async function handleRemove() {
+    setError(null)
+    setPending(true)
+    const result = await removeBrandingAsset(kind)
+    if (result.error) setError(result.error)
+    else onUpdated(null)
+    setPending(false)
+  }
+
+  return (
+    <div className="flex items-center gap-4">
+      <div className="w-16 h-16 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden shrink-0">
+        {currentUrl
+          ? /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={currentUrl} alt={label} className="w-full h-full object-contain" />
+          : <span className="text-xs text-gray-300">Padrão</span>}
+      </div>
+      <div className="flex-1">
+        <p className="text-sm font-medium text-gray-700">{label}</p>
+        <p className="text-xs text-gray-400 mb-2">{hint}</p>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => fileRef.current?.click()}
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
+          >
+            {pending ? 'Enviando...' : currentUrl ? 'Trocar' : 'Enviar arquivo'}
+          </button>
+          {currentUrl && (
+            <button
+              type="button"
+              disabled={pending}
+              onClick={handleRemove}
+              className="text-xs font-medium text-red-400 hover:text-red-600 disabled:opacity-50"
+            >
+              Remover
+            </button>
+          )}
+        </div>
+        {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".png,.jpg,.jpeg,.svg,.webp,.ico"
+          className="hidden"
+          onChange={e => handleFile(e.target.files?.[0])}
+        />
+      </div>
+    </div>
+  )
+}
+
 export function AparenciaForm({ config }: { config: Record<string, string> }) {
+  const router = useRouter()
   const [values, setValues] = useState<Record<string, string>>(config)
   const [pending, setPending] = useState(false)
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
@@ -82,6 +162,7 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
         ? { ok: true, text: 'Alterações salvas com sucesso!' }
         : { ok: false, text: result.error ?? 'Erro desconhecido.' }
       )
+      if (result.ok) router.refresh()
     } catch (err) {
       console.error('[Aparência] Erro:', err)
       setMsg({ ok: false, text: String(err) })
@@ -99,6 +180,7 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
       if (result.ok) {
         setValues({ ...APPEARANCE_DEFAULTS })
         setMsg({ ok: true, text: 'Padrões restaurados!' })
+        router.refresh()
       } else {
         setMsg({ ok: false, text: result.error ?? 'Erro desconhecido.' })
       }
@@ -145,6 +227,29 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
           )}
         </div>
       </div>
+
+      {/* Identidade visual */}
+      <Section
+        title="Identidade visual"
+        description="Sua logo (aparece no topo da área de membros e do admin) e o favicon (ícone na aba do navegador)."
+      >
+        <div className="space-y-5">
+          <BrandingAssetUpload
+            kind="logo"
+            label="Logo"
+            hint="PNG, JPG, SVG ou WebP — aparece dentro de um círculo, então funciona melhor centralizada"
+            currentUrl={values.logo_url || null}
+            onUpdated={url => { set('logo_url', url ?? ''); router.refresh() }}
+          />
+          <BrandingAssetUpload
+            kind="favicon"
+            label="Favicon"
+            hint="PNG ou ICO quadrado — ícone da aba do navegador"
+            currentUrl={values.favicon_url || null}
+            onUpdated={url => { set('favicon_url', url ?? ''); router.refresh() }}
+          />
+        </div>
+      </Section>
 
       {/* Paleta de cores */}
       <Section

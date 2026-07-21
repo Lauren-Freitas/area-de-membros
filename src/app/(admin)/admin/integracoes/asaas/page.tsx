@@ -50,7 +50,7 @@ export default function AsaasPage() {
       </div>
 
       {/* Chave de API (Admin) */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+      <div className="bg-card rounded-2xl border border-gray-100 p-6 space-y-4">
         <div>
           <h2 className="font-semibold text-gray-900">Chave de API (Admin)</h2>
           <p className="text-sm text-gray-500 mt-0.5">
@@ -61,7 +61,7 @@ export default function AsaasPage() {
         <CopyRow label="Chave de API" value={apiKey} />
         <p className="text-xs text-gray-400">
           Você também pode criar chaves nomeadas em{' '}
-          <Link href="/admin/integracoes/api" className="underline" style={{ color: '#b48840' }}>
+          <Link href="/admin/integracoes/api" className="underline" style={{ color: 'var(--brand)' }}>
             Integrações → API
           </Link>{' '}
           para identificar cada integração separadamente.
@@ -69,7 +69,7 @@ export default function AsaasPage() {
       </div>
 
       {/* Endpoints da API */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+      <div className="bg-card rounded-2xl border border-gray-100 p-6 space-y-4">
         <div>
           <h2 className="font-semibold text-gray-900">Endpoints da API</h2>
           <p className="text-sm text-gray-500 mt-0.5">
@@ -103,7 +103,7 @@ export default function AsaasPage() {
       </div>
 
       {/* Webhook Asaas */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+      <div className="bg-card rounded-2xl border border-gray-100 p-6 space-y-4">
         <div>
           <h2 className="font-semibold text-gray-900">Webhook Asaas</h2>
           <p className="text-sm text-gray-500 mt-0.5">
@@ -120,7 +120,7 @@ export default function AsaasPage() {
       </div>
 
       {/* n8n & Automações */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+      <div className="bg-card rounded-2xl border border-gray-100 p-6 space-y-4">
         <div>
           <h2 className="font-semibold text-gray-900">n8n & Automações</h2>
           <p className="text-sm text-gray-500 mt-0.5">
@@ -136,7 +136,7 @@ export default function AsaasPage() {
             <>Envie o body em JSON conforme o endpoint</>,
           ].map((step, i) => (
             <li key={i} className="flex items-start gap-3">
-              <span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white mt-0.5" style={{ backgroundColor: '#b48840' }}>
+              <span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white mt-0.5" style={{ backgroundColor: 'var(--brand)' }}>
                 {i + 1}
               </span>
               <span>{step}</span>
@@ -146,7 +146,7 @@ export default function AsaasPage() {
 
         <p className="text-xs text-gray-400">
           Ou configure um{' '}
-          <Link href="/admin/integracoes/webhooks" className="underline" style={{ color: '#b48840' }}>
+          <Link href="/admin/integracoes/webhooks" className="underline" style={{ color: 'var(--brand)' }}>
             Webhook de saída
           </Link>{' '}
           para receber eventos da plataforma direto no n8n quando uma venda acontecer.

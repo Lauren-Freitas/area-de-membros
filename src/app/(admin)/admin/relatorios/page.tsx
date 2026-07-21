@@ -87,7 +87,7 @@ export default async function RelatoriosPage() {
           { label: 'Aulas concluídas', value: totalCompletions, icon: '✅' },
           { label: 'Comentários', value: totalComments, icon: '💬' },
         ].map(({ label, value, icon }) => (
-          <div key={label} className="bg-white rounded-2xl border border-gray-100 p-4">
+          <div key={label} className="bg-card rounded-2xl border border-gray-100 p-4">
             <p className="text-2xl mb-1">{icon}</p>
             <p className="text-2xl font-bold text-gray-900">{value}</p>
             <p className="text-xs text-gray-500 mt-0.5">{label}</p>
@@ -97,7 +97,7 @@ export default async function RelatoriosPage() {
 
       {/* Top conteúdo */}
       {topContent.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+        <div className="bg-card rounded-2xl border border-gray-100 p-5">
           <h2 className="font-bold text-gray-900 mb-4">Aulas mais concluídas</h2>
           <div className="space-y-3">
             {topContent.map((item, idx) => {
@@ -113,7 +113,7 @@ export default async function RelatoriosPage() {
                     <span className="text-xs font-bold text-gray-500 ml-3 shrink-0">{item.count} {item.count === 1 ? 'vez' : 'vezes'}</span>
                   </div>
                   <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: '#b48840' }} />
+                    <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: 'var(--brand)' }} />
                   </div>
                 </div>
               )
@@ -123,7 +123,7 @@ export default async function RelatoriosPage() {
       )}
 
       {/* Lista de membros */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-5">
+      <div className="bg-card rounded-2xl border border-gray-100 p-5">
         <h2 className="font-bold text-gray-900 pb-4 border-b border-gray-100">Membros</h2>
         {members.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-8">Nenhum membro ainda.</p>
@@ -152,7 +152,7 @@ export default async function RelatoriosPage() {
                       ) : (
                         <div className="flex flex-wrap gap-1">
                           {userProducts.map(t => (
-                            <span key={t} className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: '#f5efe3', color: '#7a5c10' }}>{t}</span>
+                            <span key={t} className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: 'var(--brand-bg)', color: 'var(--brand-text)' }}>{t}</span>
                           ))}
                         </div>
                       )}

@@ -31,7 +31,7 @@ export function ProfileMenu({ name, avatarUrl, unreadCount }: Props) {
       <button
         onClick={() => setOpen(v => !v)}
         className="relative flex items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-offset-1"
-        style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+        style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
         aria-label="Menu do perfil"
       >
         {avatarUrl ? (
@@ -44,18 +44,18 @@ export function ProfileMenu({ name, avatarUrl, unreadCount }: Props) {
         ) : (
           <div
             className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
-            style={{ backgroundColor: '#b48840' }}
+            style={{ backgroundColor: 'var(--brand)' }}
           >
             {getInitials(name)}
           </div>
         )}
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-[#0d1020]" />
+          <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-[var(--card)]" />
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-[#0d1020] border border-gray-100 dark:border-[#1e2030] rounded-xl shadow-lg py-1 z-50">
+        <div className="absolute right-0 top-full mt-2 w-52 bg-card border border-gray-100 dark:border-[#1e2030] rounded-xl shadow-lg py-1 z-50">
           <div className="px-4 py-2.5 border-b border-gray-100 dark:border-[#1e2030]">
             <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{name}</p>
           </div>

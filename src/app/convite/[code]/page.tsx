@@ -3,7 +3,7 @@ import { useState, useTransition, use } from 'react'
 import { registerWithInvite } from '@/lib/actions/invite'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
+import { BrandLogo } from '@/components/BrandLogo'
 import Link from 'next/link'
 
 export default function ConvitePage({ params }: { params: Promise<{ code: string }> }) {
@@ -35,15 +35,15 @@ export default function ConvitePage({ params }: { params: Promise<{ code: string
   }
 
   return (
-    <div className="min-h-screen bg-[#e4e4e4] flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <Image src="/iav_1024.png" alt="Thiago Cantalovo" width={56} height={56} className="mx-auto rounded-full mb-3" />
+          <BrandLogo size={56} className="mx-auto mb-3" />
           <h1 className="text-xl font-bold text-gray-900">Criar sua conta</h1>
           <p className="text-sm text-gray-500 mt-1">Você recebeu um convite de acesso.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="bg-card rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
           {error && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{error}</div>
           )}
@@ -56,7 +56,7 @@ export default function ConvitePage({ params }: { params: Promise<{ code: string
               required
               placeholder="Nome completo"
               className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
-              style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+              style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
             />
           </div>
 
@@ -69,7 +69,7 @@ export default function ConvitePage({ params }: { params: Promise<{ code: string
               required
               placeholder="seu@email.com"
               className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
-              style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+              style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
             />
           </div>
 
@@ -82,7 +82,7 @@ export default function ConvitePage({ params }: { params: Promise<{ code: string
               required
               placeholder="Mínimo 6 caracteres"
               className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
-              style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+              style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
             />
           </div>
 
@@ -95,7 +95,7 @@ export default function ConvitePage({ params }: { params: Promise<{ code: string
               required
               placeholder="Repita a senha"
               className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
-              style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+              style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
             />
           </div>
 
@@ -103,14 +103,14 @@ export default function ConvitePage({ params }: { params: Promise<{ code: string
             type="submit"
             disabled={isPending}
             className="w-full py-2.5 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 disabled:opacity-50 mt-2"
-            style={{ backgroundColor: '#b48840' }}
+            style={{ backgroundColor: 'var(--brand)' }}
           >
             {isPending ? 'Criando conta...' : 'Criar conta e acessar'}
           </button>
 
           <p className="text-center text-xs text-gray-400">
             Já tem conta?{' '}
-            <Link href="/login" className="font-medium" style={{ color: '#b48840' }}>
+            <Link href="/login" className="font-medium" style={{ color: 'var(--brand)' }}>
               Fazer login
             </Link>
           </p>

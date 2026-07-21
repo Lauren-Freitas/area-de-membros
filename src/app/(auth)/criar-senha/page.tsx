@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react'
 import { setPassword } from '@/lib/actions/auth'
-import Image from 'next/image'
+import { BrandLogo } from '@/components/BrandLogo'
 
 export default function CriarSenhaPage() {
   const [state, action, isPending] = useActionState(setPassword, undefined)
@@ -11,14 +11,13 @@ export default function CriarSenhaPage() {
     <div className="w-full max-w-md">
       <div className="text-center mb-8">
         <div className="flex justify-center mb-4">
-          <Image src="/iav_1024.png" alt="Thiago Cantalovo" width={80} height={80} className="rounded-full dark:hidden" priority />
-          <Image src="/iav_grafite_1024.png" alt="Thiago Cantalovo" width={80} height={80} className="rounded-full hidden dark:block" priority />
+          <BrandLogo size={80} />
         </div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Thiago Cantalovo</h1>
         <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Nutricionista</p>
       </div>
 
-      <div className="bg-white dark:bg-[#0d1020] rounded-2xl shadow-sm border border-gray-100 dark:border-[#1e2030] p-8">
+      <div className="bg-card rounded-2xl shadow-sm border border-gray-100 dark:border-[#1e2030] p-8">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">Crie sua senha</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Defina uma senha para acessar seus conteúdos. Use pelo menos 8 caracteres.</p>
 
@@ -48,7 +47,7 @@ export default function CriarSenhaPage() {
           <button
             type="submit" disabled={isPending}
             className="w-full py-2.5 px-4 hover:opacity-90 disabled:opacity-60 text-white text-sm font-semibold rounded-lg transition"
-            style={{ backgroundColor: '#b48840' }}
+            style={{ backgroundColor: 'var(--brand)' }}
           >
             {isPending ? 'Salvando...' : 'Criar senha e acessar'}
           </button>

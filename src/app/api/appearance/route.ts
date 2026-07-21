@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { APPEARANCE_DEFAULTS } from '@/lib/appearance-defaults'
 import { logActivity } from '@/lib/log-activity'
+import { revalidatePath } from 'next/cache'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,6 +26,7 @@ export async function POST(request: NextRequest) {
     const { error } = await adminClient.from('site_config').upsert(rows, { onConflict: 'key' })
     if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
     await logActivity({ action: 'salvar_aparencia', entity: 'aparencia' })
+    revalidatePath('/', 'layout')
     return NextResponse.json({ ok: true })
   } catch (err) {
     return NextResponse.json({ ok: false, error: String(err) }, { status: 500 })
@@ -41,6 +43,7 @@ export async function DELETE(request: NextRequest) {
     const { error } = await adminClient.from('site_config').upsert(rows, { onConflict: 'key' })
     if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
     await logActivity({ action: 'restaurar_aparencia', entity: 'aparencia' })
+    revalidatePath('/', 'layout')
     return NextResponse.json({ ok: true, defaults: APPEARANCE_DEFAULTS })
   } catch (err) {
     return NextResponse.json({ ok: false, error: String(err) }, { status: 500 })

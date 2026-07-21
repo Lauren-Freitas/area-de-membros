@@ -71,7 +71,7 @@ export function ProductComments({ productId, currentUserId, isAdmin, initialComm
           {userAvatarUrl ? (
             <img src={userAvatarUrl} alt="Você" className="w-8 h-8 rounded-full shrink-0 object-cover mt-1" />
           ) : (
-            <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white mt-1" style={{ backgroundColor: '#b48840' }}>
+            <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white mt-1" style={{ backgroundColor: 'var(--brand)' }}>
               {userInitials}
             </div>
           )}
@@ -82,14 +82,14 @@ export function ProductComments({ productId, currentUserId, isAdmin, initialComm
           placeholder="Escreva seu comentário..."
           rows={3}
           className="w-full px-4 py-3 text-sm rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-[#1a1f35] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent resize-none transition"
-          style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+          style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
         />
         <div className="flex justify-end mt-2">
           <button
             type="submit"
             disabled={isPending || !text.trim()}
             className="px-4 py-2 text-sm font-semibold text-white rounded-lg transition hover:opacity-90 disabled:opacity-50"
-            style={{ backgroundColor: '#b48840' }}
+            style={{ backgroundColor: 'var(--brand)' }}
           >
             Publicar
           </button>
@@ -105,7 +105,7 @@ export function ProductComments({ productId, currentUserId, isAdmin, initialComm
         <div className="space-y-4">
           {comments.map(c => (
             <div key={c.id} className="flex gap-3">
-              <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: '#b48840' }}>
+              <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: 'var(--brand)' }}>
                 {(c.profiles?.name ?? 'U')[0].toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">

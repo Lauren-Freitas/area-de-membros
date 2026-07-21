@@ -18,7 +18,7 @@ export default async function NovaAulaPage({
         <span className="text-gray-900">Nova aula</span>
       </div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Nova aula</h1>
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      <div className="bg-card rounded-2xl border border-gray-100 p-6">
         <AulaForm productId={id} moduleId={modId} />
       </div>
     </div>

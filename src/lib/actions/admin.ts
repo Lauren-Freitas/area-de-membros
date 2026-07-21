@@ -6,6 +6,19 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { sendWelcomeEmail, sendAccessGrantedEmail, sendCollaboratorInviteEmail } from '@/lib/resend'
 import { logActivity } from '@/lib/log-activity'
+import sanitizeHtml from 'sanitize-html'
+
+function sanitizeLessonHtml(html: string): string {
+  return sanitizeHtml(html, {
+    allowedTags: ['p', 'br', 'strong', 'em', 'u', 's', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'blockquote', 'code', 'pre', 'img', 'span', 'div'],
+    allowedAttributes: {
+      a: ['href', 'target', 'rel'],
+      img: ['src', 'alt', 'width', 'height'],
+      '*': ['class'],
+    },
+    allowedSchemes: ['http', 'https', 'mailto'],
+  })
+}
 
 async function requireAdmin() {
   const supabase = await createClient()
@@ -111,6 +124,7 @@ export async function createUser(
 
   const name = (formData.get('name') as string)?.trim()
   const email = (formData.get('email') as string)?.trim().toLowerCase()
+  const phone = (formData.get('phone') as string)?.trim() || null
   const role = ((formData.get('role') as string) || 'membro') as 'admin' | 'equipe' | 'membro'
   const productIds = formData.getAll('products') as string[]
 
@@ -177,6 +191,7 @@ export async function createUser(
     if (role !== 'membro') profileUpdate.role = role
     if (!is_active) profileUpdate.is_active = false
   }
+  if (phone) profileUpdate.phone = phone
 
   if (Object.keys(profileUpdate).length > 0) {
     const { error: roleError } = await admin.from('profiles').update(profileUpdate).eq('id', userId)
@@ -277,7 +292,6 @@ export async function saveModule(
   const product_id = formData.get('product_id') as string
   const title = (formData.get('title') as string)?.trim()
   const description = (formData.get('description') as string)?.trim() || null
-  const sort_order = parseInt(formData.get('sort_order') as string) || 0
   const release_type = (formData.get('release_type') as string) || 'immediate'
   const release_after_days = release_type === 'days_after'
     ? parseInt(formData.get('release_after_days') as string) || 7
@@ -288,7 +302,8 @@ export async function saveModule(
 
   if (!title) return { error: 'O título é obrigatório.' }
 
-  const payload = { title, description, sort_order, release_type, release_after_days, release_at }
+  // sort_order não é mais editado aqui — é definido na tela "Organizar módulos e aulas".
+  const payload = { title, description, release_type, release_after_days, release_at }
 
   const isNew = !id
   const { error } = isNew
@@ -322,16 +337,29 @@ export async function saveLesson(
   const product_id = formData.get('product_id') as string
   const title = (formData.get('title') as string)?.trim()
   const description = (formData.get('description') as string)?.trim() || null
-  const lesson_type = formData.get('lesson_type') as string
   const content_url = (formData.get('content_url') as string)?.trim() || null
-  const content_text = (formData.get('content_text') as string)?.trim() || null
-  const sort_order = parseInt(formData.get('sort_order') as string) || 0
+  const content_html_raw = (formData.get('content_html') as string)?.trim() || null
   const is_published = formData.get('is_published') === 'on'
 
-  if (!title) return { error: 'O título é obrigatório.' }
-  if (!lesson_type) return { error: 'O tipo é obrigatório.' }
+  const release_type = (formData.get('release_type') as string) || 'immediate'
+  const release_after_days = release_type === 'days_after'
+    ? parseInt(formData.get('release_after_days') as string) || 7
+    : null
+  const release_at = release_type === 'date'
+    ? (formData.get('release_at') as string) || null
+    : null
+  const access_duration_raw = (formData.get('access_duration_days') as string)?.trim()
+  const access_duration_days = access_duration_raw ? parseInt(access_duration_raw) || null : null
 
-  const payload = { module_id, title, description, lesson_type, content_url, content_text, sort_order, is_published }
+  if (!title) return { error: 'O título é obrigatório.' }
+
+  const content_html = content_html_raw ? sanitizeLessonHtml(content_html_raw) : null
+  // lesson_type não é mais escolhido no formulário — mantido só pra compatibilidade
+  // com ícones/listagens existentes (aulas antigas do tipo file/link continuam como estão).
+  const lesson_type = content_url ? 'video' : 'text'
+
+  // sort_order não é mais editado aqui — é definido na tela "Organizar módulos e aulas".
+  const payload = { module_id, title, description, lesson_type, content_url, content_html, is_published, release_type, release_after_days, release_at, access_duration_days }
   const isNew = !id
   const { error } = isNew
     ? await admin.from('lessons').insert(payload)
@@ -349,6 +377,26 @@ export async function deleteLesson(lessonId: string, moduleId: string, productId
   await admin.from('lessons').delete().eq('id', lessonId)
   await logActivity({ action: 'excluir', entity: 'aula', entityId: lessonId })
   revalidatePath(`/admin/produtos/${productId}/modulos/${moduleId}`)
+}
+
+export async function reorderModulesAndLessons(
+  productId: string,
+  modules: { id: string; sort_order: number }[],
+  lessons: { id: string; module_id: string; sort_order: number }[]
+): Promise<{ error?: string }> {
+  await requireAdmin()
+  const admin = createAdminClient()
+
+  const results = await Promise.all([
+    ...modules.map(m => admin.from('modules').update({ sort_order: m.sort_order }).eq('id', m.id)),
+    ...lessons.map(l => admin.from('lessons').update({ module_id: l.module_id, sort_order: l.sort_order }).eq('id', l.id)),
+  ])
+  const failed = results.find(r => r.error)
+  if (failed?.error) return { error: failed.error.message }
+
+  await logActivity({ action: 'editar', entity: 'organizacao', entityId: productId })
+  revalidatePath(`/admin/produtos/${productId}`)
+  return {}
 }
 
 // ─── Perfil ──────────────────────────────────────────────────────────────────

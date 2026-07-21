@@ -108,7 +108,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   return (
     <div className="space-y-10">
       {welcomeMessage && (
-        <p className="text-sm text-gray-600 dark:text-gray-300 bg-white dark:bg-[#0d1020] px-5 py-3 rounded-xl border border-gray-100 dark:border-[#1e2030]">
+        <p className="text-sm text-gray-600 dark:text-gray-300 bg-card px-5 py-3 rounded-xl border border-gray-100 dark:border-[#1e2030]">
           {welcomeMessage}
         </p>
       )}
@@ -138,7 +138,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-5">Meus conteúdos</h1>
 
           {myProducts.length === 0 ? (
-            <div className="text-center py-12 text-gray-400 dark:text-gray-500 bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030]">
+            <div className="text-center py-12 text-gray-400 dark:text-gray-500 bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030]">
               <p className="text-lg font-medium">Você ainda não tem nenhum conteúdo.</p>
               <p className="text-sm mt-1">Confira os conteúdos disponíveis abaixo.</p>
             </div>
@@ -148,7 +148,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                 <div key={label ?? '_all'}>
                   {label && (
                     <h2 className="text-base font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                      <span className="w-1 h-4 rounded-full inline-block" style={{ backgroundColor: '#b48840' }} />
+                      <span className="w-1 h-4 rounded-full inline-block" style={{ backgroundColor: 'var(--brand)' }} />
                       {label}
                     </h2>
                   )}
@@ -180,7 +180,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               <div key={label ?? '_store'}>
                 {label && (
                   <h3 className="text-base font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                    <span className="w-1 h-4 rounded-full inline-block" style={{ backgroundColor: '#b48840' }} />
+                    <span className="w-1 h-4 rounded-full inline-block" style={{ backgroundColor: 'var(--brand)' }} />
                     {label}
                   </h3>
                 )}

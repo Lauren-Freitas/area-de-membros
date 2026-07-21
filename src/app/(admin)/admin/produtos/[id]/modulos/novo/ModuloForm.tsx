@@ -47,14 +47,14 @@ export function ModuloForm({ productId, module }: Props) {
         <label className="block text-sm font-medium text-gray-700 mb-2">Quando liberar este módulo?</label>
         <div className="flex flex-col gap-2">
           {/* Imediatamente */}
-          <label className="flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition has-[:checked]:border-[#b48840] has-[:checked]:bg-amber-50 border-gray-200">
+          <label className="flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition has-[:checked]:border-[var(--brand)] has-[:checked]:bg-amber-50 border-gray-200">
             <input
               type="radio"
               name="release_type"
               value="immediate"
               checked={releaseType === 'immediate'}
               onChange={() => setReleaseType('immediate')}
-              className="accent-[#b48840]"
+              className="accent-[var(--brand)]"
             />
             <div>
               <p className="text-sm font-medium text-gray-800">Imediatamente</p>
@@ -63,14 +63,14 @@ export function ModuloForm({ productId, module }: Props) {
           </label>
 
           {/* Após X dias */}
-          <label className="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition has-[:checked]:border-[#b48840] has-[:checked]:bg-amber-50 border-gray-200">
+          <label className="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition has-[:checked]:border-[var(--brand)] has-[:checked]:bg-amber-50 border-gray-200">
             <input
               type="radio"
               name="release_type"
               value="days_after"
               checked={releaseType === 'days_after'}
               onChange={() => setReleaseType('days_after')}
-              className="accent-[#b48840] mt-0.5"
+              className="accent-[var(--brand)] mt-0.5"
             />
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-800">Após X dias do acesso</p>
@@ -91,14 +91,14 @@ export function ModuloForm({ productId, module }: Props) {
           </label>
 
           {/* Data específica */}
-          <label className="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition has-[:checked]:border-[#b48840] has-[:checked]:bg-amber-50 border-gray-200">
+          <label className="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition has-[:checked]:border-[var(--brand)] has-[:checked]:bg-amber-50 border-gray-200">
             <input
               type="radio"
               name="release_type"
               value="date"
               checked={releaseType === 'date'}
               onChange={() => setReleaseType('date')}
-              className="accent-[#b48840] mt-0.5"
+              className="accent-[var(--brand)] mt-0.5"
             />
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-800">Em data específica</p>
@@ -116,23 +116,12 @@ export function ModuloForm({ productId, module }: Props) {
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Ordem</label>
-        <input
-          name="sort_order"
-          type="number"
-          min="0"
-          defaultValue={module?.sort_order ?? 0}
-          className="w-32 px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
-        />
-      </div>
-
       <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
         <button
           type="submit"
           disabled={isPending}
           className="px-6 py-2.5 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 disabled:opacity-60"
-          style={{ backgroundColor: '#b48840' }}
+          style={{ backgroundColor: 'var(--brand)' }}
         >
           {isPending ? 'Salvando...' : module ? 'Salvar alterações' : 'Criar módulo'}
         </button>

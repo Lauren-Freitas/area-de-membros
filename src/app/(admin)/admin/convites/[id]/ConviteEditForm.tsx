@@ -19,7 +19,7 @@ export function ConviteEditForm({ id, invite, products }: { id: string; invite: 
   )
 
   return (
-    <form action={action} className="space-y-5 bg-white rounded-2xl border border-gray-100 p-6">
+    <form action={action} className="space-y-5 bg-card rounded-2xl border border-gray-100 p-6">
       {state?.error && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{state.error}</div>
       )}
@@ -82,7 +82,7 @@ export function ConviteEditForm({ id, invite, products }: { id: string; invite: 
           type="submit"
           disabled={pending}
           className="px-6 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 disabled:opacity-50"
-          style={{ backgroundColor: '#b48840' }}
+          style={{ backgroundColor: 'var(--brand)' }}
         >
           {pending ? 'Salvando...' : 'Salvar alterações'}
         </button>

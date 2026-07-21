@@ -39,7 +39,7 @@ export default async function EditModuloPage({
 
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Editar módulo</h1>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-8">
+      <div className="bg-card rounded-2xl border border-gray-100 p-6 mb-8">
         <ModuloForm productId={id} module={mod as Module} />
       </div>
 
@@ -50,21 +50,21 @@ export default async function EditModuloPage({
           <Link
             href={`/admin/produtos/${id}/modulos/${modId}/aulas/novo`}
             className="px-4 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-            style={{ backgroundColor: '#b48840' }}
+            style={{ backgroundColor: 'var(--brand)' }}
           >
             + Nova aula
           </Link>
         </div>
 
         {!lessons?.length ? (
-          <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-8 text-center text-gray-400">
+          <div className="bg-card rounded-2xl border border-dashed border-gray-200 p-8 text-center text-gray-400">
             <p className="font-medium">Nenhuma aula criada.</p>
             <p className="text-sm mt-1">
               <Link href={`/admin/produtos/${id}/modulos/${modId}/aulas/novo`} className="underline">Criar primeira aula</Link>
             </p>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div className="bg-card rounded-2xl border border-gray-100 overflow-hidden">
             {(lessons as Lesson[]).map((lesson, idx) => (
               <div key={lesson.id} className="flex items-center justify-between px-5 py-4 border-b border-gray-50 last:border-0">
                 <div className="flex items-center gap-3">

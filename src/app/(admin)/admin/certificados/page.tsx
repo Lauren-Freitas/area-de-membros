@@ -16,11 +16,11 @@ export default async function CertificadosAdminPage() {
       </div>
 
       {!certs?.length ? (
-        <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-200 text-gray-400 text-sm">
+        <div className="text-center py-20 bg-card rounded-2xl border border-dashed border-gray-200 text-gray-400 text-sm">
           Nenhum certificado emitido ainda.
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div className="bg-card rounded-2xl border border-gray-100 overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 text-xs text-gray-400 uppercase tracking-wider">
@@ -48,7 +48,7 @@ export default async function CertificadosAdminPage() {
                     </td>
                     <td className="px-5 py-3 text-right">
                       <div className="flex items-center justify-end gap-3">
-                        <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium" style={{ backgroundColor: '#f5efe3', color: '#7a5c10' }}>
+                        <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium" style={{ backgroundColor: 'var(--brand-bg)', color: 'var(--brand-text)' }}>
                           Emitido
                         </span>
                         <form action={async () => { 'use server'; await deleteCertificate(cert.id) }}>

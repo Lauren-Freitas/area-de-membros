@@ -117,10 +117,10 @@ export default async function AdminPage() {
           <Link
             key={label}
             href={href}
-            className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-sm transition group"
+            className="bg-card rounded-2xl border border-gray-100 p-5 hover:shadow-sm transition group"
           >
             <div className="flex items-start justify-between mb-3">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#f5efe3', color: '#b48840' }}>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'var(--brand-bg)', color: 'var(--brand)' }}>
                 {icon}
               </div>
               {up !== null && (
@@ -129,7 +129,7 @@ export default async function AdminPage() {
                 </span>
               )}
             </div>
-            <p className="text-3xl font-bold" style={{ color: '#b48840' }}>{value}</p>
+            <p className="text-3xl font-bold" style={{ color: 'var(--brand)' }}>{value}</p>
             <p className="text-sm font-medium text-gray-600 mt-0.5">{label}</p>
             <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
           </Link>
@@ -138,10 +138,10 @@ export default async function AdminPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent members */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
+        <div className="bg-card rounded-2xl border border-gray-100 p-6">
           <div className="flex items-center justify-between pb-4 border-b border-gray-100">
             <h2 className="font-semibold text-gray-900">Membros recentes</h2>
-            <Link href="/admin/usuarios" className="text-xs font-medium hover:underline" style={{ color: '#b48840' }}>
+            <Link href="/admin/usuarios" className="text-xs font-medium hover:underline" style={{ color: 'var(--brand)' }}>
               Ver todos
             </Link>
           </div>
@@ -166,10 +166,10 @@ export default async function AdminPage() {
         </div>
 
         {/* Recent sales */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
+        <div className="bg-card rounded-2xl border border-gray-100 p-6">
           <div className="flex items-center justify-between pb-4 border-b border-gray-100">
             <h2 className="font-semibold text-gray-900">Últimas vendas</h2>
-            <Link href="/admin/cobranca/vendas" className="text-xs font-medium hover:underline" style={{ color: '#b48840' }}>
+            <Link href="/admin/cobranca/vendas" className="text-xs font-medium hover:underline" style={{ color: 'var(--brand)' }}>
               Ver todas
             </Link>
           </div>
@@ -182,7 +182,7 @@ export default async function AdminPage() {
                 const product = Array.isArray(v.products) ? v.products[0] : v.products
                 return (
                   <div key={i} className="flex items-center gap-3 py-3 last:pb-0 hover:bg-gray-50 transition rounded-lg">
-                    <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm" style={{ backgroundColor: '#f5efe3' }}>
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm" style={{ backgroundColor: 'var(--brand-bg)' }}>
                       📦
                     </div>
                     <div className="flex-1 min-w-0">
@@ -199,7 +199,7 @@ export default async function AdminPage() {
       </div>
 
       {/* Quick actions */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      <div className="bg-card rounded-2xl border border-gray-100 p-6">
         <h2 className="font-semibold text-gray-900 mb-4">Ações rápidas</h2>
         <div className="flex flex-wrap gap-3">
           {quickActions.map(({ label, href }) => (
@@ -207,7 +207,7 @@ export default async function AdminPage() {
               key={href}
               href={href}
               className="px-4 py-2.5 text-sm font-semibold text-white rounded-xl transition hover:opacity-90"
-              style={{ backgroundColor: '#b48840' }}
+              style={{ backgroundColor: 'var(--brand)' }}
             >
               {label}
             </Link>

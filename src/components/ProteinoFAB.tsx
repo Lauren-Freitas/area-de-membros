@@ -29,15 +29,15 @@ const PERSONAS: Record<'member' | 'admin', Persona> = {
   member: {
     name: 'Proteíno',
     subtitle: 'Assistente de nutrição',
-    color: '#b48840',
-    lightBg: '#f5efe3',
+    color: 'var(--brand)',
+    lightBg: 'var(--brand-bg)',
     suggestions: MEMBER_SUGGESTIONS,
   },
   admin: {
     name: 'IAN',
     subtitle: 'Inteligência de Apoio Nutricional',
-    color: '#b48840',
-    lightBg: '#f5efe3',
+    color: 'var(--brand)',
+    lightBg: 'var(--brand-bg)',
     suggestions: ADMIN_SUGGESTIONS,
   },
 }
@@ -263,7 +263,7 @@ export function ProteinoFAB({ userId: _userId, persona: personaKey = 'member' }:
         <>
           <div className="fixed inset-0 bg-black/30 z-40 sm:hidden" onClick={() => setOpen(false)} />
 
-          <div className="fixed right-0 top-0 bottom-0 w-full sm:right-4 sm:top-4 sm:bottom-4 sm:w-[380px] bg-white dark:bg-[#0d1020] z-50 flex flex-col shadow-2xl sm:rounded-2xl overflow-hidden">
+          <div className="fixed right-0 top-0 bottom-0 w-full sm:right-4 sm:top-4 sm:bottom-4 sm:w-[380px] bg-card z-50 flex flex-col shadow-2xl sm:rounded-2xl overflow-hidden">
             {/* Header */}
             <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100 dark:border-[#1e2030] shrink-0">
               <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: persona.color }}>

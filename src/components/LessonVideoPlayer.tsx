@@ -180,7 +180,7 @@ export function LessonVideoPlayer({ url, progressPct: initialPct, prevHref, next
         </div>
       )}
 
-      <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
+      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
         {/* Vídeo */}
         <div className="aspect-video bg-black">
           {url ? (
@@ -207,7 +207,7 @@ export function LessonVideoPlayer({ url, progressPct: initialPct, prevHref, next
         <div className="h-1 bg-gray-100 dark:bg-gray-700">
           <div
             className="h-full transition-all duration-500"
-            style={{ width: `${progressPct}%`, backgroundColor: '#b48840' }}
+            style={{ width: `${progressPct}%`, backgroundColor: 'var(--brand)' }}
           />
         </div>
 
@@ -234,7 +234,7 @@ export function LessonVideoPlayer({ url, progressPct: initialPct, prevHref, next
                         onClick={() => changeSpeed(s)}
                         className={`w-full px-4 py-1.5 text-xs text-left transition ${
                           speed === s
-                            ? 'font-semibold text-[#b48840]'
+                            ? 'font-semibold text-[var(--brand)]'
                             : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#252a40]'
                         }`}
                       >

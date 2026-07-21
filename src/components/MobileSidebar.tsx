@@ -107,7 +107,7 @@ export function MobileSidebar() {
             className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm"
             onClick={() => setOpen(false)}
           />
-          <div className="fixed left-0 top-0 bottom-0 w-72 bg-white dark:bg-[#0d1020] z-50 flex flex-col shadow-2xl">
+          <div className="fixed left-0 top-0 bottom-0 w-72 bg-card z-50 flex flex-col shadow-2xl">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-[#1e2030]">
               <p className="font-semibold text-gray-900 dark:text-white">Menu</p>
               <button
@@ -134,7 +134,7 @@ export function MobileSidebar() {
                   type="search"
                   placeholder="Pesquisar conteúdo..."
                   className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-[#1a1f35] text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition"
-                  style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+                  style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
                 />
               </form>
             </div>
@@ -153,7 +153,7 @@ export function MobileSidebar() {
                         className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition ${
                           active ? '' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1a1f35]'
                         }`}
-                        style={active ? { backgroundColor: '#f5efe3', color: '#7a5c10' } : undefined}
+                        style={active ? { backgroundColor: 'var(--brand-bg)', color: 'var(--brand-text)' } : undefined}
                       >
                         {item.icon}
                         <span className="flex-1 text-left">{item.label}</span>
@@ -191,7 +191,7 @@ export function MobileSidebar() {
                     className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition ${
                       active ? '' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1a1f35]'
                     }`}
-                    style={active ? { backgroundColor: '#f5efe3', color: '#7a5c10' } : undefined}
+                    style={active ? { backgroundColor: 'var(--brand-bg)', color: 'var(--brand-text)' } : undefined}
                   >
                     {item.icon}
                     {item.label}

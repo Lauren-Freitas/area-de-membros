@@ -25,7 +25,7 @@ const ENTITY_LABEL: Record<string, string> = {
 }
 
 const ROLE_STYLE: Record<string, { label: string; color: string }> = {
-  admin:  { label: 'Admin',  color: '#b48840' },
+  admin:  { label: 'Admin',  color: 'var(--brand)' },
   equipe: { label: 'Equipe', color: '#6d28d9' },
 }
 
@@ -98,7 +98,7 @@ export default async function AtividadesPage({
           href="/admin/atividades"
           className="px-3 py-1 rounded-full text-xs font-medium border transition"
           style={!tipo
-            ? { backgroundColor: '#b48840', color: '#fff', borderColor: '#b48840' }
+            ? { backgroundColor: 'var(--brand)', color: '#fff', borderColor: 'var(--brand)' }
             : { backgroundColor: 'transparent', color: '#6b7280', borderColor: '#e5e7eb' }}
         >
           Todas
@@ -109,7 +109,7 @@ export default async function AtividadesPage({
             href={`/admin/atividades?tipo=${e}`}
             className="px-3 py-1 rounded-full text-xs font-medium border transition"
             style={tipo === e
-              ? { backgroundColor: '#b48840', color: '#fff', borderColor: '#b48840' }
+              ? { backgroundColor: 'var(--brand)', color: '#fff', borderColor: 'var(--brand)' }
               : { backgroundColor: 'transparent', color: '#6b7280', borderColor: '#e5e7eb' }}
           >
             {ENTITY_LABEL[e]}
@@ -125,7 +125,7 @@ export default async function AtividadesPage({
           <p className="text-xs mt-1">As ações feitas no painel aparecerão aqui.</p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] divide-y divide-gray-100 dark:divide-[#1e2030]">
+        <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] divide-y divide-gray-100 dark:divide-[#1e2030]">
           {logs.map((log) => {
             const actionStyle = ACTION_STYLE[log.action] ?? { label: log.action, bg: '#f3f4f6', text: '#374151' }
             const entityLabel = ENTITY_LABEL[log.entity] ?? log.entity

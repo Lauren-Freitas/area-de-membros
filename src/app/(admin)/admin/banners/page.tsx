@@ -10,7 +10,7 @@ const typeColor: Record<string, string> = {
   info: '#3b82f6',
   success: '#22c55e',
   warning: '#f59e0b',
-  promo: '#b48840',
+  promo: 'var(--brand)',
 }
 
 export default async function BannersPage() {
@@ -33,20 +33,20 @@ export default async function BannersPage() {
         <Link
           href="/admin/banners/novo"
           className="inline-flex items-center gap-2 px-4 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-          style={{ backgroundColor: '#b48840' }}
+          style={{ backgroundColor: 'var(--brand)' }}
         >
           + Novo banner
         </Link>
       </div>
 
       {(!banners || banners.length === 0) ? (
-        <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-200 text-gray-400">
+        <div className="text-center py-16 bg-card rounded-2xl border border-dashed border-gray-200 text-gray-400">
           <p className="font-medium">Nenhum banner criado ainda.</p>
         </div>
       ) : (
         <div className="space-y-3">
           {(banners as Banner[]).map(b => (
-            <div key={b.id} className="bg-white rounded-xl border border-gray-100 p-4 flex items-start gap-4">
+            <div key={b.id} className="bg-card rounded-xl border border-gray-100 p-4 flex items-start gap-4">
               <span
                 className="mt-0.5 px-2 py-0.5 text-xs font-bold rounded-full text-white shrink-0"
                 style={{ backgroundColor: typeColor[b.type] }}

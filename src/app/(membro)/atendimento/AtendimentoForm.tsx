@@ -64,7 +64,7 @@ export function AtendimentoForm({ products, tickets }: Props) {
 
   return (
     <>
-      <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
+      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
         <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-1">Abrir chamado</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
           Descreva sua dúvida ou problema e entraremos em contato pelo email cadastrado.
@@ -91,7 +91,7 @@ export function AtendimentoForm({ products, tickets }: Props) {
                 <select
                   name="product_id"
                   className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:border-transparent transition"
-                  style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+                  style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
                 >
                   <option value="">Nenhum (geral)</option>
                   {products.map(p => (
@@ -107,7 +107,7 @@ export function AtendimentoForm({ products, tickets }: Props) {
                 type="text"
                 maxLength={150}
                 className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition"
-                style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+                style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
                 placeholder="Resumo do seu chamado"
               />
             </div>
@@ -123,7 +123,7 @@ export function AtendimentoForm({ products, tickets }: Props) {
               rows={5}
               maxLength={2000}
               className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:border-transparent transition"
-              style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+              style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
               placeholder="Descreva sua dúvida ou problema com o máximo de detalhes possível..."
             />
           </div>
@@ -179,7 +179,7 @@ export function AtendimentoForm({ products, tickets }: Props) {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 text-sm text-gray-500 dark:text-gray-400 hover:border-[#b48840] hover:text-[#7a5c10] dark:hover:text-[#b48840] transition w-full justify-center"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 text-sm text-gray-500 dark:text-gray-400 hover:border-[var(--brand)] hover:text-[var(--brand-text)] dark:hover:text-[var(--brand)] transition w-full justify-center"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
@@ -197,7 +197,7 @@ export function AtendimentoForm({ products, tickets }: Props) {
               type="submit"
               disabled={isPending}
               className="px-5 py-2.5 text-sm font-semibold text-white rounded-lg transition hover:opacity-90 disabled:opacity-60"
-              style={{ backgroundColor: '#b48840' }}
+              style={{ backgroundColor: 'var(--brand)' }}
             >
               {isPending ? 'Enviando...' : 'Enviar chamado'}
             </button>
@@ -213,7 +213,7 @@ export function AtendimentoForm({ products, tickets }: Props) {
       </div>
 
       {tickets.length > 0 && (
-        <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
+        <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
           <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Meus chamados</h2>
           <div className="space-y-3">
             {tickets.map(ticket => {

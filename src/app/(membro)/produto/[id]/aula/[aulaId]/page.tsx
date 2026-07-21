@@ -1,13 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Lesson } from '@/types'
+import sanitizeHtml from 'sanitize-html'
+import { Lesson, LessonAttachment } from '@/types'
 import { LessonCompleteButton } from '@/components/LessonCompleteButton'
 import { LessonComments } from '@/components/LessonComments'
 import { LessonSidebar } from '@/components/LessonSidebar'
 import { LessonVideoPlayer } from '@/components/LessonVideoPlayer'
 import { LessonRating } from '@/components/LessonRating'
 import { LessonComment } from '@/types'
+import { computeReleaseState } from '@/lib/release'
 
 export default async function AulaPage({
   params,
@@ -22,7 +25,7 @@ export default async function AulaPage({
 
   const { data: access } = await supabase
     .from('user_products')
-    .select('id')
+    .select('id, granted_at')
     .eq('user_id', user.id)
     .eq('product_id', id)
     .single()
@@ -39,6 +42,30 @@ export default async function AulaPage({
   if (!lesson) redirect(`/produto/${id}`)
 
   const l = lesson as Lesson & { modules: { title: string; product_id: string } }
+
+  if (l.modules?.product_id !== id) redirect(`/produto/${id}`)
+
+  const releaseState = computeReleaseState({
+    releaseType: l.release_type,
+    releaseAfterDays: l.release_after_days,
+    releaseAt: l.release_at,
+    accessDurationDays: l.access_duration_days,
+    grantedAt: (access as { granted_at?: string | null }).granted_at ?? null,
+  })
+  if (!releaseState.isReleased || releaseState.isExpired) redirect(`/produto/${id}`)
+
+  const admin = createAdminClient()
+  const { data: attachmentRows } = await admin
+    .from('lesson_attachments')
+    .select('*')
+    .eq('lesson_id', aulaId)
+    .order('sort_order')
+  const attachments = await Promise.all(
+    ((attachmentRows ?? []) as LessonAttachment[]).map(async a => {
+      const { data } = await admin.storage.from('lesson-attachments').createSignedUrl(a.file_path, 3600, { download: a.file_name })
+      return { ...a, url: data?.signedUrl ?? null }
+    })
+  )
 
   const [{ data: siblings }, { data: progressRows }, { data: profile }, { data: commentsData }, { data: ratingData }] = await Promise.all([
     supabase
@@ -107,19 +134,28 @@ export default async function AulaPage({
             Voltar ao curso
           </Link>
 
-          {/* Player / conteúdo — vem primeiro */}
-          {l.lesson_type === 'video' ? (
-            <LessonVideoPlayer
-              url={l.content_url}
-              progressPct={modPct}
-              prevHref={prevHref}
-              nextHref={nextHref}
-            />
-          ) : (
-            <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
-              {l.lesson_type === 'text' && <TextLesson content={l.content_text} />}
+          {/* Player / conteúdo — vem primeiro. Aulas antigas do tipo arquivo/link mantêm o formato anterior. */}
+          {l.lesson_type === 'file' || l.lesson_type === 'link' ? (
+            <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
               {l.lesson_type === 'file' && <FileLesson url={l.content_url} title={l.title} />}
               {l.lesson_type === 'link' && <LinkLesson url={l.content_url} title={l.title} />}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {l.content_url && (
+                <LessonVideoPlayer url={l.content_url} progressPct={modPct} prevHref={prevHref} nextHref={nextHref} />
+              )}
+              {(l.content_html || l.content_text) && (
+                <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
+                  {l.content_html ? <RichTextContent html={l.content_html} /> : <TextLesson content={l.content_text} />}
+                </div>
+              )}
+              {!l.content_url && !l.content_html && !l.content_text && (
+                <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-8 text-center text-gray-400">
+                  Conteúdo não disponível.
+                </div>
+              )}
+              {attachments.length > 0 && <AttachmentsList attachments={attachments} />}
             </div>
           )}
 
@@ -153,7 +189,7 @@ export default async function AulaPage({
           <div className="grid grid-cols-1 sm:grid-cols-[1fr_220px] gap-4 items-start">
 
             {/* Comentários */}
-            <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
+            <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
               <LessonComments
                 lessonId={aulaId}
                 productId={id}
@@ -166,7 +202,7 @@ export default async function AulaPage({
             </div>
 
             {/* Painel de ações */}
-            <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5 flex flex-col gap-5">
+            <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5 flex flex-col gap-5">
               {/* Avaliação */}
               <div>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Avaliação</p>
@@ -197,7 +233,7 @@ export default async function AulaPage({
                     <Link
                       href={`/produto/${id}/aula/${nextLesson.id}`}
                       className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-white transition hover:opacity-90"
-                      style={{ backgroundColor: '#b48840' }}
+                      style={{ backgroundColor: 'var(--brand)' }}
                     >
                       Próxima aula
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -226,6 +262,56 @@ export default async function AulaPage({
   )
 }
 
+function RichTextContent({ html }: { html: string }) {
+  const clean = sanitizeHtml(html, {
+    allowedTags: ['p', 'br', 'strong', 'em', 'u', 's', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'blockquote', 'code', 'pre', 'img', 'span', 'div'],
+    allowedAttributes: {
+      a: ['href', 'target', 'rel'],
+      img: ['src', 'alt', 'width', 'height'],
+      '*': ['class'],
+    },
+    allowedSchemes: ['http', 'https', 'mailto'],
+  })
+  return (
+    <div
+      className="p-6 sm:p-8 prose prose-gray dark:prose-invert max-w-none text-sm leading-relaxed"
+      dangerouslySetInnerHTML={{ __html: clean }}
+    />
+  )
+}
+
+function AttachmentsList({ attachments }: { attachments: (LessonAttachment & { url: string | null })[] }) {
+  function formatSize(bytes: number) {
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
+  return (
+    <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5">
+      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Anexos</p>
+      <div className="divide-y divide-gray-100 dark:divide-gray-700">
+        {attachments.map(a => (
+          <div key={a.id} className="flex items-center gap-3 py-2.5">
+            <span className="flex-1 min-w-0 truncate text-sm text-gray-700 dark:text-gray-300">{a.file_name}</span>
+            <span className="text-xs text-gray-400 shrink-0">{formatSize(a.file_size)}</span>
+            {a.url ? (
+              <a
+                href={a.url}
+                download={a.file_name}
+                className="text-xs font-semibold shrink-0 px-3 py-1.5 rounded-lg text-white transition hover:opacity-90"
+                style={{ backgroundColor: 'var(--brand)' }}
+              >
+                Baixar
+              </a>
+            ) : (
+              <span className="text-xs text-gray-300 shrink-0">Indisponível</span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function TextLesson({ content }: { content: string | null }) {
   if (!content) return <div className="p-8 text-gray-400 text-center">Conteúdo não disponível.</div>
   return (
@@ -241,8 +327,8 @@ function FileLesson({ url, title }: { url: string | null; title: string }) {
   if (!url) return <div className="p-8 text-gray-400 text-center">Arquivo não disponível.</div>
   return (
     <div className="p-8 flex flex-col items-center text-center gap-4">
-      <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f5efe3' }}>
-        <svg className="w-8 h-8" style={{ color: '#b48840' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--brand-bg)' }}>
+        <svg className="w-8 h-8" style={{ color: 'var(--brand)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
         </svg>
       </div>
@@ -252,7 +338,7 @@ function FileLesson({ url, title }: { url: string | null; title: string }) {
       </div>
       <a href={url} download target="_blank" rel="noopener noreferrer"
         className="inline-flex items-center gap-2 px-6 py-3 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-        style={{ backgroundColor: '#b48840' }}
+        style={{ backgroundColor: 'var(--brand)' }}
       >
         Baixar arquivo
       </a>
@@ -264,8 +350,8 @@ function LinkLesson({ url, title }: { url: string | null; title: string }) {
   if (!url) return <div className="p-8 text-gray-400 text-center">Link não disponível.</div>
   return (
     <div className="p-8 flex flex-col items-center text-center gap-4">
-      <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f5efe3' }}>
-        <svg className="w-8 h-8" style={{ color: '#b48840' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--brand-bg)' }}>
+        <svg className="w-8 h-8" style={{ color: 'var(--brand)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
         </svg>
       </div>
@@ -275,7 +361,7 @@ function LinkLesson({ url, title }: { url: string | null; title: string }) {
       </div>
       <a href={url} target="_blank" rel="noopener noreferrer"
         className="inline-flex items-center gap-2 px-6 py-3 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-        style={{ backgroundColor: '#b48840' }}
+        style={{ backgroundColor: 'var(--brand)' }}
       >
         Acessar link
       </a>

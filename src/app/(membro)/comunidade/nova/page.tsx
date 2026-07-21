@@ -18,7 +18,7 @@ export default async function NovaPublicacaoPage() {
 
       <h1 className="text-xl font-bold text-gray-900 dark:text-white">Nova publicação</h1>
 
-      <form action={createPost} className="space-y-4 bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
+      <form action={createPost} className="space-y-4 bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Título *</label>
           <input
@@ -43,7 +43,7 @@ export default async function NovaPublicacaoPage() {
           <button
             type="submit"
             className="px-5 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-            style={{ backgroundColor: '#b48840' }}
+            style={{ backgroundColor: 'var(--brand)' }}
           >
             Publicar
           </button>

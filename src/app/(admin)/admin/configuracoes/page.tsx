@@ -37,7 +37,7 @@ export default async function ConfiguracoesPage() {
       </div>
 
       {/* Tema */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      <div className="bg-card rounded-2xl border border-gray-100 p-6">
         <h2 className="font-semibold text-gray-900 mb-1">Tema</h2>
         <p className="text-sm text-gray-500 mb-4">Escolha entre modo claro e escuro.</p>
         <ThemeSection />
@@ -46,7 +46,7 @@ export default async function ConfiguracoesPage() {
       {/* Equipe */}
       <div>
         <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-3">Equipe</h2>
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
+        <div className="bg-card rounded-2xl border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-5">
             <div>
               <p className="font-semibold text-gray-900">Colaboradores</p>
@@ -55,7 +55,7 @@ export default async function ConfiguracoesPage() {
             <Link
               href="/admin/usuarios/novo?equipe=true&from=equipe"
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white rounded-lg hover:opacity-90 transition"
-              style={{ backgroundColor: '#b48840' }}
+              style={{ backgroundColor: 'var(--brand)' }}
             >
               + Adicionar
             </Link>
@@ -79,7 +79,7 @@ export default async function ConfiguracoesPage() {
                   ) : (
                     <div
                       className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                      style={{ backgroundColor: '#b48840' }}
+                      style={{ backgroundColor: 'var(--brand)' }}
                     >
                       {initials(member.name ?? '')}
                     </div>

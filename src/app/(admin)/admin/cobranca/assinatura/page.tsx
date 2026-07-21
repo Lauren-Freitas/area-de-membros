@@ -54,21 +54,21 @@ export default async function AssinaturaPage() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+        <div className="bg-card rounded-2xl border border-gray-100 p-5">
           <p className="text-xs text-gray-400 uppercase tracking-wider font-medium mb-1">Membros ativos</p>
-          <p className="text-3xl font-bold" style={{ color: '#b48840' }}>{totalMembers}</p>
+          <p className="text-3xl font-bold" style={{ color: 'var(--brand)' }}>{totalMembers}</p>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+        <div className="bg-card rounded-2xl border border-gray-100 p-5">
           <p className="text-xs text-gray-400 uppercase tracking-wider font-medium mb-1">Acessos liberados</p>
-          <p className="text-3xl font-bold" style={{ color: '#b48840' }}>{totalAcessos ?? 0}</p>
+          <p className="text-3xl font-bold" style={{ color: 'var(--brand)' }}>{totalAcessos ?? 0}</p>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+        <div className="bg-card rounded-2xl border border-gray-100 p-5">
           <p className="text-xs text-gray-400 uppercase tracking-wider font-medium mb-1">Assinantes ativos</p>
-          <p className="text-3xl font-bold" style={{ color: '#b48840' }}>{activeSubscribers.length}</p>
+          <p className="text-3xl font-bold" style={{ color: 'var(--brand)' }}>{activeSubscribers.length}</p>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+        <div className="bg-card rounded-2xl border border-gray-100 p-5">
           <p className="text-xs text-gray-400 uppercase tracking-wider font-medium mb-1">Receita recorrente/mês</p>
-          <p className="text-3xl font-bold" style={{ color: '#b48840' }}>
+          <p className="text-3xl font-bold" style={{ color: 'var(--brand)' }}>
             {recurringRevenueMonthly.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
           </p>
           <p className="text-xs text-gray-400 mt-1">Só ciclo mensal</p>
@@ -76,7 +76,7 @@ export default async function AssinaturaPage() {
       </div>
 
       {activeSubscribers.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
+        <div className="bg-card rounded-2xl border border-gray-100 p-6">
           <h2 className="font-semibold text-gray-900 pb-4 border-b border-gray-100">Assinantes recorrentes</h2>
           <div className="divide-y divide-gray-100">
             {activeSubscribers.map(a => (
@@ -98,7 +98,7 @@ export default async function AssinaturaPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      <div className="bg-card rounded-2xl border border-gray-100 p-6">
         <h2 className="font-semibold text-gray-900 pb-4 border-b border-gray-100">Membros recentes</h2>
         {!recentMembers.length ? (
           <p className="text-sm text-gray-400 pt-4">Nenhum membro ainda.</p>

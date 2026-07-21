@@ -26,7 +26,7 @@ export function ProductCard({ product, unlocked, expiresAt, progress, certificat
       {/* Banner */}
       <div
         className="relative aspect-video overflow-hidden rounded-2xl"
-        style={{ background: 'linear-gradient(135deg, #f5efe3 0%, #ede0c8 100%)' }}
+        style={{ background: 'linear-gradient(135deg, var(--brand-bg) 0%, #ede0c8 100%)' }}
       >
         {product.banner_url ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -37,7 +37,7 @@ export function ProductCard({ product, unlocked, expiresAt, progress, certificat
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <span className="text-5xl opacity-40" style={{ color: '#b48840' }}>
+            <span className="text-5xl opacity-40" style={{ color: 'var(--brand)' }}>
               {product.content_type === 'video' ? '▶' : '📄'}
             </span>
           </div>
@@ -64,7 +64,7 @@ export function ProductCard({ product, unlocked, expiresAt, progress, certificat
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/20">
             <div
               className="h-full transition-all duration-500"
-              style={{ width: `${pct}%`, backgroundColor: completed ? '#22c55e' : '#b48840' }}
+              style={{ width: `${pct}%`, backgroundColor: completed ? '#22c55e' : 'var(--brand)' }}
             />
           </div>
         )}

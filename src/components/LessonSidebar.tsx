@@ -32,7 +32,7 @@ export function LessonSidebar({ productId, moduleTitle, lessons, currentLessonId
   const pct = lessons.length > 0 ? Math.round((completedCount / lessons.length) * 100) : 0
 
   return (
-    <aside className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
+    <aside className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
       {/* Header */}
       <button
         onClick={() => setOpen(v => !v)}
@@ -44,12 +44,12 @@ export function LessonSidebar({ productId, moduleTitle, lessons, currentLessonId
           <div className="mt-2">
             <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
               <span>{completedCount}/{lessons.length} aulas</span>
-              <span style={{ color: '#b48840' }}>{pct}%</span>
+              <span style={{ color: 'var(--brand)' }}>{pct}%</span>
             </div>
             <div className="h-1 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${pct}%`, backgroundColor: '#b48840' }}
+                style={{ width: `${pct}%`, backgroundColor: 'var(--brand)' }}
               />
             </div>
           </div>
@@ -73,7 +73,7 @@ export function LessonSidebar({ productId, moduleTitle, lessons, currentLessonId
                 href={`/produto/${productId}/aula/${lesson.id}`}
                 className={`flex items-start gap-3 px-4 py-3 transition group ${
                   isActive
-                    ? 'bg-[#f5efe3] dark:bg-[#1e1a00]'
+                    ? 'bg-[var(--brand-bg)] dark:bg-[#1e1a00]'
                     : 'hover:bg-gray-50 dark:hover:bg-[#1a1f35]'
                 }`}
               >
@@ -86,8 +86,8 @@ export function LessonSidebar({ productId, moduleTitle, lessons, currentLessonId
                       </svg>
                     </span>
                   ) : isActive ? (
-                    <span className="w-5 h-5 rounded-full border-2 flex items-center justify-center" style={{ borderColor: '#b48840' }}>
-                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#b48840' }} />
+                    <span className="w-5 h-5 rounded-full border-2 flex items-center justify-center" style={{ borderColor: 'var(--brand)' }}>
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--brand)' }} />
                     </span>
                   ) : (
                     <span className="w-5 h-5 rounded-full border-2 border-gray-200 dark:border-gray-600" />
@@ -104,7 +104,7 @@ export function LessonSidebar({ productId, moduleTitle, lessons, currentLessonId
                         ? 'text-gray-400 dark:text-gray-500 line-through'
                         : 'text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white'
                     }`}
-                    style={isActive ? { color: '#7a5c10' } : {}}
+                    style={isActive ? { color: 'var(--brand-text)' } : {}}
                   >
                     {idx + 1}. {lesson.title}
                   </p>

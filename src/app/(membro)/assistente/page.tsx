@@ -26,9 +26,9 @@ export default async function AssistentePage() {
       </div>
 
       {!conversations?.length ? (
-        <div className="text-center py-20 bg-white dark:bg-[#0d1020] rounded-2xl border border-dashed border-gray-200 dark:border-[#1e2030] text-gray-400">
+        <div className="text-center py-20 bg-card rounded-2xl border border-dashed border-gray-200 dark:border-[#1e2030] text-gray-400">
           <div className="flex justify-center mb-4">
-            <svg className="w-16 h-16" style={{ color: '#b48840' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.4}>
+            <svg className="w-16 h-16" style={{ color: 'var(--brand)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.4}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 2.25V5" />
               <circle cx="12" cy="2" r="1" fill="currentColor" stroke="none" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 5h15A1.5 1.5 0 0121 6.5v10A1.5 1.5 0 0119.5 18h-15A1.5 1.5 0 013 16.5v-10A1.5 1.5 0 014.5 5z" />
@@ -50,7 +50,7 @@ export default async function AssistentePage() {
             <Link
               key={conv.id}
               href={`/assistente/${conv.id}`}
-              className="flex items-center gap-3 px-5 py-4 bg-white dark:bg-[#0d1020] rounded-xl border border-gray-100 dark:border-[#1e2030] hover:shadow-sm transition group"
+              className="flex items-center gap-3 px-5 py-4 bg-card rounded-xl border border-gray-100 dark:border-[#1e2030] hover:shadow-sm transition group"
             >
               <span className="text-xl shrink-0">💬</span>
               <div className="flex-1 min-w-0">

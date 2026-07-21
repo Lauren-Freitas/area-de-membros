@@ -4,7 +4,7 @@ export function ViewAsBanner({ memberName }: { memberName: string }) {
   return (
     <div
       className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between px-4 sm:px-6 py-2 text-white text-sm shadow-md"
-      style={{ backgroundColor: '#b48840' }}
+      style={{ backgroundColor: 'var(--brand)' }}
     >
       <div className="flex items-center gap-2 min-w-0">
         <span className="text-base shrink-0">👁️</span>

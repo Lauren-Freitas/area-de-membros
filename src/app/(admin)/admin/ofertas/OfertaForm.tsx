@@ -10,7 +10,7 @@ interface Offer {
 
 export function OfertaForm({ offer, products }: { offer?: Offer; products: Product[] }) {
   return (
-    <form action={saveOffer} className="space-y-5 bg-white rounded-2xl border border-gray-100 p-6 max-w-lg">
+    <form action={saveOffer} className="space-y-5 bg-card rounded-2xl border border-gray-100 p-6 max-w-lg">
       {offer && <input type="hidden" name="id" value={offer.id} />}
 
       <div>
@@ -110,7 +110,7 @@ export function OfertaForm({ offer, products }: { offer?: Offer; products: Produ
         <button
           type="submit"
           className="px-5 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-          style={{ backgroundColor: '#b48840' }}
+          style={{ backgroundColor: 'var(--brand)' }}
         >
           {offer ? 'Salvar alterações' : 'Criar oferta'}
         </button>

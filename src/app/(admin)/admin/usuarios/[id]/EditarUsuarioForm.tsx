@@ -65,7 +65,7 @@ export function EditarUsuarioForm({ profile, action, products, userId }: Props) 
       <h1 className="text-2xl font-bold text-gray-900">{isAdmin ? 'Editar colaborador' : 'Editar membro'}</h1>
 
       {/* Formulário principal */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      <div className="bg-card rounded-2xl border border-gray-100 p-6">
         <form action={formAction} className="space-y-5">
           {state?.error && (
             <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
@@ -137,7 +137,7 @@ export function EditarUsuarioForm({ profile, action, products, userId }: Props) 
                 style={{ backgroundColor: isActive ? '#22c55e' : '#d1d5db' }}
               >
                 <span
-                  className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200"
+                  className="absolute top-0.5 left-0.5 w-5 h-5 bg-card rounded-full shadow transition-transform duration-200"
                   style={{ transform: isActive ? 'translateX(20px)' : 'translateX(0)' }}
                 />
               </button>
@@ -160,13 +160,13 @@ export function EditarUsuarioForm({ profile, action, products, userId }: Props) 
               type="submit"
               disabled={isPending}
               className="px-5 py-2.5 text-sm font-semibold text-white rounded-lg transition hover:opacity-90 disabled:opacity-60"
-              style={{ backgroundColor: '#b48840' }}
+              style={{ backgroundColor: 'var(--brand)' }}
             >
               {isPending ? 'Salvando...' : 'Salvar alterações'}
             </button>
             <Link
               href={backHref}
-              className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition"
+              className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-card border border-gray-200 hover:bg-gray-50 rounded-lg transition"
             >
               Cancelar
             </Link>
@@ -175,7 +175,7 @@ export function EditarUsuarioForm({ profile, action, products, userId }: Props) 
                 type="button"
                 disabled={invitePending}
                 onClick={handleSendInvite}
-                className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition disabled:opacity-60"
+                className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-card border border-gray-200 hover:bg-gray-50 rounded-lg transition disabled:opacity-60"
               >
                 {invitePending ? 'Enviando...' : 'Reenviar convite'}
               </button>
@@ -188,7 +188,7 @@ export function EditarUsuarioForm({ profile, action, products, userId }: Props) 
 
       {/* Acesso aos produtos — só para membros */}
       {!isAdmin && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
+        <div className="bg-card rounded-2xl border border-gray-100 p-6">
           <h2 className="font-semibold text-gray-900 mb-1">Acesso aos produtos</h2>
           <p className="text-sm text-gray-500 mb-4">
             Clique para liberar ou revogar o acesso. A alteração é imediata.

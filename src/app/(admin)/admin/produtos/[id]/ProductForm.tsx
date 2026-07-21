@@ -3,6 +3,7 @@
 import { useActionState, useRef, useState, useTransition } from 'react'
 import { saveProduct } from '@/lib/actions/admin'
 import { generatePaymentLink } from '@/lib/actions/asaas'
+import { Switch } from '@/components/admin/Switch'
 import { Product } from '@/types'
 
 const BILLING_CYCLES: { value: string; label: string }[] = [
@@ -52,6 +53,7 @@ export function ProductForm({ product }: { product?: Product }) {
   const buyUrlInputRef = useRef<HTMLInputElement>(null)
   const [contentType, setContentType] = useState(product?.content_type ?? 'file')
   const [isActive, setIsActive] = useState(product?.is_active ?? true)
+  const [isPack, setIsPack] = useState(product?.is_pack ?? false)
   const isEditing = !!product
 
   return (
@@ -63,21 +65,7 @@ export function ProductForm({ product }: { product?: Product }) {
         <h1 className="text-2xl font-bold text-gray-900">
           {isEditing ? 'Editar produto' : 'Criar produto'}
         </h1>
-        <label htmlFor="is_active" title="Aparece na área de membros" className="flex items-center gap-2 cursor-pointer select-none shrink-0">
-          <span className="text-sm font-medium text-gray-600">{isActive ? 'Ativo' : 'Inativo'}</span>
-          <span className="relative inline-block w-11 h-6">
-            <input
-              type="checkbox"
-              name="is_active"
-              id="is_active"
-              checked={isActive}
-              onChange={e => setIsActive(e.target.checked)}
-              className="peer sr-only"
-            />
-            <span className="absolute inset-0 rounded-full bg-gray-300 peer-checked:bg-emerald-500 transition-colors" />
-            <span className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5" />
-          </span>
-        </label>
+        <Switch name="is_active" checked={isActive} onChange={setIsActive} title="Aparece na área de membros" />
       </div>
 
       {state?.error && (
@@ -236,18 +224,8 @@ export function ProductForm({ product }: { product?: Product }) {
         </div>
 
         {isEditing && (
-          <div className="flex items-center gap-3 pt-5">
-            <input
-              type="checkbox"
-              name="is_pack"
-              id="is_pack"
-              defaultChecked={product?.is_pack ?? false}
-              className="w-4 h-4 rounded accent-emerald-600"
-            />
-            <label htmlFor="is_pack" className="text-sm font-medium text-gray-700">
-              Pack completo
-              <p className="text-xs text-gray-400 font-normal">Libera acesso a tudo</p>
-            </label>
+          <div className="pt-5">
+            <Switch name="is_pack" checked={isPack} onChange={setIsPack} label="Pack completo" activeLabel="Sim" inactiveLabel="Não" title="Libera acesso a tudo" />
           </div>
         )}
       </div>
@@ -257,13 +235,13 @@ export function ProductForm({ product }: { product?: Product }) {
           type="submit"
           disabled={isPending}
           className="px-6 py-2.5 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 disabled:opacity-60"
-          style={{ backgroundColor: '#b48840' }}
+          style={{ backgroundColor: 'var(--brand)' }}
         >
           {isPending ? 'Salvando...' : isEditing ? 'Salvar alterações' : 'Criar produto'}
         </button>
         <a
           href="/admin/produtos"
-          className="px-6 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-lg transition"
+          className="px-6 py-2.5 bg-card border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-lg transition"
         >
           Cancelar
         </a>

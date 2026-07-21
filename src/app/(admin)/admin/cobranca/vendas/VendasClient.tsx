@@ -94,7 +94,7 @@ export function VendasClient({ vendas }: { vendas: Venda[] }) {
         <button
           onClick={exportCSV}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
-          style={{ backgroundColor: '#b48840' }}
+          style={{ backgroundColor: 'var(--brand)' }}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -104,7 +104,7 @@ export function VendasClient({ vendas }: { vendas: Venda[] }) {
       </div>
 
       {/* Search */}
-      <div className="flex items-center gap-2 bg-white rounded-2xl border border-gray-100 px-4 py-2.5">
+      <div className="flex items-center gap-2 bg-card rounded-2xl border border-gray-100 px-4 py-2.5">
         <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
@@ -126,11 +126,11 @@ export function VendasClient({ vendas }: { vendas: Venda[] }) {
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+        <div className="bg-card rounded-2xl border border-gray-100 p-5">
           <p className="text-sm text-gray-500 mb-1">Vendas encontradas</p>
           <p className="text-3xl font-bold text-gray-900">{filtered.length}</p>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+        <div className="bg-card rounded-2xl border border-gray-100 p-5">
           <p className="text-sm text-gray-500 mb-1">Valor total</p>
           <p className="text-3xl font-bold text-gray-900">{fmtCurrency(totalValue)}</p>
         </div>
@@ -145,7 +145,7 @@ export function VendasClient({ vendas }: { vendas: Venda[] }) {
             className={`px-4 py-1.5 rounded-lg text-sm font-medium transition capitalize ${
               tab === t ? 'text-white' : 'text-gray-500 hover:bg-gray-100'
             }`}
-            style={tab === t ? { backgroundColor: t === 'reprovadas' ? '#dc2626' : '#b48840' } : {}}
+            style={tab === t ? { backgroundColor: t === 'reprovadas' ? '#dc2626' : 'var(--brand)' } : {}}
           >
             {t === 'aprovadas' ? 'Aprovadas' : t === 'reprovadas' ? 'Reprovadas' : 'Todas'}
           </button>
@@ -153,7 +153,7 @@ export function VendasClient({ vendas }: { vendas: Venda[] }) {
       </div>
 
       {/* List */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-5">
+      <div className="bg-card rounded-2xl border border-gray-100 p-5">
         {/* Header */}
         <div className="flex items-center pb-3 border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wider">
           <span className="w-24 shrink-0">Data</span>
@@ -223,7 +223,7 @@ export function VendasClient({ vendas }: { vendas: Venda[] }) {
         </svg>
         <span>
           Vendas são liberadas automaticamente via webhook do Asaas ou manualmente em{' '}
-          <a href="/admin/usuarios" className="underline hover:text-gray-700 transition" style={{ color: '#b48840' }}>
+          <a href="/admin/usuarios" className="underline hover:text-gray-700 transition" style={{ color: 'var(--brand)' }}>
             Gerenciar usuários
           </a>
           .

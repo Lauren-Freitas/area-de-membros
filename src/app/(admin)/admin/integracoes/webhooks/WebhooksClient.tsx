@@ -62,7 +62,7 @@ export function WebhooksClient({ webhooks, products }: { webhooks: Webhook[]; pr
       </div>
 
       {/* Toolbar */}
-      <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-4 flex flex-wrap items-center gap-3">
+      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-4 flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2 border border-gray-200 dark:border-[#374151] rounded-lg px-3 py-2 min-w-[180px]">
           <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -87,7 +87,7 @@ export function WebhooksClient({ webhooks, products }: { webhooks: Webhook[]; pr
         <button
           onClick={() => setShowForm(v => !v)}
           className="px-4 py-2 text-sm font-semibold text-white rounded-lg transition hover:opacity-90 shrink-0"
-          style={{ backgroundColor: '#b48840' }}
+          style={{ backgroundColor: 'var(--brand)' }}
         >
           + Criar webhook
         </button>
@@ -95,7 +95,7 @@ export function WebhooksClient({ webhooks, products }: { webhooks: Webhook[]; pr
 
       {/* Create form */}
       {showForm && (
-        <form action={action} className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5 space-y-4">
+        <form action={action} className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5 space-y-4">
           <h2 className="font-semibold text-gray-900">Novo webhook de saída</h2>
           <p className="text-xs text-gray-400">A plataforma enviará um POST para a URL configurada sempre que uma venda for concluída.</p>
           {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
@@ -139,7 +139,7 @@ export function WebhooksClient({ webhooks, products }: { webhooks: Webhook[]; pr
               type="submit"
               disabled={isPending}
               className="px-4 py-2 text-sm font-semibold text-white rounded-lg transition hover:opacity-90 disabled:opacity-60"
-              style={{ backgroundColor: '#b48840' }}
+              style={{ backgroundColor: 'var(--brand)' }}
             >
               {isPending ? 'Criando...' : 'Criar webhook'}
             </button>
@@ -151,7 +151,7 @@ export function WebhooksClient({ webhooks, products }: { webhooks: Webhook[]; pr
       )}
 
       {/* List */}
-      <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5">
+      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5">
         {/* Header row */}
         <div className="flex items-center pb-3 border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wider">
           <span className="w-32 shrink-0">Produto</span>
@@ -198,7 +198,7 @@ export function WebhooksClient({ webhooks, products }: { webhooks: Webhook[]; pr
           <svg className="w-4 h-4 text-blue-400 shrink-0" fill="currentColor" viewBox="0 0 24 24">
             <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 01.67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 11-.671-1.34l.041-.022zM12 9a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
           </svg>
-          Aprenda mais sobre os <a href="https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook/" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700 transition" style={{ color: '#b48840' }}>webhooks no n8n</a>
+          Aprenda mais sobre os <a href="https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook/" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700 transition" style={{ color: 'var(--brand)' }}>webhooks no n8n</a>
         </div>
       </div>
     </div>

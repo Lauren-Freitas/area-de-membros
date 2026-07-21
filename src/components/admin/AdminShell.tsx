@@ -45,7 +45,7 @@ export function AdminShell({ children, userName, userEmail, userAvatar, userRole
 
   if (!mounted) {
     return (
-      <div data-admin className="min-h-screen bg-[#e4e4e4]">
+      <div data-admin className="min-h-screen bg-[var(--background)]">
         <div className="lg:ml-60 pt-14 lg:pt-0">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">{children}</div>
         </div>
@@ -54,7 +54,7 @@ export function AdminShell({ children, userName, userEmail, userAvatar, userRole
   }
 
   return (
-    <div data-admin className="min-h-screen bg-[#e4e4e4]">
+    <div data-admin className="min-h-screen bg-[var(--background)]">
       <AdminSidebar
         collapsed={collapsed}
         onToggle={toggle}

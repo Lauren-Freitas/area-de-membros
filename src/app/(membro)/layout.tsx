@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
-import Image from 'next/image'
+import { BrandLogo } from '@/components/BrandLogo'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { NotificationBell } from '@/components/NotificationBell'
 import { NavLink } from '@/components/NavLink'
@@ -58,17 +58,16 @@ export default async function MemberLayout({ children }: { children: React.React
   const avatarUrl = (profile as { avatar_url?: string | null } | null)?.avatar_url ?? null
 
   return (
-    <div className={`min-h-screen bg-[#e4e4e4] dark:bg-[#00060f] transition-colors duration-200 ${isViewingAs ? 'pt-10' : ''}`}>
+    <div className={`min-h-screen bg-[var(--background)] transition-colors duration-200 ${isViewingAs ? 'pt-10' : ''}`}>
 
       {/* Banner de "ver como membro" */}
       {isViewingAs && <ViewAsBanner memberName={viewAsName} />}
 
-      <header className="bg-white dark:bg-[#0d1020] border-b border-gray-100 dark:border-[#1e2030] sticky top-0 z-30">
+      <header className="bg-card border-b border-gray-100 dark:border-[#1e2030] sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <MobileSidebar />
-            <Image src="/iav_1024.png" alt="Thiago Cantalovo" width={32} height={32} className="rounded-full dark:hidden shrink-0" />
-            <Image src="/iav_grafite_1024.png" alt="Thiago Cantalovo" width={32} height={32} className="rounded-full hidden dark:block shrink-0" />
+            <BrandLogo size={32} className="shrink-0" />
             <div className="hidden sm:block">
               <p className="text-sm font-semibold text-gray-900 dark:text-white leading-none">Thiago Cantalovo</p>
               <p className="text-xs text-gray-400 mt-0.5">Nutricionista</p>
@@ -81,7 +80,7 @@ export default async function MemberLayout({ children }: { children: React.React
               <a
                 href="/admin"
                 className="hidden sm:inline-flex text-xs font-medium px-3 py-1.5 rounded-full transition"
-                style={{ color: '#7a5c10', backgroundColor: '#f5efe3' }}
+                style={{ color: 'var(--brand-text)', backgroundColor: 'var(--brand-bg)' }}
               >
                 Admin
               </a>
@@ -93,7 +92,7 @@ export default async function MemberLayout({ children }: { children: React.React
         </div>
       </header>
 
-      <nav className="bg-white dark:bg-[#0d1020] border-b border-gray-100 dark:border-[#1e2030]">
+      <nav className="bg-card border-b border-gray-100 dark:border-[#1e2030]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center gap-1 h-10 overflow-x-auto scrollbar-none">
           <NavLink href="/dashboard" label="Início" />
           {myProducts.map(p => (

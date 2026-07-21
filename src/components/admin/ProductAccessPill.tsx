@@ -33,21 +33,21 @@ export function ProductAccessPill({ title, hasAccess: initialAccess, userId, pro
       title={hasAccess ? 'Clique para revogar acesso' : 'Clique para liberar acesso'}
       className="text-xs font-medium px-3 py-1.5 rounded-full border transition-all disabled:opacity-50"
       style={hasAccess
-        ? { backgroundColor: '#fdf6e8', color: '#7a5c10', borderColor: '#e8d5a3' }
+        ? { backgroundColor: 'var(--brand-bg)', color: 'var(--brand-text)', borderColor: 'var(--brand-border)' }
         : { backgroundColor: '#f9fafb', color: '#6b7280', borderColor: '#e5e7eb' }
       }
       onMouseEnter={e => {
         if (isPending) return
         const el = e.currentTarget
-        el.style.backgroundColor = hasAccess ? '#fef2f2' : '#fdf6e8'
-        el.style.color = hasAccess ? '#dc2626' : '#7a5c10'
-        el.style.borderColor = hasAccess ? '#fecaca' : '#e8d5a3'
+        el.style.backgroundColor = hasAccess ? '#fef2f2' : 'var(--brand-bg)'
+        el.style.color = hasAccess ? '#dc2626' : 'var(--brand-text)'
+        el.style.borderColor = hasAccess ? '#fecaca' : 'var(--brand-border)'
       }}
       onMouseLeave={e => {
         const el = e.currentTarget
-        el.style.backgroundColor = hasAccess ? '#fdf6e8' : '#f9fafb'
-        el.style.color = hasAccess ? '#7a5c10' : '#6b7280'
-        el.style.borderColor = hasAccess ? '#e8d5a3' : '#e5e7eb'
+        el.style.backgroundColor = hasAccess ? 'var(--brand-bg)' : '#f9fafb'
+        el.style.color = hasAccess ? 'var(--brand-text)' : '#6b7280'
+        el.style.borderColor = hasAccess ? 'var(--brand-border)' : '#e5e7eb'
       }}
     >
       {isPending ? '...' : hasAccess ? '✓ ' : '+ '}

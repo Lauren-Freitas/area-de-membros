@@ -35,7 +35,7 @@ export function ProductCompleteButton({ productId, completed: initial, completio
       className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition disabled:opacity-60"
       style={completed
         ? { backgroundColor: '#22c55e', color: '#fff' }
-        : { border: '2px solid #b48840', color: '#b48840', backgroundColor: 'transparent' }
+        : { border: '2px solid var(--brand)', color: 'var(--brand)', backgroundColor: 'transparent' }
       }
     >
       {completed ? (

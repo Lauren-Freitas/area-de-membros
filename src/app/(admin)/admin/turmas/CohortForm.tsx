@@ -11,7 +11,7 @@ export function CohortForm({ cohort, products }: { cohort?: Cohort; products: Pr
   const toDateInput = (iso: string | null) => iso ? iso.slice(0, 16) : ''
 
   return (
-    <form action={saveCohort} className="space-y-5 bg-white rounded-2xl border border-gray-100 p-6 max-w-lg">
+    <form action={saveCohort} className="space-y-5 bg-card rounded-2xl border border-gray-100 p-6 max-w-lg">
       {cohort && <input type="hidden" name="id" value={cohort.id} />}
 
       <div>
@@ -75,7 +75,7 @@ export function CohortForm({ cohort, products }: { cohort?: Cohort; products: Pr
         <button
           type="submit"
           className="px-5 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-          style={{ backgroundColor: '#b48840' }}
+          style={{ backgroundColor: 'var(--brand)' }}
         >
           {cohort ? 'Salvar alterações' : 'Criar turma'}
         </button>

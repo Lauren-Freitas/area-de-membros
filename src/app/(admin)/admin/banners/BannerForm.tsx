@@ -8,7 +8,7 @@ export function BannerForm({ banner }: { banner: Banner | null }) {
   const [state, action, pending] = useActionState<AdminActionState, FormData>(saveBanner, undefined)
 
   return (
-    <form action={action} className="space-y-5 bg-white rounded-2xl border border-gray-100 p-6">
+    <form action={action} className="space-y-5 bg-card rounded-2xl border border-gray-100 p-6">
       {banner && <input type="hidden" name="id" value={banner.id} />}
 
       {state?.error && (
@@ -109,7 +109,7 @@ export function BannerForm({ banner }: { banner: Banner | null }) {
           type="submit"
           disabled={pending}
           className="px-6 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 disabled:opacity-50"
-          style={{ backgroundColor: '#b48840' }}
+          style={{ backgroundColor: 'var(--brand)' }}
         >
           {pending ? 'Salvando...' : banner ? 'Salvar alterações' : 'Criar banner'}
         </button>

@@ -110,7 +110,7 @@ export default function IntegracoesPage() {
         <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Apps</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {apps.map((app) => {
-            const cardClass = "relative bg-white rounded-2xl border border-gray-200 p-6 flex flex-col items-center justify-center gap-3 hover:shadow-md hover:border-gray-300 hover:bg-gray-50 transition group min-h-[130px]"
+            const cardClass = "relative bg-card rounded-2xl border border-gray-200 p-6 flex flex-col items-center justify-center gap-3 hover:shadow-md hover:border-gray-300 hover:bg-gray-50 transition group min-h-[130px]"
             const inner = (
               <>
                 {app.external && (
@@ -146,16 +146,16 @@ export default function IntegracoesPage() {
       </div>
 
       {/* HTTP Request guide */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+      <div className="bg-card rounded-2xl border border-gray-100 p-6">
         <h2 className="font-semibold text-gray-900 mb-2">Usar com n8n / Make / Zapier</h2>
         <p className="text-sm text-gray-500 mb-4">
           Use um nó <strong>HTTP Request</strong> em qualquer plataforma de automação para liberar acesso, criar usuários e mais.
         </p>
         <ol className="space-y-2 text-sm text-gray-600">
-          <li className="flex gap-2"><span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: '#b48840' }}>1</span> Crie uma API Key em <Link href="/admin/integracoes/api" className="underline" style={{ color: '#b48840' }}>Integrações → API</Link></li>
-          <li className="flex gap-2"><span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: '#b48840' }}>2</span> No n8n, adicione um nó <strong>HTTP Request</strong> com método POST</li>
-          <li className="flex gap-2"><span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: '#b48840' }}>3</span> Header: <code className="bg-gray-100 px-1 rounded">x-api-key: sua-chave</code> · URL: <code className="bg-gray-100 px-1 rounded">/api/admin/acesso</code></li>
-          <li className="flex gap-2"><span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: '#b48840' }}>4</span> Ou configure um <Link href="/admin/integracoes/webhooks" className="underline" style={{ color: '#b48840' }}>Webhook de saída</Link> para receber eventos da plataforma no n8n</li>
+          <li className="flex gap-2"><span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: 'var(--brand)' }}>1</span> Crie uma API Key em <Link href="/admin/integracoes/api" className="underline" style={{ color: 'var(--brand)' }}>Integrações → API</Link></li>
+          <li className="flex gap-2"><span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: 'var(--brand)' }}>2</span> No n8n, adicione um nó <strong>HTTP Request</strong> com método POST</li>
+          <li className="flex gap-2"><span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: 'var(--brand)' }}>3</span> Header: <code className="bg-gray-100 px-1 rounded">x-api-key: sua-chave</code> · URL: <code className="bg-gray-100 px-1 rounded">/api/admin/acesso</code></li>
+          <li className="flex gap-2"><span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: 'var(--brand)' }}>4</span> Ou configure um <Link href="/admin/integracoes/webhooks" className="underline" style={{ color: 'var(--brand)' }}>Webhook de saída</Link> para receber eventos da plataforma no n8n</li>
         </ol>
       </div>
     </div>

@@ -11,7 +11,7 @@ interface RankingRow {
 
 const medals = ['🥇', '🥈', '🥉']
 const podiumColors = [
-  { bg: '#f5efe3', border: '#b48840', text: '#7a5c10', height: 'h-28' },
+  { bg: 'var(--brand-bg)', border: 'var(--brand)', text: 'var(--brand-text)', height: 'h-28' },
   { bg: '#f8f8f8', border: '#9ca3af', text: '#6b7280', height: 'h-20' },
   { bg: '#fdf3e6', border: '#d97706', text: '#92400e', height: 'h-16' },
 ]
@@ -52,16 +52,16 @@ export default async function RankingPage() {
 
       {/* Minha pontuação */}
       {myRow && (
-        <div className="flex items-center gap-4 px-5 py-4 rounded-2xl border" style={{ backgroundColor: '#f5efe3', borderColor: '#dfc99a' }}>
-          <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0" style={{ backgroundColor: '#ede0c8', border: '2px solid #b48840', color: '#7a5c10' }}>
+        <div className="flex items-center gap-4 px-5 py-4 rounded-2xl border" style={{ backgroundColor: 'var(--brand-bg)', borderColor: 'var(--brand-border)' }}>
+          <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0" style={{ backgroundColor: '#ede0c8', border: '2px solid var(--brand)', color: 'var(--brand-text)' }}>
             {initials(myRow.name)}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold" style={{ color: '#7a5c10' }}>Sua posição: {myPosition + 1}º</p>
+            <p className="text-sm font-semibold" style={{ color: 'var(--brand-text)' }}>Sua posição: {myPosition + 1}º</p>
             <p className="text-xs text-gray-500 mt-0.5">{myRow.lessons_completed} aula{myRow.lessons_completed !== 1 ? 's' : ''} concluída{myRow.lessons_completed !== 1 ? 's' : ''}</p>
           </div>
           <div className="text-right shrink-0">
-            <p className="text-xl font-bold" style={{ color: '#b48840' }}>{formatPoints(myRow.total_points)}</p>
+            <p className="text-xl font-bold" style={{ color: 'var(--brand)' }}>{formatPoints(myRow.total_points)}</p>
             <p className="text-xs text-gray-400">pontos</p>
           </div>
         </div>
@@ -94,7 +94,7 @@ export default async function RankingPage() {
                     <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 max-w-[80px] text-center leading-tight truncate">
                       {member.name.split(' ')[0]}
                     </p>
-                    <p className="text-xs font-bold" style={{ color: '#b48840' }}>{formatPoints(member.total_points)} pts</p>
+                    <p className="text-xs font-bold" style={{ color: 'var(--brand)' }}>{formatPoints(member.total_points)} pts</p>
                     <div
                       className={`w-24 ${colors.height} rounded-t-lg flex items-center justify-center text-sm font-bold`}
                       style={{ backgroundColor: colors.bg, borderTop: `3px solid ${colors.border}`, color: colors.text }}
@@ -108,7 +108,7 @@ export default async function RankingPage() {
           )}
 
           {/* Lista completa */}
-          <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
+          <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
             <div className="divide-y divide-gray-50 dark:divide-gray-700">
               {ranking.slice(0, 50).map((member, idx) => {
                 const isMe = member.user_id === user.id
@@ -117,34 +117,34 @@ export default async function RankingPage() {
                   <div
                     key={member.user_id}
                     className={`flex items-center gap-4 px-5 py-3.5 transition ${!isMe ? 'hover:bg-gray-50 dark:hover:bg-gray-700' : ''}`}
-                    style={isMe ? { backgroundColor: '#f5efe3' } : {}}
+                    style={isMe ? { backgroundColor: 'var(--brand-bg)' } : {}}
                   >
                     <span
                       className="text-sm font-bold w-8 text-center shrink-0"
-                      style={isMe ? { color: '#b48840' } : { color: '#9ca3af' }}
+                      style={isMe ? { color: 'var(--brand)' } : { color: '#9ca3af' }}
                     >
                       {medal ?? `${idx + 1}º`}
                     </span>
                     <div
                       className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
                       style={{
-                        backgroundColor: isMe ? '#f5efe3' : '#f3f4f6',
-                        border: `2px solid ${isMe ? '#b48840' : '#e5e7eb'}`,
-                        color: isMe ? '#7a5c10' : '#6b7280',
+                        backgroundColor: isMe ? 'var(--brand-bg)' : '#f3f4f6',
+                        border: `2px solid ${isMe ? 'var(--brand)' : '#e5e7eb'}`,
+                        color: isMe ? 'var(--brand-text)' : '#6b7280',
                       }}
                     >
                       {initials(member.name)}
                     </div>
                     <span
                       className="text-sm font-medium flex-1 truncate"
-                      style={isMe ? { color: '#7a5c10', fontWeight: 600 } : { color: undefined }}
+                      style={isMe ? { color: 'var(--brand-text)', fontWeight: 600 } : { color: undefined }}
                     >
-                      <span className="text-gray-800 dark:text-gray-200" style={isMe ? { color: '#7a5c10' } : {}}>
+                      <span className="text-gray-800 dark:text-gray-200" style={isMe ? { color: 'var(--brand-text)' } : {}}>
                         {member.name}{isMe ? ' (você)' : ''}
                       </span>
                     </span>
                     <div className="text-right shrink-0">
-                      <p className="text-sm font-bold" style={{ color: '#b48840' }}>{formatPoints(member.total_points)}</p>
+                      <p className="text-sm font-bold" style={{ color: 'var(--brand)' }}>{formatPoints(member.total_points)}</p>
                       <p className="text-[10px] text-gray-400">{member.lessons_completed} aulas</p>
                     </div>
                   </div>

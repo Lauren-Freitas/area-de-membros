@@ -10,7 +10,7 @@ export function NavLink({ href, label, icon }: { href: string; label: string; ic
       href={href}
       className="flex items-center gap-1.5 px-3 py-1 text-sm font-medium rounded-full whitespace-nowrap transition"
       style={active
-        ? { backgroundColor: '#f5efe3', color: '#7a5c10' }
+        ? { backgroundColor: 'var(--brand-bg)', color: 'var(--brand-text)' }
         : { color: '#6b7280' }
       }
     >

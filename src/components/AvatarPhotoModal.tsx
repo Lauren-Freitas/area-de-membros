@@ -45,7 +45,7 @@ export function AvatarPhotoModal({ src, initials, onEdit, onUpdate, onDelete, on
           ) : (
             <div
               className="w-44 h-44 rounded-full flex items-center justify-center text-4xl font-bold text-white"
-              style={{ backgroundColor: '#b48840' }}
+              style={{ backgroundColor: 'var(--brand)' }}
             >
               {initials}
             </div>

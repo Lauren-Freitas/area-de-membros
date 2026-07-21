@@ -32,9 +32,9 @@ export default async function PerfilPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Cabeçalho do perfil */}
-      <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
+      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
         {/* Banner gradiente */}
-        <div className="h-24" style={{ background: 'linear-gradient(135deg, #f5efe3 0%, #b48840 100%)' }} />
+        <div className="h-24" style={{ background: 'linear-gradient(135deg, var(--brand-bg) 0%, var(--brand) 100%)' }} />
 
         <div className="px-6 pb-6">
           {/* Avatar */}
@@ -46,12 +46,12 @@ export default async function PerfilPage() {
                   alt={name}
                   width={80}
                   height={80}
-                  className="w-20 h-20 rounded-full object-cover border-4 border-white dark:border-[#0d1020]"
+                  className="w-20 h-20 rounded-full object-cover border-4 border-white dark:border-[var(--card)]"
                 />
               ) : (
                 <div
-                  className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold text-white border-4 border-white dark:border-[#0d1020]"
-                  style={{ backgroundColor: '#b48840' }}
+                  className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold text-white border-4 border-white dark:border-[var(--card)]"
+                  style={{ backgroundColor: 'var(--brand)' }}
                 >
                   {initials}
                 </div>
@@ -59,7 +59,7 @@ export default async function PerfilPage() {
               {/* Badge de nível */}
               <div
                 className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold text-white"
-                style={{ backgroundColor: '#b48840' }}
+                style={{ backgroundColor: 'var(--brand)' }}
               >
                 Nv.{cur.level}
               </div>
@@ -82,7 +82,7 @@ export default async function PerfilPage() {
           {/* Stats rápidos */}
           <div className="flex items-center gap-6 mt-4 text-center">
             <div>
-              <p className="text-xl font-bold" style={{ color: '#b48840' }}>{totalXp}</p>
+              <p className="text-xl font-bold" style={{ color: 'var(--brand)' }}>{totalXp}</p>
               <p className="text-xs text-gray-400">XP total</p>
             </div>
             <div className="w-px h-8 bg-gray-100 dark:bg-gray-700" />
@@ -100,12 +100,12 @@ export default async function PerfilPage() {
       </div>
 
       {/* Barra de XP / Nível */}
-      <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5">
+      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5">
         <div className="flex items-center justify-between mb-3">
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Nível atual</p>
             <p className="text-lg font-bold text-gray-900 dark:text-white mt-0.5">
-              {cur.level} — <span style={{ color: '#b48840' }}>{cur.label}</span>
+              {cur.level} — <span style={{ color: 'var(--brand)' }}>{cur.label}</span>
             </p>
           </div>
           {next && (
@@ -119,19 +119,19 @@ export default async function PerfilPage() {
         <div className="h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden mb-2">
           <div
             className="h-full rounded-full transition-all duration-700"
-            style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #b48840, #f5c842)' }}
+            style={{ width: `${pct}%`, background: 'linear-gradient(90deg, var(--brand), #f5c842)' }}
           />
         </div>
 
         {next ? (
           <p className="text-xs text-gray-400">
-            <span className="font-semibold" style={{ color: '#b48840' }}>{xpInLevel} XP</span>
+            <span className="font-semibold" style={{ color: 'var(--brand)' }}>{xpInLevel} XP</span>
             {' '}de{' '}
             <span className="font-semibold">{xpNeeded} XP</span>
             {' '}para o nível {next.level} · {pct}%
           </p>
         ) : (
-          <p className="text-xs font-semibold" style={{ color: '#b48840' }}>Nível máximo atingido! 🏆</p>
+          <p className="text-xs font-semibold" style={{ color: 'var(--brand)' }}>Nível máximo atingido! 🏆</p>
         )}
 
         {/* Escada de níveis */}
@@ -144,7 +144,7 @@ export default async function PerfilPage() {
             >
               <div
                 className="w-full h-1.5 rounded-full"
-                style={{ backgroundColor: totalXp >= lvl.minXp ? '#b48840' : '#e5e7eb' }}
+                style={{ backgroundColor: totalXp >= lvl.minXp ? 'var(--brand)' : '#e5e7eb' }}
               />
               <span className="text-[9px] text-gray-400">{lvl.level}</span>
             </div>
@@ -153,7 +153,7 @@ export default async function PerfilPage() {
       </div>
 
       {/* Conquistas / Badges */}
-      <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5">
+      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5">
         <h2 className="text-sm font-bold text-gray-900 dark:text-white mb-4">Conquistas</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {BADGES.map(badge => {
@@ -176,7 +176,7 @@ export default async function PerfilPage() {
                   </p>
                   <p className="text-[11px] text-gray-400 mt-0.5">{badge.description}</p>
                   {earned && awardedAt && (
-                    <p className="text-[10px] mt-1" style={{ color: '#b48840' }}>
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--brand)' }}>
                       {new Date(awardedAt).toLocaleDateString('pt-BR')}
                     </p>
                   )}
@@ -190,7 +190,7 @@ export default async function PerfilPage() {
       {/* Link para o ranking */}
       <Link
         href="/ranking"
-        className="flex items-center justify-between px-5 py-4 bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] hover:shadow-md transition group"
+        className="flex items-center justify-between px-5 py-4 bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] hover:shadow-md transition group"
       >
         <div className="flex items-center gap-3">
           <span className="text-2xl">🏆</span>

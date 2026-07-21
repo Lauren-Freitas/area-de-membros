@@ -17,11 +17,11 @@ export default async function FaturasPage() {
       </div>
 
       {!vendas?.length ? (
-        <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-200 text-gray-400 text-sm">
+        <div className="text-center py-20 bg-card rounded-2xl border border-dashed border-gray-200 text-gray-400 text-sm">
           Nenhuma fatura ainda.
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
+        <div className="bg-card rounded-2xl border border-gray-100 p-5">
           {/* Header */}
           <div className="flex items-center pb-3 border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wider">
             <span className="flex-1">Membro</span>

@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { BrandLogo } from '@/components/BrandLogo'
 import { logout } from '@/lib/actions/auth'
 import { ThemeToggle } from '@/components/ThemeToggle'
 
@@ -156,7 +156,7 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAva
       {/* Header */}
       <div className={`flex items-center border-b border-gray-100 shrink-0 transition-all duration-200 ${collapsed && !mobile ? 'h-14 justify-center px-0' : 'h-14 px-4 gap-3'}`}>
         {(!collapsed || mobile) && (
-          <Image src="/iav_1024.png" alt="Logo" width={32} height={32} className="rounded-full shrink-0" />
+          <BrandLogo size={32} className="shrink-0" />
         )}
         {(!collapsed || mobile) && (
           <span className="text-xs font-bold text-gray-900 truncate flex-1">Painel Admin</span>
@@ -180,7 +180,7 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAva
           className={`flex items-center rounded-lg transition group relative ${
             collapsed && !mobile ? 'w-10 h-10 justify-center mx-auto' : 'gap-2.5 px-3 py-2'
           } ${pathname === '/admin' ? 'text-white' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}
-          style={pathname === '/admin' ? { backgroundColor: '#b48840' } : {}}
+          style={pathname === '/admin' ? { backgroundColor: 'var(--brand)' } : {}}
           onMouseEnter={(e) => collapsed && !mobile && setTooltip({ label: 'Visão geral', y: e.currentTarget.getBoundingClientRect().top })}
           onMouseLeave={() => collapsed && !mobile && setTooltip(null)}
         >
@@ -215,7 +215,7 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAva
                       ? 'w-10 h-10 justify-center mx-auto'
                       : 'gap-2.5 px-3 py-2'
                   } ${active ? 'text-white' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}
-                  style={active ? { backgroundColor: '#b48840' } : {}}
+                  style={active ? { backgroundColor: 'var(--brand)' } : {}}
                   onMouseEnter={(e) => collapsed && !mobile && setTooltip({ label, y: e.currentTarget.getBoundingClientRect().top })}
                   onMouseLeave={() => collapsed && !mobile && setTooltip(null)}
                 >
@@ -236,7 +236,7 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAva
           className={`flex items-center rounded-lg transition text-xs font-medium ${
             collapsed && !mobile ? 'w-10 h-10 justify-center mx-auto' : 'gap-2 px-3 py-2'
           }`}
-          style={{ color: '#b48840', backgroundColor: collapsed && !mobile ? 'transparent' : '#f5efe3' }}
+          style={{ color: 'var(--brand)', backgroundColor: collapsed && !mobile ? 'transparent' : 'var(--brand-bg)' }}
           onMouseEnter={(e) => collapsed && !mobile && setTooltip({ label: 'Ver área de membros', y: e.currentTarget.getBoundingClientRect().top })}
           onMouseLeave={() => collapsed && !mobile && setTooltip(null)}
         >
@@ -255,7 +255,7 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAva
               ) : (
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                  style={{ backgroundColor: '#b48840' }}
+                  style={{ backgroundColor: 'var(--brand)' }}
                 >
                   {userName.split(' ').slice(0, 2).map(n => n[0] ?? '').join('').toUpperCase() || '?'}
                 </div>
@@ -311,14 +311,14 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAva
       )}
 
       {/* Mobile top bar */}
-      <div data-admin-sidebar className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-100 z-20 flex items-center justify-between px-4">
+      <div data-admin-sidebar className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-card border-b border-gray-100 z-20 flex items-center justify-between px-4">
         <button onClick={() => setMobileOpen(true)} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
         <Link href="/admin" className="flex items-center gap-2">
-          <Image src="/iav_1024.png" alt="Logo" width={28} height={28} className="rounded-full" />
+          <BrandLogo size={28} />
           <span className="text-sm font-bold text-gray-900">Admin</span>
         </Link>
         <div className="w-10" />
@@ -327,12 +327,12 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAva
       {mobileOpen && <div className="fixed inset-0 bg-black/40 z-30 lg:hidden" onClick={() => setMobileOpen(false)} />}
 
       {/* Desktop sidebar */}
-      <aside data-admin-sidebar className={`hidden lg:flex flex-col fixed top-0 left-0 h-full bg-white border-r border-gray-100 z-40 transition-[width] duration-200 overflow-hidden ${sidebarW}`}>
+      <aside data-admin-sidebar className={`hidden lg:flex flex-col fixed top-0 left-0 h-full bg-card border-r border-gray-100 z-40 transition-[width] duration-200 overflow-hidden ${sidebarW}`}>
         <SidebarInner />
       </aside>
 
       {/* Mobile sidebar (always full width) */}
-      <aside data-admin-sidebar className={`lg:hidden fixed top-0 left-0 h-full w-64 bg-white border-r border-gray-100 z-40 transition-transform duration-200 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside data-admin-sidebar className={`lg:hidden fixed top-0 left-0 h-full w-64 bg-card border-r border-gray-100 z-40 transition-transform duration-200 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <SidebarInner mobile />
       </aside>
     </>

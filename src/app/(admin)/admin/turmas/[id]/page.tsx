@@ -38,7 +38,7 @@ export default async function GerenciarTurmaPage({ params }: { params: Promise<{
       {/* Info rápida */}
       <div className="flex flex-wrap gap-4">
         {product && (
-          <span className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-medium" style={{ backgroundColor: '#f5efe3', color: '#7a5c10' }}>
+          <span className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-medium" style={{ backgroundColor: 'var(--brand-bg)', color: 'var(--brand-text)' }}>
             📚 {product.title}
           </span>
         )}
@@ -82,7 +82,7 @@ export default async function GerenciarTurmaPage({ params }: { params: Promise<{
                 <button
                   type="submit"
                   className="px-4 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 shrink-0"
-                  style={{ backgroundColor: '#b48840' }}
+                  style={{ backgroundColor: 'var(--brand)' }}
                 >
                   Adicionar
                 </button>
@@ -96,11 +96,11 @@ export default async function GerenciarTurmaPage({ params }: { params: Promise<{
               Membros da turma{members?.length ? ` (${members.length})` : ''}
             </h2>
             {!members?.length ? (
-              <div className="text-center py-8 bg-white rounded-xl border border-dashed border-gray-200 text-gray-400 text-sm">
+              <div className="text-center py-8 bg-card rounded-xl border border-dashed border-gray-200 text-gray-400 text-sm">
                 Nenhum membro na turma ainda.
               </div>
             ) : (
-              <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+              <div className="bg-card rounded-xl border border-gray-100 overflow-hidden">
                 <div className="divide-y divide-gray-50">
                   {members.map((m) => {
                     const profile = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles

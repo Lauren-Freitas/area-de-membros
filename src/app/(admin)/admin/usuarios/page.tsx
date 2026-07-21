@@ -31,7 +31,7 @@ export default async function AdminUsuariosPage() {
         <Link
           href="/admin/usuarios/novo"
           className="px-4 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-          style={{ backgroundColor: '#b48840' }}
+          style={{ backgroundColor: 'var(--brand)' }}
         >
           + Novo membro
         </Link>
@@ -40,7 +40,7 @@ export default async function AdminUsuariosPage() {
       {profiles?.length ? (
         <div className="space-y-4">
           {(profiles as Profile[]).map((profile) => (
-            <div key={profile.id} className="bg-white rounded-2xl border border-gray-100 p-6">
+            <div key={profile.id} className="bg-card rounded-2xl border border-gray-100 p-6">
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <p className="font-semibold text-gray-900">{profile.name || '(sem nome)'}</p>
@@ -103,7 +103,7 @@ export default async function AdminUsuariosPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-16 text-gray-400 bg-white rounded-2xl border border-gray-100">
+        <div className="text-center py-16 text-gray-400 bg-card rounded-2xl border border-gray-100">
           <p className="font-medium">Nenhum membro cadastrado ainda.</p>
           <p className="text-sm mt-1">
             <Link href="/admin/usuarios/novo" className="underline">Criar o primeiro membro</Link>

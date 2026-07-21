@@ -41,8 +41,11 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/perfil') ||
     pathname.startsWith('/suporte')
 
-  // Só a página de login redireciona usuário já logado para o dashboard
-  const isLoginPage = pathname === '/login'
+  // Só a página de login redireciona usuário já logado para o dashboard —
+  // exceto quando chega com ?erro=... (ex: conta desativada), senão gera loop
+  // infinito entre o layout do membro (que manda pra /login) e esta regra
+  // (que manda de volta pro /dashboard).
+  const isLoginPage = pathname === '/login' && !request.nextUrl.searchParams.has('erro')
 
   if (isProtectedRoute && !user) {
     return NextResponse.redirect(new URL('/login', request.url))

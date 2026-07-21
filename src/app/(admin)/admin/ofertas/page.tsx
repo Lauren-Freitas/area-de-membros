@@ -30,18 +30,18 @@ export default async function OfertasAdminPage() {
         <Link
           href="/admin/ofertas/nova"
           className="inline-flex items-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-          style={{ backgroundColor: '#b48840' }}
+          style={{ backgroundColor: 'var(--brand)' }}
         >
           + Nova oferta
         </Link>
       </div>
 
       {!offers?.length ? (
-        <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-200 text-gray-400">
+        <div className="text-center py-16 bg-card rounded-2xl border border-dashed border-gray-200 text-gray-400">
           <p className="font-medium">Nenhuma oferta criada ainda.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div className="bg-card rounded-2xl border border-gray-100 overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
@@ -85,7 +85,7 @@ export default async function OfertasAdminPage() {
                         <Link
                           href={`/admin/ofertas/${offer.id}`}
                           className="text-xs px-3 py-1.5 rounded-lg border transition hover:bg-gray-50"
-                          style={{ borderColor: '#b48840', color: '#7a5c10' }}
+                          style={{ borderColor: 'var(--brand)', color: 'var(--brand-text)' }}
                         >
                           Editar
                         </Link>

@@ -66,19 +66,12 @@ const TIMEZONES = [
   { value: 'UTC', label: 'UTC (GMT+0)' },
 ]
 
-const AI_TONES = [
-  { value: 'empatico', label: 'Empático e motivador', description: 'Acolhedor, celebra conquistas e usa linguagem encorajadora' },
-  { value: 'direto', label: 'Direto e objetivo', description: 'Respostas curtas e práticas, sem rodeios' },
-  { value: 'tecnico', label: 'Técnico e detalhado', description: 'Explica mecanismos e fundamentos com mais profundidade' },
-]
-
 interface InitialData {
   name: string
   phone: string
   bio: string
   avatar_url: string | null
   timezone: string
-  ai_tone: string
   email: string
 }
 
@@ -157,7 +150,7 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
       </div>
 
       {/* Informações do perfil */}
-      <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
+      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
         <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-5">Informações pessoais</h2>
 
         <form key={profileFormKey} action={profileAction} className="space-y-5">
@@ -187,7 +180,7 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
               ) : (
                 <div
                   className="w-20 h-20 rounded-full flex items-center justify-center text-xl font-bold text-white"
-                  style={{ backgroundColor: '#b48840' }}
+                  style={{ backgroundColor: 'var(--brand)' }}
                 >
                   {getInitials(initialData.name)}
                 </div>
@@ -217,7 +210,7 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
                 defaultValue={initialData.name}
                 required
                 className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition"
-                style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+                style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
                 placeholder="Seu nome completo"
               />
             </div>
@@ -230,7 +223,7 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
                   onChange={e => setSelectedDdi(e.target.value)}
                   className="shrink-0 px-2 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:border-transparent transition"
                   style={{
-                    '--tw-ring-color': '#b48840',
+                    '--tw-ring-color': 'var(--brand)',
                     width: selectedDdi.length <= 2 ? '4.5rem' : selectedDdi.length <= 3 ? '5rem' : '5.75rem',
                   } as React.CSSProperties}
                 >
@@ -245,7 +238,7 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
                   type="tel"
                   defaultValue={parsedPhone.number}
                   className="flex-1 px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition"
-                  style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+                  style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
                   placeholder="(11) 99999-9999"
                 />
               </div>
@@ -273,7 +266,7 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
               rows={3}
               maxLength={500}
               className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:border-transparent transition"
-              style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+              style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
               placeholder="Conte um pouco sobre você..."
             />
           </div>
@@ -285,7 +278,7 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
               name="timezone"
               defaultValue={initialData.timezone}
               className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:border-transparent transition"
-              style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+              style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
             >
               {TIMEZONES.map(tz => (
                 <option key={tz.value} value={tz.value}>{tz.label}</option>
@@ -293,39 +286,12 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
             </select>
           </div>
 
-          {/* Tom de voz do assistente */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              Tom de voz do Proteíno
-            </label>
-            <div className="flex flex-col gap-2">
-              {AI_TONES.map(tone => (
-                <label
-                  key={tone.value}
-                  className="flex items-start gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-600 cursor-pointer hover:border-[#b48840] transition has-[:checked]:border-[#b48840] has-[:checked]:bg-amber-50 dark:has-[:checked]:bg-amber-900/10"
-                >
-                  <input
-                    type="radio"
-                    name="ai_tone"
-                    value={tone.value}
-                    defaultChecked={initialData.ai_tone === tone.value}
-                    className="mt-0.5 shrink-0 accent-[#b48840]"
-                  />
-                  <div>
-                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{tone.label}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{tone.description}</p>
-                  </div>
-                </label>
-              ))}
-            </div>
-          </div>
-
           <div className="flex items-center gap-3 pt-1">
             <button
               type="submit"
               disabled={profilePending}
               className="px-5 py-2.5 text-sm font-semibold text-white rounded-lg transition hover:opacity-90 disabled:opacity-60"
-              style={{ backgroundColor: '#b48840' }}
+              style={{ backgroundColor: 'var(--brand)' }}
             >
               {profilePending ? 'Salvando...' : 'Atualizar'}
             </button>
@@ -341,7 +307,7 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
       </div>
 
       {/* Alteração de senha */}
-      <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
+      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
         <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-1">Alteração de senha</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
           Para alterar sua senha, informe a senha atual e depois a nova senha desejada.
@@ -367,7 +333,7 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
               autoComplete="current-password"
               required
               className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition"
-              style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+              style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
               placeholder="••••••••"
             />
           </div>
@@ -382,7 +348,7 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
                 required
                 minLength={8}
                 className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition"
-                style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+                style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
                 placeholder="Mínimo 8 caracteres"
               />
             </div>
@@ -395,7 +361,7 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
                 required
                 minLength={8}
                 className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition"
-                style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+                style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
                 placeholder="Repita a nova senha"
               />
             </div>
@@ -406,7 +372,7 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
               type="submit"
               disabled={passwordPending}
               className="px-5 py-2.5 text-sm font-semibold text-white rounded-lg transition hover:opacity-90 disabled:opacity-60"
-              style={{ backgroundColor: '#b48840' }}
+              style={{ backgroundColor: 'var(--brand)' }}
             >
               {passwordPending ? 'Alterando...' : 'Atualizar senha'}
             </button>

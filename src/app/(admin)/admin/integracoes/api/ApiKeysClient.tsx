@@ -58,12 +58,12 @@ export function ApiKeysClient({ keys }: { keys: ApiKey[] }) {
       {justCreated && (
         <div className="bg-green-50 border border-green-200 rounded-2xl p-4 space-y-2">
           <p className="text-sm font-semibold text-green-800">🎉 Chave criada — salve agora, ela não será exibida novamente</p>
-          <div className="flex items-center gap-3 bg-white rounded-lg px-4 py-3 border border-green-200">
+          <div className="flex items-center gap-3 bg-card rounded-lg px-4 py-3 border border-green-200">
             <code className="flex-1 text-sm font-mono text-gray-800 break-all select-all">{state.key}</code>
             <button
               onClick={() => copy(state.key!, 'new')}
               className="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg text-white transition hover:opacity-90"
-              style={{ backgroundColor: '#b48840' }}
+              style={{ backgroundColor: 'var(--brand)' }}
             >
               {copiedId === 'new' ? '✓ Copiado' : 'Copiar'}
             </button>
@@ -72,7 +72,7 @@ export function ApiKeysClient({ keys }: { keys: ApiKey[] }) {
       )}
 
       {/* Toolbar */}
-      <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-4 flex items-center gap-3">
+      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-4 flex items-center gap-3">
         <div className="flex items-center gap-2 flex-1 border border-gray-200 rounded-lg px-3 py-2">
           <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -88,7 +88,7 @@ export function ApiKeysClient({ keys }: { keys: ApiKey[] }) {
         <button
           onClick={() => setShowForm(v => !v)}
           className="px-4 py-2 text-sm font-semibold text-white rounded-lg transition hover:opacity-90 shrink-0"
-          style={{ backgroundColor: '#b48840' }}
+          style={{ backgroundColor: 'var(--brand)' }}
         >
           + Criar API Key
         </button>
@@ -96,7 +96,7 @@ export function ApiKeysClient({ keys }: { keys: ApiKey[] }) {
 
       {/* Create form */}
       {showForm && (
-        <form action={action} className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5 space-y-4">
+        <form action={action} className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5 space-y-4">
           <h2 className="font-semibold text-gray-900">Nova chave de API</h2>
           {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
           <div>
@@ -114,7 +114,7 @@ export function ApiKeysClient({ keys }: { keys: ApiKey[] }) {
               type="submit"
               disabled={isPending}
               className="px-4 py-2 text-sm font-semibold text-white rounded-lg transition hover:opacity-90 disabled:opacity-60"
-              style={{ backgroundColor: '#b48840' }}
+              style={{ backgroundColor: 'var(--brand)' }}
             >
               {isPending ? 'Criando...' : 'Criar chave'}
             </button>
@@ -126,7 +126,7 @@ export function ApiKeysClient({ keys }: { keys: ApiKey[] }) {
       )}
 
       {/* List */}
-      <div className="bg-white dark:bg-[#0d1020] rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5">
+      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5">
         {/* Header row */}
         <div className="flex items-center pb-3 border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wider">
           <span className="flex-1">Nome</span>

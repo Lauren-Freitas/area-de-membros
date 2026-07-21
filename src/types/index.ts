@@ -62,8 +62,24 @@ export interface Lesson {
   lesson_type: LessonType
   content_url: string | null
   content_text: string | null
+  content_html: string | null
   sort_order: number
   is_published: boolean
+  release_type: ModuleReleaseType
+  release_after_days: number | null
+  release_at: string | null
+  access_duration_days: number | null
+  created_at: string
+}
+
+export interface LessonAttachment {
+  id: string
+  lesson_id: string
+  file_name: string
+  file_path: string
+  file_size: number
+  mime_type: string | null
+  sort_order: number
   created_at: string
 }
 

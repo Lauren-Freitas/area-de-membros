@@ -25,7 +25,7 @@ export function NewConversationButton({ userId, primary }: { userId: string; pri
         onClick={handleClick}
         disabled={pending}
         className="inline-flex items-center gap-2 px-5 py-2.5 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 disabled:opacity-50"
-        style={{ backgroundColor: '#b48840' }}
+        style={{ backgroundColor: 'var(--brand)' }}
       >
         {pending ? 'Criando...' : '✨ Iniciar conversa'}
       </button>
@@ -37,7 +37,7 @@ export function NewConversationButton({ userId, primary }: { userId: string; pri
       onClick={handleClick}
       disabled={pending}
       className="inline-flex items-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 disabled:opacity-50"
-      style={{ backgroundColor: '#b48840' }}
+      style={{ backgroundColor: 'var(--brand)' }}
     >
       {pending ? '...' : '+ Nova'}
     </button>

@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react'
 import { resetPassword } from '@/lib/actions/auth'
-import Image from 'next/image'
+import { BrandLogo } from '@/components/BrandLogo'
 import Link from 'next/link'
 
 export default function EsqueceuSenhaPage() {
@@ -12,14 +12,13 @@ export default function EsqueceuSenhaPage() {
     <div className="w-full max-w-md">
       <div className="text-center mb-8">
         <div className="flex justify-center mb-4">
-          <Image src="/iav_1024.png" alt="Thiago Cantalovo" width={80} height={80} className="rounded-full dark:hidden" priority />
-          <Image src="/iav_grafite_1024.png" alt="Thiago Cantalovo" width={80} height={80} className="rounded-full hidden dark:block" priority />
+          <BrandLogo size={80} />
         </div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Thiago Cantalovo</h1>
         <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Nutricionista</p>
       </div>
 
-      <div className="bg-white dark:bg-[#0d1020] rounded-2xl shadow-sm border border-gray-100 dark:border-[#1e2030] p-8">
+      <div className="bg-card rounded-2xl shadow-sm border border-gray-100 dark:border-[#1e2030] p-8">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">Recuperar senha</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
           Informe seu email e enviaremos um link para você criar uma nova senha.
@@ -43,14 +42,14 @@ export default function EsqueceuSenhaPage() {
               <input
                 id="email" name="email" type="email" autoComplete="email" required
                 className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:border-transparent transition"
-                style={{ '--tw-ring-color': '#b48840' } as React.CSSProperties}
+                style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
                 placeholder="seu@email.com"
               />
             </div>
             <button
               type="submit" disabled={isPending}
               className="w-full py-2.5 px-4 hover:opacity-90 disabled:opacity-60 text-white text-sm font-semibold rounded-lg transition"
-              style={{ backgroundColor: '#b48840' }}
+              style={{ backgroundColor: 'var(--brand)' }}
             >
               {isPending ? 'Enviando...' : 'Enviar link de recuperação'}
             </button>

@@ -11,7 +11,7 @@ export function NovoConviteForm({ products }: { products: Product[] }) {
   const inputClass = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300'
 
   return (
-    <form action={action} className="space-y-5 bg-white rounded-2xl border border-gray-100 p-6">
+    <form action={action} className="space-y-5 bg-card rounded-2xl border border-gray-100 p-6">
       {state?.error && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{state.error}</div>
       )}
@@ -31,7 +31,7 @@ export function NovoConviteForm({ products }: { products: Product[] }) {
           <div className="space-y-2">
             {products.map(p => (
               <label key={p.id} className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer hover:text-gray-900">
-                <input type="checkbox" name="products" value={p.id} className="rounded accent-[#b48840]" />
+                <input type="checkbox" name="products" value={p.id} className="rounded accent-[var(--brand)]" />
                 {p.title}
               </label>
             ))}
@@ -65,7 +65,7 @@ export function NovoConviteForm({ products }: { products: Product[] }) {
           type="submit"
           disabled={pending}
           className="px-6 py-2.5 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 disabled:opacity-50"
-          style={{ backgroundColor: '#b48840' }}
+          style={{ backgroundColor: 'var(--brand)' }}
         >
           {pending ? 'Criando...' : 'Gerar convite'}
         </button>

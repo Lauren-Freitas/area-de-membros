@@ -78,7 +78,7 @@ export function AvatarCropper({ src, onConfirm, onCancel }: {
 
   return (
     <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-[#0d1020] rounded-2xl p-6 w-full max-w-xs space-y-4 shadow-xl">
+      <div className="bg-card rounded-2xl p-6 w-full max-w-xs space-y-4 shadow-xl">
         <div>
           <h3 className="text-base font-semibold text-gray-900 dark:text-white">Ajustar foto</h3>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Arraste para reposicionar. Use o slider para zoom.</p>
@@ -112,7 +112,7 @@ export function AvatarCropper({ src, onConfirm, onCancel }: {
             step={minScale / 50}
             value={scale}
             onChange={e => setScale(parseFloat(e.target.value))}
-            className="w-full accent-[#b48840]"
+            className="w-full accent-[var(--brand)]"
           />
         </div>
 
@@ -121,7 +121,7 @@ export function AvatarCropper({ src, onConfirm, onCancel }: {
             type="button"
             onClick={confirm}
             className="flex-1 py-2.5 text-white text-sm font-semibold rounded-lg hover:opacity-90 transition"
-            style={{ backgroundColor: '#b48840' }}
+            style={{ backgroundColor: 'var(--brand)' }}
           >
             Confirmar
           </button>

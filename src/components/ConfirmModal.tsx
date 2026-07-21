@@ -75,7 +75,7 @@ export function ConfirmModal({
               type="text"
               value={typed}
               onChange={e => setTyped(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-[#2a2f45] bg-white dark:bg-[#0d1020] text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-400"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-[#2a2f45] bg-card text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-400"
               autoFocus
               placeholder={dangerWord}
             />
