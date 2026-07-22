@@ -135,7 +135,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       {/* Meus conteúdos — apenas produtos desbloqueados */}
       {tab !== 'disponiveis' && (
         <section id="meus-conteudos">
-          <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white mb-5 tracking-tight">Meus conteúdos</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-5">Meus conteúdos</h1>
 
           {myProducts.length === 0 ? (
             <div className="text-center py-12 text-gray-400 dark:text-gray-500 bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030]">

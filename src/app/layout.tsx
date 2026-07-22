@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Geist, Fraunces } from 'next/font/google'
+import { Geist } from 'next/font/google'
 import './globals.css'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { cache } from 'react'
@@ -9,13 +9,6 @@ import { BrandProvider } from '@/components/BrandProvider'
 const geist = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
-})
-
-const fraunces = Fraunces({
-  variable: '--font-fraunces',
-  subsets: ['latin'],
-  weight: ['600', '700'],
-  style: ['normal'],
 })
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://membros.thiagocantalovo.com'
@@ -99,7 +92,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   } catch {}
 
   return (
-    <html lang="pt-BR" className={`${geist.variable} ${fraunces.variable} h-full`} suppressHydrationWarning>
+    <html lang="pt-BR" className={`${geist.variable} h-full`} suppressHydrationWarning>
       <head>
         {/* Aplica tema antes da renderização para evitar piscar */}
         <script dangerouslySetInnerHTML={{
