@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { toggleProductActive } from '@/lib/actions/admin'
 import { DeleteProductButton } from '@/components/admin/DeleteProductButton'
 
 export default async function AdminProdutosPage() {
@@ -45,16 +44,15 @@ export default async function AdminProdutosPage() {
                   <p className="text-xs text-gray-300 mt-0.5">Ordem {product.sort_order}</p>
                 </div>
                 <div className="w-20 text-center shrink-0">
-                  <form action={toggleProductActive.bind(null, product.id, !product.is_active)}>
-                    <button
-                      type="submit"
-                      className={`text-xs font-medium px-2.5 py-1 rounded-full transition hover:opacity-80 ${
-                        product.is_active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'
-                      }`}
-                    >
-                      {product.is_active ? 'Ativo' : 'Inativo'}
-                    </button>
-                  </form>
+                  <span
+                    className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                      product.is_active
+                        ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
+                        : 'bg-gray-100 dark:bg-gray-500/10 text-gray-500 dark:text-gray-400'
+                    }`}
+                  >
+                    {product.is_active ? 'Ativo' : 'Inativo'}
+                  </span>
                 </div>
                 <div className="w-44 shrink-0">
                   <div className="flex items-center gap-2">

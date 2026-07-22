@@ -1,14 +1,18 @@
 'use client'
+import { useState } from 'react'
 import { saveOffer } from '@/lib/actions/offers'
+import { Switch } from '@/components/admin/Switch'
 
 interface Product { id: string; title: string }
 interface Offer {
   id: string; product_id: string | null; title: string; description: string | null
   original_price: number | null; promo_price: number | null; coupon_code: string | null
-  ends_at: string | null; sort_order: number
+  ends_at: string | null; sort_order: number; is_active: boolean
 }
 
 export function OfertaForm({ offer, products }: { offer?: Offer; products: Product[] }) {
+  const [isActive, setIsActive] = useState(offer?.is_active ?? true)
+
   return (
     <form action={saveOffer} className="space-y-5 bg-card rounded-2xl border border-gray-100 p-6 max-w-lg">
       {offer && <input type="hidden" name="id" value={offer.id} />}
@@ -104,6 +108,10 @@ export function OfertaForm({ offer, products }: { offer?: Offer; products: Produ
             className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
           />
         </div>
+      </div>
+
+      <div className="flex items-center gap-3 pt-1">
+        <Switch name="is_active" checked={isActive} onChange={setIsActive} title="Aparece na área de membros" />
       </div>
 
       <div className="flex items-center gap-3 pt-2">

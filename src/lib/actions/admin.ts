@@ -95,15 +95,6 @@ export async function saveProduct(
   redirect('/admin/produtos')
 }
 
-export async function toggleProductActive(id: string, isActive: boolean) {
-  await requireAdmin()
-  const admin = createAdminClient()
-  await admin.from('products').update({ is_active: isActive }).eq('id', id)
-  await logActivity({ action: isActive ? 'ativar' : 'desativar', entity: 'produto', entityId: id })
-  revalidatePath('/admin/produtos')
-  revalidatePath('/dashboard')
-}
-
 export async function deleteProduct(id: string) {
   await requireAdmin()
   const admin = createAdminClient()

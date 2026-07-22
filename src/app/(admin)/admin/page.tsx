@@ -124,7 +124,7 @@ export default async function AdminPage() {
                 {icon}
               </div>
               {up !== null && (
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${up ? 'bg-green-50 text-green-600' : 'bg-gray-50 text-gray-400'}`}>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${up ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'bg-gray-50 dark:bg-gray-500/10 text-gray-400'}`}>
                   {up ? '↑' : '—'}
                 </span>
               )}
@@ -151,7 +151,7 @@ export default async function AdminPage() {
             <div className="divide-y divide-gray-100">
               {recentMembers.map(m => (
                 <div key={m.id} className="flex items-center gap-3 py-3 last:pb-0 hover:bg-gray-50 transition rounded-lg">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-gray-100 text-gray-500 shrink-0">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-500/10 text-gray-500 dark:text-gray-400 shrink-0">
                     {m.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() ?? '?'}
                   </div>
                   <div className="flex-1 min-w-0">

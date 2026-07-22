@@ -15,27 +15,20 @@ export async function saveOffer(formData: FormData) {
   const coupon_code = (formData.get('coupon_code') as string).trim() || null
   const ends_at = (formData.get('ends_at') as string) || null
   const sort_order = parseInt(formData.get('sort_order') as string) || 0
+  const is_active = formData.get('is_active') === 'on'
 
-  const payload = { product_id, title, description, original_price, promo_price, coupon_code, ends_at, sort_order }
+  const payload = { product_id, title, description, original_price, promo_price, coupon_code, ends_at, sort_order, is_active }
 
   if (id) {
     await adminClient.from('offers').update(payload).eq('id', id)
   } else {
-    await adminClient.from('offers').insert({ ...payload, is_active: true })
+    await adminClient.from('offers').insert(payload)
   }
 
   await logActivity({ action: id ? 'editar' : 'criar', entity: 'oferta', entityName: title })
   revalidatePath('/admin/ofertas')
   revalidatePath('/dashboard')
   redirect('/admin/ofertas')
-}
-
-export async function toggleOffer(id: string, is_active: boolean) {
-  const adminClient = createAdminClient()
-  await adminClient.from('offers').update({ is_active }).eq('id', id)
-  await logActivity({ action: is_active ? 'ativar' : 'desativar', entity: 'oferta', entityId: id })
-  revalidatePath('/admin/ofertas')
-  revalidatePath('/dashboard')
 }
 
 export async function deleteOffer(id: string) {

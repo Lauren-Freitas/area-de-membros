@@ -17,9 +17,9 @@ const endpoints = [
 ]
 
 const methodColor: Record<string, string> = {
-  GET:    'bg-blue-50 text-blue-700',
-  POST:   'bg-green-50 text-green-700',
-  DELETE: 'bg-red-50 text-red-600',
+  GET:    'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400',
+  POST:   'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400',
+  DELETE: 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400',
 }
 
 function CopyRow({ label, value, sub }: { label: string; value: string; sub?: string }) {

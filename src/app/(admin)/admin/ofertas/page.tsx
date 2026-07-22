@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
-import { toggleOffer, deleteOffer } from '@/lib/actions/offers'
+import { deleteOffer } from '@/lib/actions/offers'
 
 export default async function OfertasAdminPage() {
   const adminClient = createAdminClient()
@@ -74,11 +74,13 @@ export default async function OfertasAdminPage() {
                       <span className={expired ? 'text-red-500' : 'text-gray-500'}>{formatDate(offer.ends_at)}</span>
                     </td>
                     <td className="px-5 py-3.5 text-center">
-                      <form action={async () => { 'use server'; await toggleOffer(offer.id, !offer.is_active) }}>
-                        <button type="submit" className={`text-xs px-2.5 py-1 rounded-full font-medium transition hover:opacity-80 ${offer.is_active && !expired ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                          {offer.is_active && !expired ? 'Ativa' : 'Inativa'}
-                        </button>
-                      </form>
+                      <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+                        offer.is_active && !expired
+                          ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400'
+                          : 'bg-gray-100 dark:bg-gray-500/10 text-gray-500 dark:text-gray-400'
+                      }`}>
+                        {offer.is_active && !expired ? 'Ativa' : 'Inativa'}
+                      </span>
                     </td>
                     <td className="px-5 py-3.5 text-right">
                       <div className="flex items-center justify-end gap-2">

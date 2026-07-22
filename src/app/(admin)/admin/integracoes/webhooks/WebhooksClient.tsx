@@ -26,7 +26,7 @@ function StatusBadge({ status }: { status: number | null }) {
   if (!status) return <span className="text-gray-300 text-xs">—</span>
   const ok = status >= 200 && status < 300
   return (
-    <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${ok ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
+    <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${ok ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'}`}>
       {status}
     </span>
   )

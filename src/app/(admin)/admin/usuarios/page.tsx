@@ -48,13 +48,17 @@ export default async function AdminUsuariosPage() {
                   <div className="flex items-center gap-2 mt-1.5">
                     {/* Tipo */}
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                      profile.role === 'admin' ? 'bg-purple-50 text-purple-700' : 'bg-blue-50 text-blue-700'
+                      profile.role === 'admin'
+                        ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400'
+                        : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
                     }`}>
                       Tipo: {profile.role === 'admin' ? 'Admin' : 'Membro'}
                     </span>
                     {/* Status */}
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                      profile.is_active === false ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'
+                      profile.is_active === false
+                        ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
+                        : 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
                     }`}>
                       Status: {profile.is_active === false ? 'Inativo' : 'Ativo'}
                     </span>

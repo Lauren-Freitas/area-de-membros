@@ -52,6 +52,15 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
+/* Links dentro de conteúdo rico (editor de aula + aula renderizada) —
+   o preflight do Tailwind zera cor/sublinhado de <a>, então sem isso
+   um link fica visualmente idêntico a texto normal. */
+.prose a {
+  color: var(--brand);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 /* ── Admin dark mode (escopo [data-admin]) ───────────────────────────────── */
 
 /* Fundo principal */
