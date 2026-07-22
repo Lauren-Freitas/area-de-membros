@@ -74,13 +74,6 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
   type CommentRow = { id: string; content: string; created_at: string; user_id: string; profiles: { name: string } | null }
   const comments: CommentRow[] = (commentsResult.data as CommentRow[] | null) ?? []
 
-  const lessonTypeIcon: Record<string, string> = {
-    video: '▶',
-    text: '📝',
-    file: '📄',
-    link: '🔗',
-  }
-
   return (
     <div className="max-w-3xl mx-auto">
       <Link
@@ -182,7 +175,7 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
                           className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition group"
                         >
                           <span className="text-xs font-bold text-gray-300 dark:text-gray-500 w-5 shrink-0">{lidx + 1}</span>
-                          <span className="text-base shrink-0">{lessonTypeIcon[lesson.lesson_type]}</span>
+                          <LessonTypeIcon type={lesson.lesson_type} />
                           <span className={`text-sm font-medium flex-1 group-hover:text-gray-900 dark:group-hover:text-white ${done ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-gray-200'}`}>
                             {lesson.title}
                           </span>
@@ -319,5 +312,26 @@ async function FileContent({ productId, title }: { productId: string; title: str
         <p className="text-sm text-red-500">Arquivo não encontrado.</p>
       )}
     </div>
+  )
+}
+
+const LESSON_TYPE_PATHS: Record<string, string> = {
+  video: 'M15.75 10.5l4.72-2.72a.75.75 0 011.28.53v7.38a.75.75 0 01-1.28.53l-4.72-2.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-7.5A2.25 2.25 0 0013.5 6.75h-9A2.25 2.25 0 002.25 9v7.5a2.25 2.25 0 002.25 2.25z',
+  text: 'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12h7.5m-7.5 3h7.5m-7.5-6h.75m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z',
+  file: 'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z',
+  link: 'M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244',
+}
+
+function LessonTypeIcon({ type }: { type: string }) {
+  const d = LESSON_TYPE_PATHS[type] ?? LESSON_TYPE_PATHS.file
+  return (
+    <span
+      className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
+      style={{ backgroundColor: 'var(--brand-bg)' }}
+    >
+      <svg className="w-3.5 h-3.5" style={{ color: 'var(--brand)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d={d} />
+      </svg>
+    </span>
   )
 }
