@@ -98,7 +98,7 @@ export default async function PostPage({ params }: { params: Promise<{ postId: s
           return (
             <div key={reply.id} className="bg-card rounded-xl border border-gray-100 dark:border-[#1e2030] px-5 py-4">
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: 'var(--brand-bg)', color: 'var(--brand-text)' }}>
                   {initials(author?.name ?? '?')}
                 </div>
                 <div className="flex-1 min-w-0">

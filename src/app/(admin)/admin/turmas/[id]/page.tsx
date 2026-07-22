@@ -106,7 +106,7 @@ export default async function GerenciarTurmaPage({ params }: { params: Promise<{
                     const profile = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles
                     return (
                       <div key={m.user_id} className="flex items-center gap-3 px-4 py-3">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-500/10 text-gray-500 dark:text-gray-400 shrink-0">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: 'var(--brand-bg)', color: 'var(--brand-text)' }}>
                           {profile?.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
