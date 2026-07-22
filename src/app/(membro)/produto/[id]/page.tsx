@@ -89,6 +89,12 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
       {/* Título e descrição ficam acima apenas quando há módulos (visão de curso) */}
       {hasPublishedLessons && (
         <>
+          {p.banner_url && (
+            <div className="mb-4 rounded-2xl overflow-hidden aspect-[21/9] sm:aspect-[3/1]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={p.banner_url} alt={p.title} className="w-full h-full object-cover" />
+            </div>
+          )}
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{p.title}</h1>
           {p.description && <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">{p.description}</p>}
         </>
