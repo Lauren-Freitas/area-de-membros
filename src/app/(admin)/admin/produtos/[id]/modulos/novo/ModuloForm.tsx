@@ -57,8 +57,8 @@ export function ModuloForm({ productId, module }: Props) {
               className="accent-[var(--brand)]"
             />
             <div>
-              <p className="text-sm font-medium text-gray-800">Imediatamente</p>
-              <p className="text-xs text-gray-400">Disponível assim que o aluno tiver acesso ao produto</p>
+              <p className="text-sm font-medium text-gray-800" style={releaseType === 'immediate' ? { color: 'var(--brand-text)' } : undefined}>Imediatamente</p>
+              <p className="text-xs text-gray-400" style={releaseType === 'immediate' ? { color: '#9a7230' } : undefined}>Disponível assim que o aluno tiver acesso ao produto</p>
             </div>
           </label>
 
@@ -73,8 +73,8 @@ export function ModuloForm({ productId, module }: Props) {
               className="accent-[var(--brand)] mt-0.5"
             />
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-800">Após X dias do acesso</p>
-              <p className="text-xs text-gray-400 mb-2">Libera automaticamente N dias após o aluno ganhar acesso ao produto</p>
+              <p className="text-sm font-medium text-gray-800" style={releaseType === 'days_after' ? { color: 'var(--brand-text)' } : undefined}>Após X dias do acesso</p>
+              <p className="text-xs text-gray-400 mb-2" style={releaseType === 'days_after' ? { color: '#9a7230' } : undefined}>Libera automaticamente N dias após o aluno ganhar acesso ao produto</p>
               {releaseType === 'days_after' && (
                 <div className="flex items-center gap-2">
                   <input
@@ -101,8 +101,8 @@ export function ModuloForm({ productId, module }: Props) {
               className="accent-[var(--brand)] mt-0.5"
             />
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-800">Em data específica</p>
-              <p className="text-xs text-gray-400 mb-2">Libera para todos na data e hora escolhidas</p>
+              <p className="text-sm font-medium text-gray-800" style={releaseType === 'date' ? { color: 'var(--brand-text)' } : undefined}>Em data específica</p>
+              <p className="text-xs text-gray-400 mb-2" style={releaseType === 'date' ? { color: '#9a7230' } : undefined}>Libera para todos na data e hora escolhidas</p>
               {releaseType === 'date' && (
                 <input
                   type="datetime-local"
