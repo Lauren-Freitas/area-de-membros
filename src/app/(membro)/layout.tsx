@@ -69,7 +69,7 @@ export default async function MemberLayout({ children }: { children: React.React
             <MobileSidebar />
             <BrandLogo size={32} className="shrink-0" />
             <div className="hidden sm:block">
-              <p className="text-sm font-semibold text-gray-900 dark:text-white leading-none">Thiago Cantalovo</p>
+              <p className="font-display text-sm font-semibold text-gray-900 dark:text-white leading-none tracking-tight">Thiago Cantalovo</p>
               <p className="text-xs text-gray-400 mt-0.5">Nutricionista</p>
             </div>
           </div>

@@ -44,6 +44,7 @@
   --color-gold-800: #5c4410;
   --color-gold-900: #3a2c08;
   --font-sans: var(--font-geist-sans);
+  --font-display: var(--font-fraunces);
 }
 
 body {

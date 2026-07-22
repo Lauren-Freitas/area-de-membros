@@ -95,7 +95,7 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
               <img src={p.banner_url} alt={p.title} className="w-full h-full object-cover" />
             </div>
           )}
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{p.title}</h1>
+          <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white mb-1 tracking-tight">{p.title}</h1>
           {p.description && <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">{p.description}</p>}
         </>
       )}
