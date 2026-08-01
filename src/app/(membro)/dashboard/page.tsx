@@ -205,10 +205,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         </section>
       )}
 
-      {/* Disponíveis para compra — produtos bloqueados */}
+      {/* Conteúdos exclusivos — produtos bloqueados */}
       {storeProducts.length > 0 && tab !== 'meus' && (
         <section id="disponiveis">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5">Disponíveis para compra</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-5">Conteúdos exclusivos</h2>
           <div className="space-y-8">
             {storeGroups.map(({ label, products: group }) => (
               <div key={label ?? '_store'}>

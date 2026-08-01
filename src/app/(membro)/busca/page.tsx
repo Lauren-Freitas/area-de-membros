@@ -97,7 +97,7 @@ export default async function BuscaPage({
           {/* Produtos */}
           {(productResults?.length ?? 0) > 0 && (
             <section>
-              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Produtos</h2>
+              <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Conteúdos</h2>
               <div className="space-y-2">
                 {productResults!.map(p => (
                   <Link
