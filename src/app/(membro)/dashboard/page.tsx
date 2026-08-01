@@ -26,14 +26,15 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     if (me?.role === 'admin' || me?.role === 'equipe') targetUserId = viewAsMemberId
   }
 
-  const [{ data: products }, { data: accesses }, { data: bannersData }, { data: certsData }, { data: cohortMembership }, { data: offersData }, { data: siteConfigData }] = await Promise.all([
+  const [{ data: products }, { data: accesses }, { data: bannersData }, { data: certsData }, { data: cohortMembership }, { data: offersData }, { data: siteConfigData }, { data: profileData }] = await Promise.all([
     adminClient.from('products').select('*').eq('is_active', true).order('sort_order'),
-    adminClient.from('user_products').select('product_id, expires_at').eq('user_id', targetUserId),
+    adminClient.from('user_products').select('product_id, expires_at, payment_status').eq('user_id', targetUserId),
     adminClient.from('banners').select('*').eq('is_active', true).or(`expires_at.is.null,expires_at.gt.${now}`).order('sort_order'),
     adminClient.from('certificates').select('id, product_id').eq('user_id', targetUserId),
     adminClient.from('cohort_members').select('cohorts(id, name, description, starts_at, ends_at, products(title))').eq('user_id', targetUserId).limit(1).maybeSingle(),
     adminClient.from('offers').select('id, title, description, original_price, promo_price, coupon_code, ends_at, product_id, products(title, buy_url)').eq('is_active', true).or(`ends_at.is.null,ends_at.gt.${now}`).order('sort_order'),
     adminClient.from('site_config').select('key, value').in('key', ['welcome_message']),
+    adminClient.from('profiles').select('name').eq('id', targetUserId).single(),
   ])
 
   const banners = (bannersData ?? []) as Banner[]
@@ -43,11 +44,17 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     : null
 
   const siteConfig = Object.fromEntries((siteConfigData ?? []).map(r => [r.key, r.value]))
-  const welcomeMessage = siteConfig['welcome_message'] ?? ''
+  const welcomeMessage = siteConfig['welcome_message']
+    || 'Todo o conteúdo abaixo foi preparado para ajudar você na sua evolução. Bom estudo!'
+  const firstName = (profileData?.name ?? '').trim().split(' ')[0] || 'aluno'
 
-  // Mapa de product_id → expires_at
+  // Mapa de product_id → expires_at / payment_status
+  type AccessRow = { product_id: string; expires_at?: string | null; payment_status?: string | null }
   const accessMap = new Map<string, string | null>(
-    (accesses ?? []).map((a) => [a.product_id, (a as { product_id: string; expires_at?: string | null }).expires_at ?? null])
+    (accesses ?? []).map((a) => [a.product_id, (a as AccessRow).expires_at ?? null])
+  )
+  const paymentStatusMap = new Map<string, string | null>(
+    (accesses ?? []).map((a) => [a.product_id, (a as AccessRow).payment_status ?? null])
   )
   const unlockedIds = new Set(accessMap.keys())
 
@@ -58,6 +65,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const allProducts: Product[] = products ?? []
   const myProducts = allProducts.filter((p) => unlockedIds.has(p.id))
   const storeProducts = allProducts.filter((p) => !unlockedIds.has(p.id))
+  const hasActiveSubscription = myProducts.some(p => p.billing_cycle && paymentStatusMap.get(p.id) === 'confirmed')
 
   // Agrupamento por categoria (se houver algum produto com categoria definida)
   const hasCategories = allProducts.some(p => p.category)
@@ -107,11 +115,32 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   return (
     <div className="space-y-10">
-      {welcomeMessage && (
-        <p className="text-sm text-gray-600 dark:text-gray-300 bg-card px-5 py-3 rounded-xl border border-gray-100 dark:border-[#1e2030]">
+      {/* Hero */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+          Olá, {firstName} 👋
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1.5 max-w-xl">
           {welcomeMessage}
         </p>
-      )}
+        {(myProducts.length > 0 || hasActiveSubscription) && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-xs text-gray-500 dark:text-gray-400">
+            {myProducts.length > 0 && (
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--brand)' }} />
+                {myProducts.length} {myProducts.length === 1 ? 'conteúdo liberado' : 'conteúdos liberados'}
+              </span>
+            )}
+            {hasActiveSubscription && (
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                Assinatura ativa
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
       <BannerList banners={banners} />
 
       {/* Card de turma */}
