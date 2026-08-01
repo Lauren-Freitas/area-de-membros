@@ -51,19 +51,19 @@ export function ProductCard({ product, unlocked, expiresAt, progress, certificat
           </div>
         )}
 
-        {/* Badge cadeado — canto superior direito */}
+        {/* Overlay premium — conteúdo bloqueado ou expirado */}
         {!hasAccess && (
-          <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
-            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px] flex flex-col items-center justify-center gap-1.5 text-center px-3">
+            <svg className="w-6 h-6 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
             </svg>
-          </div>
-        )}
-
-        {/* Badge expirado */}
-        {isExpired && (
-          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-sm text-[10px] font-semibold text-white/80">
-            Expirado
+            <p className="text-white text-xs font-semibold">{isExpired ? 'Acesso expirado' : 'Conteúdo Premium'}</p>
+            <span
+              className="inline-flex items-center text-[11px] font-semibold px-3 py-1 rounded-full transition group-hover:opacity-90"
+              style={{ backgroundColor: 'var(--brand)', color: '#fff' }}
+            >
+              {isExpired ? 'Renovar acesso' : 'Conhecer'}
+            </span>
           </div>
         )}
 
