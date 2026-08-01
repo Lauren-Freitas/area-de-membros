@@ -114,7 +114,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   }
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-12">
       {/* Hero */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
@@ -140,8 +140,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </div>
         )}
       </div>
-
-      <BannerList banners={banners} />
 
       {/* Card de turma */}
       {cohort && (
@@ -246,6 +244,14 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               )
             })}
           </div>
+        </section>
+      )}
+
+      {/* Novidades */}
+      {banners.length > 0 && (
+        <section>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Novidades</h2>
+          <BannerList banners={banners} />
         </section>
       )}
     </div>
