@@ -65,7 +65,7 @@ const NAV_ITEMS = [
   },
 ]
 
-export function MobileSidebar() {
+export function MobileSidebar({ userName }: { userName?: string }) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [conteudosOpen, setConteudosOpen] = useState(false)
@@ -88,6 +88,8 @@ export function MobileSidebar() {
     setSearch('')
     setOpen(false)
   }
+
+  const firstName = userName?.trim().split(' ')[0]
 
   return (
     <>
@@ -120,6 +122,12 @@ export function MobileSidebar() {
               </button>
             </div>
 
+            {firstName && (
+              <div className="px-5 py-4 border-b border-gray-100 dark:border-[#1e2030]">
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-200">Olá, {firstName} 👋</p>
+              </div>
+            )}
+
             <div className="px-4 py-3 border-b border-gray-100 dark:border-[#1e2030]">
               <form onSubmit={handleSearch} className="relative">
                 <svg
@@ -139,7 +147,7 @@ export function MobileSidebar() {
               </form>
             </div>
 
-            <nav className="flex-1 overflow-y-auto p-4 space-y-0.5">
+            <nav className="flex-1 overflow-y-auto p-4 space-y-1">
               {NAV_ITEMS.map(item => {
                 const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
                 const hasChildren = item.children && item.children.length > 0
@@ -150,7 +158,7 @@ export function MobileSidebar() {
                       {/* Botão principal com seta */}
                       <button
                         onClick={() => setConteudosOpen(v => !v)}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition ${
+                        className={`w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm font-medium transition ${
                           active ? '' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1a1f35]'
                         }`}
                         style={active ? { backgroundColor: 'var(--brand-bg)', color: 'var(--brand-text)' } : undefined}
@@ -188,7 +196,7 @@ export function MobileSidebar() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition ${
+                    className={`flex items-center gap-3 px-3 py-3.5 rounded-xl text-sm font-medium transition ${
                       active ? '' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1a1f35]'
                     }`}
                     style={active ? { backgroundColor: 'var(--brand-bg)', color: 'var(--brand-text)' } : undefined}

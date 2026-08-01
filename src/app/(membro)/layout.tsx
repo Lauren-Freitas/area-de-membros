@@ -55,6 +55,7 @@ export default async function MemberLayout({ children }: { children: React.React
   const myProducts = (allProducts ?? []).filter(p => unlockedIds.has(p.id))
 
   const userName = profile?.name ?? 'Usuário'
+  const firstName = userName.trim().split(' ')[0]
   const avatarUrl = (profile as { avatar_url?: string | null } | null)?.avatar_url ?? null
 
   return (
@@ -66,7 +67,7 @@ export default async function MemberLayout({ children }: { children: React.React
       <header className="bg-card border-b border-gray-100 dark:border-[#1e2030] sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <MobileSidebar />
+            <MobileSidebar userName={userName} />
             <BrandLogo size={32} className="shrink-0" />
             <div className="hidden sm:block">
               <p className="text-sm font-semibold text-gray-900 dark:text-white leading-none">Thiago Cantalovo</p>
@@ -85,6 +86,9 @@ export default async function MemberLayout({ children }: { children: React.React
                 Admin
               </a>
             )}
+            <span className="hidden md:inline text-sm text-gray-600 dark:text-gray-300 mr-1">
+              Olá, {firstName} 👋
+            </span>
             <NotificationBell notifications={notifications} unreadCount={unreadCount} />
             <ThemeToggle />
             <ProfileMenu name={userName} avatarUrl={avatarUrl} unreadCount={unreadCount} />
