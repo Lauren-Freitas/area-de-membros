@@ -7,9 +7,11 @@ interface ProductCardProps {
   expiresAt?: string | null
   progress?: { total: number; completed: number } | null
   certificateId?: string | null
+  isCourse?: boolean
+  lessonCount?: number
 }
 
-export function ProductCard({ product, unlocked, expiresAt, progress, certificateId }: ProductCardProps) {
+export function ProductCard({ product, unlocked, expiresAt, progress, certificateId, isCourse = false, lessonCount = 0 }: ProductCardProps) {
   const pct = progress && progress.total > 0 ? Math.round((progress.completed / progress.total) * 100) : 0
   const completed = pct === 100
 
@@ -18,11 +20,13 @@ export function ProductCard({ product, unlocked, expiresAt, progress, certificat
   const isExpired = expiry ? expiry < now : false
   const hasAccess = unlocked && !isExpired
 
+  const typeLabel = isCourse ? 'Curso' : product.content_type === 'video' ? 'Vídeo' : 'Arquivo'
+
   const buyTarget = product.buy_url
     ?? `https://wa.me/5561991900589?text=Ol%C3%A1!%20Tenho%20interesse%20em%3A%20${encodeURIComponent(product.title)}`
 
   const card = (
-    <div className="group relative rounded-2xl overflow-hidden transition-all duration-200 hover:scale-[1.02]">
+    <div className="group relative rounded-2xl overflow-hidden transition-all duration-200 hover:scale-[1.02] shadow-sm hover:shadow-lg hover:shadow-black/10 dark:hover:shadow-black/30">
       {/* Banner */}
       <div
         className="relative aspect-video overflow-hidden rounded-2xl"
@@ -81,7 +85,16 @@ export function ProductCard({ product, unlocked, expiresAt, progress, certificat
 
       {/* Título + descrição + info */}
       <div className="px-3 py-3">
-        <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-snug">{product.title}</h3>
+        <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide mb-1" style={{ color: 'var(--brand)' }}>
+          <span>{typeLabel}</span>
+          {isCourse && lessonCount > 0 && (
+            <>
+              <span className="text-gray-300 dark:text-gray-600">·</span>
+              <span className="text-gray-400 dark:text-gray-500 normal-case tracking-normal">{lessonCount} {lessonCount === 1 ? 'aula' : 'aulas'}</span>
+            </>
+          )}
+        </div>
+        <h3 className="font-bold text-gray-900 dark:text-white text-sm leading-snug">{product.title}</h3>
         {product.description && (
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed line-clamp-2">{product.description}</p>
         )}

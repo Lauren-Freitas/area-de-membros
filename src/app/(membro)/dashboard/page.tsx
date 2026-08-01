@@ -82,17 +82,23 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const myGroups = groupByCategory(myProducts)
   const storeGroups = groupByCategory(storeProducts)
 
-  // Calcula progresso para produtos desbloqueados
+  // Calcula contagem de aulas (todos os produtos, pra mostrar no card mesmo bloqueado) e progresso (só desbloqueados)
   const progressByProduct: Record<string, { total: number; completed: number }> = {}
-  if (myProducts.length > 0) {
-    const myProductIds = myProducts.map(p => p.id)
+  const isCourseByProduct: Record<string, boolean> = {}
+  if (allProducts.length > 0) {
+    const allProductIds = allProducts.map(p => p.id)
 
     const [{ data: allModules }, { data: userProgress }] = await Promise.all([
-      supabase.from('modules').select('id, product_id').in('product_id', myProductIds),
+      supabase.from('modules').select('id, product_id').in('product_id', allProductIds),
       supabase.from('lesson_progress').select('lesson_id').eq('user_id', user.id),
     ])
 
     const moduleIds = allModules?.map(m => m.id) ?? []
+    const moduleToProduct = Object.fromEntries(allModules?.map(m => [m.id, m.product_id]) ?? [])
+    for (const pid of allProductIds) {
+      isCourseByProduct[pid] = (allModules ?? []).some(m => m.product_id === pid)
+    }
+
     if (moduleIds.length > 0) {
       const { data: allLessons } = await supabase
         .from('lessons')
@@ -101,9 +107,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         .eq('is_published', true)
 
       const completedSet = new Set(userProgress?.map(p => p.lesson_id) ?? [])
-      const moduleToProduct = Object.fromEntries(allModules?.map(m => [m.id, m.product_id]) ?? [])
 
-      for (const pid of myProductIds) {
+      for (const pid of allProductIds) {
         const lessons = allLessons?.filter(l => moduleToProduct[l.module_id] === pid) ?? []
         progressByProduct[pid] = {
           total: lessons.length,
@@ -188,6 +193,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                         expiresAt={accessMap.get(product.id) ?? null}
                         progress={progressByProduct[product.id] ?? null}
                         certificateId={certByProduct[product.id] ?? null}
+                        isCourse={isCourseByProduct[product.id] ?? false}
+                        lessonCount={progressByProduct[product.id]?.total ?? 0}
                       />
                     ))}
                   </div>
@@ -220,6 +227,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                       expiresAt={null}
                       progress={null}
                       certificateId={null}
+                      isCourse={isCourseByProduct[product.id] ?? false}
+                      lessonCount={progressByProduct[product.id]?.total ?? 0}
                     />
                   ))}
                 </div>
