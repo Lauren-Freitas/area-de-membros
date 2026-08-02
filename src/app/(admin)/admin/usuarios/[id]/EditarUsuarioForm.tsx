@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Button } from '@/components/Button'
 import { ProductAccessPill } from '@/components/admin/ProductAccessPill'
 import type { AdminActionState } from '@/lib/actions/admin'
 import { resendAdminInvite } from '@/lib/actions/admin'
@@ -156,29 +157,16 @@ export function EditarUsuarioForm({ profile, action, products, userId }: Props) 
 
           {/* Botões */}
           <div className="flex items-center gap-3 flex-wrap">
-            <button
-              type="submit"
-              disabled={isPending}
-              className="px-5 py-2.5 text-sm font-semibold text-white rounded-lg transition hover:opacity-90 disabled:opacity-60"
-              style={{ backgroundColor: 'var(--brand)' }}
-            >
+            <Button type="submit" disabled={isPending}>
               {isPending ? 'Salvando...' : 'Salvar alterações'}
-            </button>
-            <Link
-              href={backHref}
-              className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-card border border-gray-200 hover:bg-gray-50 rounded-lg transition"
-            >
+            </Button>
+            <Button variant="secondary" href={backHref}>
               Cancelar
-            </Link>
+            </Button>
             {isAdmin && (
-              <button
-                type="button"
-                disabled={invitePending}
-                onClick={handleSendInvite}
-                className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-card border border-gray-200 hover:bg-gray-50 rounded-lg transition disabled:opacity-60"
-              >
+              <Button variant="secondary" type="button" disabled={invitePending} onClick={handleSendInvite}>
                 {invitePending ? 'Enviando...' : 'Reenviar convite'}
-              </button>
+              </Button>
             )}
           </div>
           {inviteState?.success && <p className="text-xs text-green-600 mt-1">Convite enviado com sucesso!</p>}

@@ -4,6 +4,7 @@ import { useActionState, useRef, useState, useTransition } from 'react'
 import { saveProduct } from '@/lib/actions/admin'
 import { generatePaymentLink } from '@/lib/actions/asaas'
 import { Switch } from '@/components/admin/Switch'
+import { Button } from '@/components/Button'
 import { Product } from '@/types'
 
 const BILLING_CYCLES: { value: string; label: string }[] = [
@@ -231,20 +232,12 @@ export function ProductForm({ product }: { product?: Product }) {
       </div>
 
       <div className="flex gap-3 pt-2 border-t border-gray-100">
-        <button
-          type="submit"
-          disabled={isPending}
-          className="px-6 py-2.5 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 disabled:opacity-60"
-          style={{ backgroundColor: 'var(--brand)' }}
-        >
+        <Button type="submit" disabled={isPending}>
           {isPending ? 'Salvando...' : isEditing ? 'Salvar alterações' : 'Criar produto'}
-        </button>
-        <a
-          href="/admin/produtos"
-          className="px-6 py-2.5 bg-card border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-semibold rounded-lg transition"
-        >
+        </Button>
+        <Button variant="secondary" href="/admin/produtos">
           Cancelar
-        </a>
+        </Button>
       </div>
     </form>
   )

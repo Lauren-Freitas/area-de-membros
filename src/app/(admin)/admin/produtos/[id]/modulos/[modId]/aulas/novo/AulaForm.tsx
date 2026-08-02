@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import { saveLesson } from '@/lib/actions/admin'
-import Link from 'next/link'
+import { Button } from '@/components/Button'
 import { Lesson, LessonAttachment } from '@/types'
 import { RichTextEditor } from '@/components/admin/RichTextEditor'
 import { AttachmentsManager } from '@/components/admin/AttachmentsManager'
@@ -170,17 +170,12 @@ export function AulaForm({ productId, moduleId, lesson, attachments }: Props) {
       </div>
 
       <div className="flex items-center gap-3 pt-2 border-t border-gray-100">
-        <button
-          type="submit"
-          disabled={isPending}
-          className="px-6 py-2.5 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 disabled:opacity-60"
-          style={{ backgroundColor: 'var(--brand)' }}
-        >
+        <Button type="submit" disabled={isPending}>
           {isPending ? 'Salvando...' : lesson ? 'Salvar alterações' : 'Criar aula'}
-        </button>
-        <Link href={`/admin/produtos/${productId}/modulos/${moduleId}`} className="px-5 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+        </Button>
+        <Button variant="secondary" href={`/admin/produtos/${productId}/modulos/${moduleId}`}>
           Cancelar
-        </Link>
+        </Button>
       </div>
     </form>
   )

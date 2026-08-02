@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { saveOffer } from '@/lib/actions/offers'
 import { Switch } from '@/components/admin/Switch'
+import { Button } from '@/components/Button'
 
 interface Product { id: string; title: string }
 interface Offer {
@@ -115,14 +116,10 @@ export function OfertaForm({ offer, products }: { offer?: Offer; products: Produ
       </div>
 
       <div className="flex items-center gap-3 pt-2">
-        <button
-          type="submit"
-          className="px-5 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-          style={{ backgroundColor: 'var(--brand)' }}
-        >
+        <Button type="submit">
           {offer ? 'Salvar alterações' : 'Criar oferta'}
-        </button>
-        <a href="/admin/ofertas" className="px-5 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition">Cancelar</a>
+        </Button>
+        <Button variant="secondary" href="/admin/ofertas">Cancelar</Button>
       </div>
     </form>
   )

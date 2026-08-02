@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import { createUser } from '@/lib/actions/admin'
-import Link from 'next/link'
+import { Button } from '@/components/Button'
 
 interface Product { id: string; title: string }
 
@@ -165,24 +165,16 @@ export function NovoUsuarioForm({ products, isEquipe = false }: { products: Prod
       )}
 
       <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={isPending}
-          className="px-6 py-2.5 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 disabled:opacity-60"
-          style={{ backgroundColor: 'var(--brand)' }}
-        >
+        <Button type="submit" disabled={isPending}>
           {isPending
             ? 'Criando...'
             : isEquipe
               ? 'Criar colaborador e enviar convite'
               : 'Criar membro e enviar convite'}
-        </button>
-        <Link
-          href={isEquipe ? '/admin/configuracoes' : '/admin/usuarios'}
-          className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-card border border-gray-200 hover:bg-gray-50 rounded-lg transition"
-        >
+        </Button>
+        <Button variant="secondary" href={isEquipe ? '/admin/configuracoes' : '/admin/usuarios'}>
           Cancelar
-        </Link>
+        </Button>
       </div>
     </form>
   )
