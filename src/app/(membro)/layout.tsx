@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
+import { after } from 'next/server'
 import { cookies } from 'next/headers'
 import { BrandLogo } from '@/components/BrandLogo'
 import { ThemeToggle } from '@/components/ThemeToggle'
@@ -10,6 +11,13 @@ import { ProfileMenu } from '@/components/ProfileMenu'
 import { MobileSidebar } from '@/components/MobileSidebar'
 import { ProteinoFAB } from '@/components/ProteinoFAB'
 import { ViewAsBanner } from '@/components/ViewAsBanner'
+
+async function touchLastLogin(adminClient: ReturnType<typeof createAdminClient>, userId: string, lastLoginAt: string | null | undefined) {
+  const isStale = !lastLoginAt || Date.now() - new Date(lastLoginAt).getTime() > 5 * 60 * 1000
+  if (isStale) {
+    await adminClient.from('profiles').update({ last_login_at: new Date().toISOString() }).eq('id', userId)
+  }
+}
 
 export default async function MemberLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -34,7 +42,7 @@ export default async function MemberLayout({ children }: { children: React.React
   const targetId = isViewingAs ? viewAsMemberId! : user.id
 
   const [{ data: profile }, { data: notifData }, { data: userProducts }, { data: allProducts }] = await Promise.all([
-    adminClient.from('profiles').select('name, role, avatar_url, is_active').eq('id', targetId).single(),
+    adminClient.from('profiles').select('name, role, avatar_url, is_active, last_login_at').eq('id', targetId).single(),
     adminClient.from('notifications')
       .select('id, title, body, link, read, created_at')
       .eq('user_id', targetId)
@@ -57,6 +65,15 @@ export default async function MemberLayout({ children }: { children: React.React
   const userName = profile?.name ?? 'Usuário'
   const firstName = userName.trim().split(' ')[0]
   const avatarUrl = (profile as { avatar_url?: string | null } | null)?.avatar_url ?? null
+
+  // Último acesso — atualiza no máximo a cada 5 minutos pra não gravar a cada navegação,
+  // e nunca em modo "ver como membro" (não é um acesso de verdade do membro).
+  // A escrita roda depois da resposta (after()) pra não sobrescrever o valor antes da
+  // página atual (ex: a home, que mostra "último acesso") ler o valor anterior.
+  if (!isViewingAs) {
+    const lastLoginAt = (profile as { last_login_at?: string | null } | null)?.last_login_at
+    after(() => touchLastLogin(adminClient, user.id, lastLoginAt))
+  }
 
   return (
     <div className={`min-h-screen bg-[var(--background)] transition-colors duration-200 ${isViewingAs ? 'pt-10' : ''}`}>

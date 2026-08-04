@@ -35,7 +35,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     adminClient.from('cohort_members').select('cohorts(id, name, description, starts_at, ends_at, products(title))').eq('user_id', targetUserId).limit(1).maybeSingle(),
     adminClient.from('offers').select('id, title, description, original_price, promo_price, coupon_code, ends_at, product_id, products(title, buy_url)').eq('is_active', true).or(`ends_at.is.null,ends_at.gt.${now}`).order('sort_order'),
     adminClient.from('site_config').select('key, value').in('key', ['welcome_message']),
-    adminClient.from('profiles').select('name').eq('id', targetUserId).single(),
+    adminClient.from('profiles').select('name, last_login_at').eq('id', targetUserId).single(),
   ])
 
   const banners = (bannersData ?? []) as Banner[]
@@ -48,6 +48,13 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const welcomeMessage = siteConfig['welcome_message']
     || 'Todo o conteúdo abaixo foi preparado para ajudar você na sua evolução. Bom estudo!'
   const firstName = (profileData?.name ?? '').trim().split(' ')[0] || 'aluno'
+
+  const lastLoginAt = profileData?.last_login_at ? new Date(profileData.last_login_at) : null
+  const lastLoginLabel = lastLoginAt && (() => {
+    const isToday = lastLoginAt.toDateString() === new Date().toDateString()
+    const time = lastLoginAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    return isToday ? `Hoje às ${time}` : `${lastLoginAt.toLocaleDateString('pt-BR')} às ${time}`
+  })()
 
   // Mapa de product_id → expires_at / payment_status
   type AccessRow = { product_id: string; expires_at?: string | null; payment_status?: string | null }
@@ -130,7 +137,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1.5 max-w-xl">
           {welcomeMessage}
         </p>
-        {(myProducts.length > 0 || hasActiveSubscription) && (
+        {(myProducts.length > 0 || hasActiveSubscription || lastLoginLabel) && (
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-xs text-gray-500 dark:text-gray-400">
             {myProducts.length > 0 && (
               <span className="inline-flex items-center gap-1.5">
@@ -142,6 +149,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               <span className="inline-flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
                 Assinatura ativa
+              </span>
+            )}
+            {lastLoginLabel && (
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
+                Último acesso: {lastLoginLabel}
               </span>
             )}
           </div>
