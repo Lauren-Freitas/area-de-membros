@@ -134,32 +134,19 @@ export default async function AulaPage({
             Voltar ao curso
           </Link>
 
-          {/* Player / conteúdo — vem primeiro. Aulas antigas do tipo arquivo/link mantêm o formato anterior. */}
+          {/* Vídeo — vem primeiro. Aulas antigas do tipo arquivo/link mantêm o formato anterior. */}
           {l.lesson_type === 'file' || l.lesson_type === 'link' ? (
             <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
               {l.lesson_type === 'file' && <FileLesson url={l.content_url} title={l.title} />}
               {l.lesson_type === 'link' && <LinkLesson url={l.content_url} title={l.title} />}
             </div>
           ) : (
-            <div className="space-y-4">
-              {l.content_url && (
-                <LessonVideoPlayer url={l.content_url} progressPct={modPct} prevHref={prevHref} nextHref={nextHref} />
-              )}
-              {(l.content_html || l.content_text) && (
-                <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
-                  {l.content_html ? <RichTextContent html={l.content_html} /> : <TextLesson content={l.content_text} />}
-                </div>
-              )}
-              {!l.content_url && !l.content_html && !l.content_text && (
-                <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-8 text-center text-gray-400">
-                  Conteúdo não disponível.
-                </div>
-              )}
-              {attachments.length > 0 && <AttachmentsList attachments={attachments} />}
-            </div>
+            l.content_url && (
+              <LessonVideoPlayer url={l.content_url} progressPct={modPct} prevHref={prevHref} nextHref={nextHref} />
+            )
           )}
 
-          {/* Título e descrição — abaixo do vídeo */}
+          {/* Título e descrição da aula */}
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{l.modules?.title}</p>
             <div className="flex items-start gap-3">
@@ -175,6 +162,21 @@ export default async function AulaPage({
             {l.description && <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{l.description}</p>}
           </div>
 
+          {/* Conteúdo em texto da aula, quando houver */}
+          {l.lesson_type !== 'file' && l.lesson_type !== 'link' && (l.content_html || l.content_text) && (
+            <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
+              {l.content_html ? <RichTextContent html={l.content_html} /> : <TextLesson content={l.content_text} />}
+            </div>
+          )}
+          {l.lesson_type !== 'file' && l.lesson_type !== 'link' && !l.content_url && !l.content_html && !l.content_text && (
+            <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-8 text-center text-gray-400">
+              Conteúdo não disponível.
+            </div>
+          )}
+
+          {/* Arquivos da aula */}
+          {attachments.length > 0 && <AttachmentsList attachments={attachments} />}
+
           {/* Sidebar no mobile (abaixo do vídeo) */}
           <div id="lesson-sidebar" className="lg:hidden">
             <LessonSidebar
@@ -185,65 +187,59 @@ export default async function AulaPage({
             />
           </div>
 
-          {/* Comentários + Ações lado a lado (igual MemberKit) */}
-          <div className="grid grid-cols-1 sm:grid-cols-[1fr_220px] gap-4 items-start">
+          {/* Comentários */}
+          <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
+            <LessonComments
+              lessonId={aulaId}
+              productId={id}
+              currentUserId={user.id}
+              isAdmin={isAdmin}
+              initialComments={comments}
+              userInitials={userInitials}
+              userAvatarUrl={userAvatarUrl}
+            />
+          </div>
 
-            {/* Comentários */}
-            <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
-              <LessonComments
-                lessonId={aulaId}
-                productId={id}
-                currentUserId={user.id}
-                isAdmin={isAdmin}
-                initialComments={comments}
-                userInitials={userInitials}
-                userAvatarUrl={userAvatarUrl}
-              />
+          {/* Avaliação */}
+          <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Avaliação</p>
+            <LessonRating lessonId={aulaId} productId={id} initialRating={myRating} />
+          </div>
+
+          {/* Progresso + navegação pra próxima aula */}
+          <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5 flex flex-col gap-4">
+            <div>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Progresso</p>
+              <LessonCompleteButton lessonId={aulaId} productId={id} completed={isCompleted} />
             </div>
 
-            {/* Painel de ações */}
-            <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5 flex flex-col gap-5">
-              {/* Avaliação */}
-              <div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Avaliação</p>
-                <LessonRating lessonId={aulaId} productId={id} initialRating={myRating} />
+            {(prevLesson || nextLesson) && (
+              <div className="flex items-center gap-2 pt-1 border-t border-gray-100 dark:border-[#1e2030]">
+                {prevLesson && (
+                  <Link
+                    href={`/produto/${id}/aula/${prevLesson.id}`}
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Anterior
+                  </Link>
+                )}
+                {nextLesson && (
+                  <Link
+                    href={`/produto/${id}/aula/${nextLesson.id}`}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-white transition hover:opacity-90"
+                    style={{ backgroundColor: 'var(--brand)' }}
+                  >
+                    Próxima aula
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                )}
               </div>
-
-              {/* Marcar como concluído */}
-              <div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Progresso</p>
-                <LessonCompleteButton lessonId={aulaId} productId={id} completed={isCompleted} />
-              </div>
-
-              {/* Navegação */}
-              {(prevLesson || nextLesson) && (
-                <div className="flex flex-col gap-2 pt-1 border-t border-gray-100 dark:border-[#1e2030]">
-                  {prevLesson && (
-                    <Link
-                      href={`/produto/${id}/aula/${prevLesson.id}`}
-                      className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                      </svg>
-                      Anterior
-                    </Link>
-                  )}
-                  {nextLesson && (
-                    <Link
-                      href={`/produto/${id}/aula/${nextLesson.id}`}
-                      className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-white transition hover:opacity-90"
-                      style={{ backgroundColor: 'var(--brand)' }}
-                    >
-                      Próxima aula
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                  )}
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
 
