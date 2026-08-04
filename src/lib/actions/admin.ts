@@ -70,6 +70,7 @@ export async function saveProduct(
   const is_pack = formData.get('is_pack') === 'on'
   const sort_order = parseInt(formData.get('sort_order') as string) || 0
   const is_active = formData.get('is_active') === 'on'
+  const is_featured = formData.get('is_featured') === 'on'
 
   if (!title) return { error: 'O título é obrigatório.' }
 
@@ -80,14 +81,19 @@ export async function saveProduct(
   const content_type = (formData.get('content_type') as string) || 'file'
   const content_url = (formData.get('content_url') as string)?.trim() || null
   const kiwify_product_id = (formData.get('kiwify_product_id') as string)?.trim() || null
-  const payload = { title, description: description || '', banner_url, buy_url, price, billing_cycle, content_type, content_url, kiwify_product_id, is_pack, sort_order, is_active }
+  const payload = { title, description: description || '', banner_url, buy_url, price, billing_cycle, content_type, content_url, kiwify_product_id, is_pack, sort_order, is_active, is_featured }
 
   const isNew = !id || id === 'novo'
-  const { error } = isNew
-    ? await admin.from('products').insert(payload)
-    : await admin.from('products').update(payload).eq('id', id)
+  const { data: saved, error } = isNew
+    ? await admin.from('products').insert(payload).select('id').single()
+    : await admin.from('products').update(payload).eq('id', id).select('id').single()
 
   if (error) return { error: error.message }
+
+  // Só um produto em destaque por vez — desmarca qualquer outro que esteja
+  if (is_featured && saved?.id) {
+    await admin.from('products').update({ is_featured: false }).eq('is_featured', true).neq('id', saved.id)
+  }
 
   await logActivity({ action: isNew ? 'criar' : 'editar', entity: 'produto', entityName: title })
   revalidatePath('/admin/produtos')

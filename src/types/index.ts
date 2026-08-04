@@ -33,6 +33,7 @@ export interface Product {
   billing_cycle: BillingCycle | null
   is_active: boolean
   is_pack: boolean
+  is_featured: boolean
   sort_order: number
   category: string | null
   created_at: string

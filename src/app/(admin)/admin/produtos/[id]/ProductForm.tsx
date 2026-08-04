@@ -55,6 +55,7 @@ export function ProductForm({ product }: { product?: Product }) {
   const [contentType, setContentType] = useState(product?.content_type ?? 'file')
   const [isActive, setIsActive] = useState(product?.is_active ?? true)
   const [isPack, setIsPack] = useState(product?.is_pack ?? false)
+  const [isFeatured, setIsFeatured] = useState(product?.is_featured ?? false)
   const isEditing = !!product
 
   return (
@@ -229,6 +230,18 @@ export function ProductForm({ product }: { product?: Product }) {
             <Switch name="is_pack" checked={isPack} onChange={setIsPack} label="Pack completo" activeLabel="Sim" inactiveLabel="Não" title="Libera acesso a tudo" />
           </div>
         )}
+
+        <div className="pt-5">
+          <Switch
+            name="is_featured"
+            checked={isFeatured}
+            onChange={setIsFeatured}
+            label="Destaque na home"
+            activeLabel="Sim"
+            inactiveLabel="Não"
+            title="Aparece em destaque no topo da home do aluno (só um produto por vez)"
+          />
+        </div>
       </div>
 
       <div className="flex gap-3 pt-2 border-t border-gray-100">

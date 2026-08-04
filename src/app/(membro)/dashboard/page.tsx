@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
+import Link from 'next/link'
 import { ProductCard } from '@/components/ProductCard'
 import { BannerList } from '@/components/BannerList'
 import { OfertaCard } from '@/components/OfertaCard'
@@ -81,6 +82,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   }
   const myGroups = groupByCategory(myProducts)
   const storeGroups = groupByCategory(storeProducts)
+  const featuredProduct = myProducts.find(p => p.is_featured) ?? null
 
   // Calcula contagem de aulas (todos os produtos, pra mostrar no card mesmo bloqueado) e progresso (só desbloqueados)
   const progressByProduct: Record<string, { total: number; completed: number }> = {}
@@ -145,6 +147,37 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           </div>
         )}
       </div>
+
+      {/* Conteúdo em destaque */}
+      {featuredProduct && (
+        <section>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Em destaque</h2>
+          <div className="rounded-2xl overflow-hidden border border-gray-100 dark:border-[#1e2030] bg-card sm:flex">
+            {featuredProduct.banner_url && (
+              <div className="sm:w-2/5 aspect-video sm:aspect-auto overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={featuredProduct.banner_url} alt={featuredProduct.title} className="w-full h-full object-cover" />
+              </div>
+            )}
+            <div className="flex-1 p-6 flex flex-col justify-center">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1.5">{featuredProduct.title}</h3>
+              {featuredProduct.description && (
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">{featuredProduct.description}</p>
+              )}
+              <Link
+                href={`/produto/${featuredProduct.id}`}
+                className="inline-flex items-center gap-2 self-start px-5 py-2.5 text-sm font-semibold text-white rounded-xl transition hover:opacity-90"
+                style={{ backgroundColor: 'var(--brand)' }}
+              >
+                {(progressByProduct[featuredProduct.id]?.completed ?? 0) > 0 ? 'Continuar' : 'Começar agora'}
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Card de turma */}
       {cohort && (
