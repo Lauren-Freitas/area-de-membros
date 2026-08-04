@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ProductCard } from '@/components/ProductCard'
 import { BannerList } from '@/components/BannerList'
 import { OfertaCard } from '@/components/OfertaCard'
+import { WelcomeModal } from '@/components/WelcomeModal'
 import { Product, Banner } from '@/types'
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
@@ -35,7 +36,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     adminClient.from('cohort_members').select('cohorts(id, name, description, starts_at, ends_at, products(title))').eq('user_id', targetUserId).limit(1).maybeSingle(),
     adminClient.from('offers').select('id, title, description, original_price, promo_price, coupon_code, ends_at, product_id, products(title, buy_url)').eq('is_active', true).or(`ends_at.is.null,ends_at.gt.${now}`).order('sort_order'),
     adminClient.from('site_config').select('key, value').in('key', ['welcome_message']),
-    adminClient.from('profiles').select('name, last_login_at').eq('id', targetUserId).single(),
+    adminClient.from('profiles').select('name, last_login_at, welcome_seen_at').eq('id', targetUserId).single(),
   ])
 
   const banners = (bannersData ?? []) as Banner[]
@@ -48,6 +49,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const welcomeMessage = siteConfig['welcome_message']
     || 'Todo o conteúdo abaixo foi preparado para ajudar você na sua evolução. Bom estudo!'
   const firstName = (profileData?.name ?? '').trim().split(' ')[0] || 'aluno'
+
+  const showWelcome = targetUserId === user.id && !profileData?.welcome_seen_at
 
   const lastLoginAt = profileData?.last_login_at ? new Date(profileData.last_login_at) : null
   const lastLoginLabel = lastLoginAt && (() => {
@@ -129,6 +132,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   return (
     <div className="space-y-12">
+      {showWelcome && <WelcomeModal firstName={firstName} />}
+
       {/* Hero */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">

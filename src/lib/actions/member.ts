@@ -149,3 +149,12 @@ export async function submitTicket(
   revalidatePath('/atendimento')
   return { success: true }
 }
+
+export async function markWelcomeSeen() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  await supabase.from('profiles').update({ welcome_seen_at: new Date().toISOString() }).eq('id', user.id)
+  revalidatePath('/dashboard')
+}
