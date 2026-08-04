@@ -276,33 +276,69 @@ function RichTextContent({ html }: { html: string }) {
   )
 }
 
+const FILE_TYPE_BY_EXT: Record<string, { label: string; d: string }> = {
+  pdf: {
+    label: 'PDF',
+    d: 'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12h7.5m-7.5 3h7.5m-7.5-6h.75m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z',
+  },
+  xls: { label: 'Planilha', d: 'M3 3.75A.75.75 0 013.75 3h16.5a.75.75 0 01.75.75V20.25a.75.75 0 01-.75.75H3.75a.75.75 0 01-.75-.75V3.75zM3.75 9h16.5M3.75 15h16.5M9 3.75v16.5' },
+  xlsx: { label: 'Planilha', d: 'M3 3.75A.75.75 0 013.75 3h16.5a.75.75 0 01.75.75V20.25a.75.75 0 01-.75.75H3.75a.75.75 0 01-.75-.75V3.75zM3.75 9h16.5M3.75 15h16.5M9 3.75v16.5' },
+  csv: { label: 'Planilha', d: 'M3 3.75A.75.75 0 013.75 3h16.5a.75.75 0 01.75.75V20.25a.75.75 0 01-.75.75H3.75a.75.75 0 01-.75-.75V3.75zM3.75 9h16.5M3.75 15h16.5M9 3.75v16.5' },
+  doc: { label: 'Documento', d: 'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z' },
+  docx: { label: 'Documento', d: 'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z' },
+  ppt: { label: 'Apresentação', d: 'M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25' },
+  pptx: { label: 'Apresentação', d: 'M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25' },
+  zip: { label: 'Arquivo compactado', d: 'M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z' },
+  rar: { label: 'Arquivo compactado', d: 'M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z' },
+  png: { label: 'Imagem', d: 'M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M18 22.5H6a2.25 2.25 0 01-2.25-2.25V3.75A2.25 2.25 0 016 1.5h12a2.25 2.25 0 012.25 2.25V20.25A2.25 2.25 0 0118 22.5zM10.5 8.25a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' },
+  jpg: { label: 'Imagem', d: 'M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M18 22.5H6a2.25 2.25 0 01-2.25-2.25V3.75A2.25 2.25 0 016 1.5h12a2.25 2.25 0 012.25 2.25V20.25A2.25 2.25 0 0118 22.5zM10.5 8.25a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' },
+  jpeg: { label: 'Imagem', d: 'M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M18 22.5H6a2.25 2.25 0 01-2.25-2.25V3.75A2.25 2.25 0 016 1.5h12a2.25 2.25 0 012.25 2.25V20.25A2.25 2.25 0 0118 22.5zM10.5 8.25a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' },
+}
+const FILE_TYPE_DEFAULT = { label: 'Arquivo', d: 'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z' }
+
 function AttachmentsList({ attachments }: { attachments: (LessonAttachment & { url: string | null })[] }) {
   function formatSize(bytes: number) {
     if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
+  function fileType(fileName: string) {
+    const ext = fileName.split('.').pop()?.toLowerCase() ?? ''
+    return FILE_TYPE_BY_EXT[ext] ?? FILE_TYPE_DEFAULT
+  }
   return (
     <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5">
-      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Anexos</p>
-      <div className="divide-y divide-gray-100 dark:divide-gray-700">
-        {attachments.map(a => (
-          <div key={a.id} className="flex items-center gap-3 py-2.5">
-            <span className="flex-1 min-w-0 truncate text-sm text-gray-700 dark:text-gray-300">{a.file_name}</span>
-            <span className="text-xs text-gray-400 shrink-0">{formatSize(a.file_size)}</span>
-            {a.url ? (
-              <a
-                href={a.url}
-                download={a.file_name}
-                className="text-xs font-semibold shrink-0 px-3 py-1.5 rounded-lg text-white transition hover:opacity-90"
-                style={{ backgroundColor: 'var(--brand)' }}
-              >
-                Baixar
-              </a>
-            ) : (
-              <span className="text-xs text-gray-300 shrink-0">Indisponível</span>
-            )}
-          </div>
-        ))}
+      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Arquivos da aula</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {attachments.map(a => {
+          const type = fileType(a.file_name)
+          return (
+            <div key={a.id} className="flex items-start gap-3 p-3.5 rounded-xl border border-gray-100 dark:border-[#1e2030]">
+              <span className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: 'var(--brand-bg)' }}>
+                <svg className="w-4.5 h-4.5" style={{ color: 'var(--brand)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d={type.d} />
+                </svg>
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{a.file_name}</p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {type.label} · {formatSize(a.file_size)} · {new Date(a.created_at).toLocaleDateString('pt-BR')}
+                </p>
+              </div>
+              {a.url ? (
+                <a
+                  href={a.url}
+                  download={a.file_name}
+                  className="text-xs font-semibold shrink-0 px-3 py-1.5 rounded-lg text-white transition hover:opacity-90"
+                  style={{ backgroundColor: 'var(--brand)' }}
+                >
+                  Baixar
+                </a>
+              ) : (
+                <span className="text-xs text-gray-300 shrink-0">Indisponível</span>
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
