@@ -70,6 +70,20 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
   const overallPct = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
   const hasPublishedLessons = totalLessons > 0
 
+  // Aula alvo do botão "Começar curso"/"Continuar curso": primeira não concluída, ou a primeira de todas
+  const flatLessons = mods.flatMap(m => (m.lessons ?? []).filter(l => l.is_published).sort((a, b) => a.sort_order - b.sort_order))
+  const nextLesson = flatLessons.find(l => !completedSet.has(l.id)) ?? flatLessons[0] ?? null
+
+  // Arquivos disponíveis no curso inteiro (soma dos anexos de todas as aulas)
+  let attachmentCount = 0
+  if (flatLessons.length > 0) {
+    const { count } = await supabase
+      .from('lesson_attachments')
+      .select('id', { count: 'exact', head: true })
+      .in('lesson_id', flatLessons.map(l => l.id))
+    attachmentCount = count ?? 0
+  }
+
   const myRating = ratingResult.data?.rating ?? null
   type CommentRow = { id: string; content: string; created_at: string; user_id: string; profiles: { name: string } | null }
   const comments: CommentRow[] = (commentsResult.data as CommentRow[] | null) ?? []
@@ -86,18 +100,56 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
         Voltar para meus conteúdos
       </Link>
 
-      {/* Título e descrição ficam acima apenas quando há módulos (visão de curso) */}
+      {/* Painel do curso — visão geral + portão de entrada, só quando há módulos */}
       {hasPublishedLessons && (
-        <>
+        <div className="mb-6 rounded-2xl overflow-hidden border border-gray-100 dark:border-[#1e2030] bg-card">
           {p.banner_url && (
-            <div className="mb-4 rounded-2xl overflow-hidden aspect-[21/9] sm:aspect-[3/1]">
+            <div className="aspect-[21/9] sm:aspect-[3/1] overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={p.banner_url} alt={p.title} className="w-full h-full object-cover" />
             </div>
           )}
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{p.title}</h1>
-          {p.description && <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">{p.description}</p>}
-        </>
+          <div className="p-5 sm:p-6">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{p.title}</h1>
+            {p.description && <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 max-w-2xl">{p.description}</p>}
+
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-500 dark:text-gray-400 mb-5">
+              <span className="inline-flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                </svg>
+                {mods.length} {mods.length === 1 ? 'módulo' : 'módulos'}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-2.72a.75.75 0 011.28.53v7.38a.75.75 0 01-1.28.53l-4.72-2.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-7.5A2.25 2.25 0 0013.5 6.75h-9A2.25 2.25 0 002.25 9v7.5a2.25 2.25 0 002.25 2.25z" />
+                </svg>
+                {totalLessons} {totalLessons === 1 ? 'aula' : 'aulas'}
+              </span>
+              {attachmentCount > 0 && (
+                <span className="inline-flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
+                  </svg>
+                  {attachmentCount} {attachmentCount === 1 ? 'arquivo disponível' : 'arquivos disponíveis'}
+                </span>
+              )}
+            </div>
+
+            {nextLesson && (
+              <Link
+                href={`/produto/${id}/aula/${nextLesson.id}`}
+                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white rounded-xl transition hover:opacity-90"
+                style={{ backgroundColor: 'var(--brand)' }}
+              >
+                {completedLessons > 0 ? 'Continuar curso' : 'Começar curso'}
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </Link>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Banner de certificado */}
