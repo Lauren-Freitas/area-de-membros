@@ -194,15 +194,29 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
             const lessons = [...(mod.lessons ?? [])].filter(l => l.is_published).sort((a, b) => a.sort_order - b.sort_order)
             const modCompleted = lessons.filter(l => completedSet.has(l.id)).length
             const modPct = lessons.length > 0 ? Math.round((modCompleted / lessons.length) * 100) : 0
+            const modDone = lessons.length > 0 && modCompleted === lessons.length
 
             return (
               <div key={mod.id} className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
                 <div className="px-5 py-4 border-b border-gray-50 dark:border-[#1e2030]">
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <div>
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Módulo {idx + 1}</p>
-                      <h2 className="font-bold text-gray-900 dark:text-white">{mod.title}</h2>
-                      {mod.description && <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{mod.description}</p>}
+                    <div className="flex items-start gap-2.5">
+                      {lessons.length > 0 && (
+                        modDone ? (
+                          <span className="mt-1 shrink-0 w-4 h-4 rounded-full flex items-center justify-center" style={{ backgroundColor: '#22c55e' }}>
+                            <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          </span>
+                        ) : (
+                          <span className="mt-1 shrink-0 w-4 h-4 rounded-full border-2 border-gray-200 dark:border-gray-600" />
+                        )
+                      )}
+                      <div>
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Módulo {idx + 1}</p>
+                        <h2 className="font-bold text-gray-900 dark:text-white">{mod.title}</h2>
+                        {mod.description && <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{mod.description}</p>}
+                      </div>
                     </div>
                     {lessons.length > 0 && (
                       <span className="shrink-0 text-xs font-medium text-gray-400 mt-1">
@@ -314,6 +328,20 @@ function SimpleProductView({
       <div>
         <h1 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h1>
         {description && <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{description}</p>}
+      </div>
+
+      {/* Barra de progresso — mesmo em conteúdo único (sem módulos/aulas) */}
+      <div>
+        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1.5">
+          <span>{isCompleted ? 'Concluído' : 'Não concluído'}</span>
+          <span className="font-semibold" style={{ color: 'var(--brand)' }}>{isCompleted ? 100 : 0}%</span>
+        </div>
+        <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{ width: isCompleted ? '100%' : '0%', backgroundColor: 'var(--brand)' }}
+          />
+        </div>
       </div>
 
       {/* Comentários + Ações */}
