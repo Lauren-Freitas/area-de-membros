@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Banner } from '@/types'
 import { deleteBanner } from '@/lib/actions/admin'
+import { DeleteConfirmButton } from '@/components/DeleteConfirmButton'
 
 const typeLabel: Record<string, string> = { info: 'Info', success: 'Sucesso', warning: 'Aviso', promo: 'Promo' }
 const typeColor: Record<string, string> = {
@@ -71,11 +72,11 @@ export default async function BannersPage() {
                 >
                   Editar
                 </Link>
-                <form action={async () => { 'use server'; await deleteBanner(b.id) }}>
-                  <button type="submit" className="text-xs font-medium text-red-400 hover:text-red-600 px-3 py-1.5 rounded-lg border border-red-100 hover:bg-red-50 transition">
-                    Excluir
-                  </button>
-                </form>
+                <DeleteConfirmButton
+                  onDelete={async () => { 'use server'; await deleteBanner(b.id) }}
+                  title="Excluir banner"
+                  message="Esse banner deixará de aparecer para os membros."
+                />
               </div>
             </div>
           ))}

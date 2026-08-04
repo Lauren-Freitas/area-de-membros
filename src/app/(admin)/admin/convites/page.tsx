@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { deleteInvite } from '@/lib/actions/admin'
 import { CopyButton } from '@/components/admin/CopyButton'
+import { DeleteConfirmButton } from '@/components/DeleteConfirmButton'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://membros.thiagocantalovo.com'
 
@@ -96,11 +97,11 @@ export default async function ConvitesPage() {
                         >
                           Editar
                         </Link>
-                        <form action={async () => { 'use server'; await deleteInvite(inv.id) }}>
-                          <button type="submit" className="text-xs font-medium text-red-400 hover:text-red-600 px-3 py-1.5 rounded-lg border border-red-100 hover:bg-red-50 transition">
-                            Excluir
-                          </button>
-                        </form>
+                        <DeleteConfirmButton
+                          onDelete={async () => { 'use server'; await deleteInvite(inv.id) }}
+                          title="Excluir convite"
+                          message="Esse link de convite deixará de funcionar imediatamente."
+                        />
                       </div>
                     </td>
                   </tr>

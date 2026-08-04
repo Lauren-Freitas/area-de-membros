@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import { createOutboundWebhook, deleteOutboundWebhook, toggleOutboundWebhook } from '@/lib/actions/integracoes'
+import { DeleteConfirmButton } from '@/components/DeleteConfirmButton'
 
 interface Webhook {
   id: string
@@ -184,11 +185,12 @@ export function WebhooksClient({ webhooks, products }: { webhooks: Webhook[]; pr
                     {w.is_active ? 'Pausar' : 'Ativar'}
                   </button>
                 </form>
-                <form action={deleteOutboundWebhook.bind(null, w.id)}>
-                  <button type="submit" className="text-xs text-red-400 hover:text-red-600 transition font-medium">
-                    Excluir
-                  </button>
-                </form>
+                <DeleteConfirmButton
+                  onDelete={() => deleteOutboundWebhook(w.id)}
+                  title="Excluir webhook"
+                  message="Esse endpoint deixará de receber notificações da plataforma."
+                  className="text-xs text-red-400 hover:text-red-600 transition font-medium"
+                />
               </div>
             </div>
           ))}

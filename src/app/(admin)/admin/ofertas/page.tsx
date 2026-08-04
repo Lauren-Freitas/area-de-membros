@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
 import { deleteOffer } from '@/lib/actions/offers'
+import { DeleteConfirmButton } from '@/components/DeleteConfirmButton'
 
 export default async function OfertasAdminPage() {
   const adminClient = createAdminClient()
@@ -91,11 +92,11 @@ export default async function OfertasAdminPage() {
                         >
                           Editar
                         </Link>
-                        <form action={async () => { 'use server'; await deleteOffer(offer.id) }}>
-                          <button type="submit" className="text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 transition">
-                            Excluir
-                          </button>
-                        </form>
+                        <DeleteConfirmButton
+                          onDelete={async () => { 'use server'; await deleteOffer(offer.id) }}
+                          title="Excluir oferta"
+                          message="Essa oferta deixará de aparecer para os membros."
+                        />
                       </div>
                     </td>
                   </tr>

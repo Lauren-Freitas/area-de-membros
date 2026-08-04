@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
 import { deleteCohort } from '@/lib/actions/cohorts'
+import { DeleteConfirmButton } from '@/components/DeleteConfirmButton'
 
 export default async function TurmasPage() {
   const adminClient = createAdminClient()
@@ -75,11 +76,11 @@ export default async function TurmasPage() {
                         >
                           Editar
                         </Link>
-                        <form action={async () => { 'use server'; await deleteCohort(c.id) }}>
-                          <button type="submit" className="text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-500 transition hover:bg-red-50">
-                            Excluir
-                          </button>
-                        </form>
+                        <DeleteConfirmButton
+                          onDelete={async () => { 'use server'; await deleteCohort(c.id) }}
+                          title="Excluir turma"
+                          message="A turma será excluída e os membros perderão a vinculação a ela (o acesso aos produtos não é afetado)."
+                        />
                       </div>
                     </td>
                   </tr>

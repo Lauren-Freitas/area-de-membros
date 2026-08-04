@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import { createApiKey, deleteApiKey } from '@/lib/actions/integracoes'
+import { DeleteConfirmButton } from '@/components/DeleteConfirmButton'
 
 interface ApiKey {
   id: string
@@ -165,11 +166,12 @@ export function ApiKeysClient({ keys }: { keys: ApiKey[] }) {
               <span className="w-32 shrink-0 text-sm text-gray-500">{fmt(k.created_at)}</span>
               <span className="w-32 shrink-0 text-sm text-gray-400">{fmt(k.last_used_at)}</span>
               <div className="w-16 shrink-0 flex justify-end">
-                <form action={deleteApiKey.bind(null, k.id)}>
-                  <button type="submit" className="text-xs text-red-400 hover:text-red-600 transition font-medium">
-                    Excluir
-                  </button>
-                </form>
+                <DeleteConfirmButton
+                  onDelete={() => deleteApiKey(k.id)}
+                  title="Excluir chave de API"
+                  message="Qualquer integração usando essa chave vai parar de funcionar imediatamente."
+                  className="text-xs text-red-400 hover:text-red-600 transition font-medium"
+                />
               </div>
             </div>
           ))}

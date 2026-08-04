@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { deletePost, pinPost, deleteReply } from '@/lib/actions/community'
 import { ReplyForm } from './ReplyForm'
+import { DeleteConfirmButton } from '@/components/DeleteConfirmButton'
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime()
@@ -74,11 +75,12 @@ export default async function PostPage({ params }: { params: Promise<{ postId: s
                   </button>
                 </form>
               )}
-              <form action={async () => { 'use server'; await deletePost(postId) }}>
-                <button type="submit" className="text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 transition">
-                  Excluir
-                </button>
-              </form>
+              <DeleteConfirmButton
+                onDelete={async () => { 'use server'; await deletePost(postId) }}
+                title="Excluir publicação"
+                message="Essa publicação e todas as respostas serão excluídas permanentemente."
+                className="text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 transition"
+              />
             </div>
           )}
         </div>
@@ -107,11 +109,12 @@ export default async function PostPage({ params }: { params: Promise<{ postId: s
                       {author?.name} <span className="font-normal text-gray-400">· {timeAgo(reply.created_at)}</span>
                     </p>
                     {(isAdmin || isMyReply) && (
-                      <form action={async () => { 'use server'; await deleteReply(reply.id, postId) }}>
-                        <button type="submit" className="text-[10px] text-red-400 hover:text-red-600 transition">
-                          Excluir
-                        </button>
-                      </form>
+                      <DeleteConfirmButton
+                        onDelete={async () => { 'use server'; await deleteReply(reply.id, postId) }}
+                        title="Excluir resposta"
+                        message="Essa resposta será excluída permanentemente."
+                        className="text-[10px] text-red-400 hover:text-red-600 transition"
+                      />
                     )}
                   </div>
                   <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">{reply.body}</p>
