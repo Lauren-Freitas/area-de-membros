@@ -12,6 +12,8 @@ export function NovoUsuarioForm({ products, isEquipe = false }: { products: Prod
   const [state, action, isPending] = useActionState(createUser, undefined)
   const [selectedRole, setSelectedRole] = useState('admin')
   const [isActive, setIsActive] = useState(true)
+  const [accessType, setAccessType] = useState<'permanent' | 'date' | 'days'>('permanent')
+  const [accessDays, setAccessDays] = useState(30)
 
   return (
     <form action={action} className="space-y-6">
@@ -144,22 +146,66 @@ export function NovoUsuarioForm({ products, isEquipe = false }: { products: Prod
       </div>
 
       {!isEquipe && products.length > 0 && (
-        <div className="bg-card rounded-2xl border border-gray-100 p-6">
-          <h2 className="font-semibold text-gray-900 mb-1">Liberar acesso aos produtos</h2>
-          <p className="text-sm text-gray-500 mb-4">Opcional — pode liberar depois também.</p>
-          <div className="space-y-2">
-            {products.map((p) => (
-              <label key={p.id} className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="products"
-                  value={p.id}
-                  className="w-4 h-4 rounded"
-                  style={{ accentColor: 'var(--brand)' }}
-                />
-                <span className="text-sm text-gray-700">{p.title}</span>
+        <div className="bg-card rounded-2xl border border-gray-100 p-6 space-y-5">
+          <div>
+            <h2 className="font-semibold text-gray-900 mb-1">Liberar acesso aos produtos</h2>
+            <p className="text-sm text-gray-500 mb-4">Opcional — pode liberar depois também.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {products.map((p) => (
+                <label
+                  key={p.id}
+                  className="flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition has-[:checked]:border-[var(--brand)] has-[:checked]:bg-[var(--brand-bg)] border-gray-200 hover:bg-gray-50"
+                >
+                  <input type="checkbox" name="products" value={p.id} className="w-4 h-4 rounded shrink-0" style={{ accentColor: 'var(--brand)' }} />
+                  <span className="text-sm font-medium text-gray-700 truncate">{p.title}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="pt-1 border-t border-gray-100">
+            <h3 className="text-sm font-medium text-gray-700 mt-4 mb-3">Validade do acesso</h3>
+            <input type="hidden" name="access_type" value={accessType} />
+            <div className="flex flex-col gap-2">
+              <label className="flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition border-gray-200 hover:bg-gray-50" style={accessType === 'permanent' ? { borderColor: 'var(--brand)', backgroundColor: 'var(--brand-bg)' } : undefined}>
+                <input type="radio" checked={accessType === 'permanent'} onChange={() => setAccessType('permanent')} className="w-4 h-4" style={{ accentColor: 'var(--brand)' }} />
+                <span className="text-sm font-medium" style={accessType === 'permanent' ? { color: 'var(--brand-text)' } : { color: '#374151' }}>Acesso permanente</span>
               </label>
-            ))}
+              <label className="flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition border-gray-200 hover:bg-gray-50" style={accessType === 'date' ? { borderColor: 'var(--brand)', backgroundColor: 'var(--brand-bg)' } : undefined}>
+                <input type="radio" checked={accessType === 'date'} onChange={() => setAccessType('date')} className="w-4 h-4 shrink-0" style={{ accentColor: 'var(--brand)' }} />
+                <span className="text-sm font-medium shrink-0" style={accessType === 'date' ? { color: 'var(--brand-text)' } : { color: '#374151' }}>Expira em</span>
+                {accessType === 'date' && (
+                  <input type="date" name="access_expires_at" required className="ml-auto px-3 py-1.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2" />
+                )}
+              </label>
+              <label className="flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition border-gray-200 hover:bg-gray-50" style={accessType === 'days' ? { borderColor: 'var(--brand)', backgroundColor: 'var(--brand-bg)' } : undefined}>
+                <input type="radio" checked={accessType === 'days'} onChange={() => setAccessType('days')} className="w-4 h-4 shrink-0" style={{ accentColor: 'var(--brand)' }} />
+                <span className="text-sm font-medium shrink-0" style={accessType === 'days' ? { color: 'var(--brand-text)' } : { color: '#374151' }}>Por dias, a partir de hoje</span>
+                {accessType === 'days' && (
+                  <div className="ml-auto flex items-center gap-1.5">
+                    {[30, 90, 365].map(d => (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => setAccessDays(d)}
+                        className="px-2.5 py-1 rounded-lg text-xs font-semibold transition"
+                        style={accessDays === d ? { backgroundColor: 'var(--brand)', color: '#fff' } : { backgroundColor: '#f3f4f6', color: '#374151' }}
+                      >
+                        {d}
+                      </button>
+                    ))}
+                    <input
+                      type="number"
+                      name="access_days"
+                      min={1}
+                      value={accessDays}
+                      onChange={e => setAccessDays(parseInt(e.target.value) || 0)}
+                      className="w-16 px-2 py-1.5 rounded-lg border border-gray-200 text-xs bg-white focus:outline-none focus:ring-2"
+                    />
+                  </div>
+                )}
+              </label>
+            </div>
           </div>
         </div>
       )}

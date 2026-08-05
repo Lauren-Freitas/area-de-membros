@@ -125,6 +125,20 @@ export async function createUser(
   const role = ((formData.get('role') as string) || 'membro') as 'admin' | 'equipe' | 'membro'
   const productIds = formData.getAll('products') as string[]
 
+  const accessType = (formData.get('access_type') as string) || 'permanent'
+  let accessExpiresAt: string | null = null
+  if (accessType === 'date') {
+    const dateVal = formData.get('access_expires_at') as string
+    if (dateVal) accessExpiresAt = new Date(dateVal).toISOString()
+  } else if (accessType === 'days') {
+    const days = parseInt(formData.get('access_days') as string) || 0
+    if (days > 0) {
+      const d = new Date()
+      d.setDate(d.getDate() + days)
+      accessExpiresAt = d.toISOString()
+    }
+  }
+
   if (!name) return { error: 'O nome é obrigatório.' }
   if (!email) return { error: 'O email é obrigatório.' }
 
@@ -167,6 +181,7 @@ export async function createUser(
       user_id: userId,
       product_id: productId,
       granted_by: 'manual' as const,
+      expires_at: accessExpiresAt,
     }))
     await admin.from('user_products').upsert(rows, { onConflict: 'user_id,product_id', ignoreDuplicates: true })
   }
