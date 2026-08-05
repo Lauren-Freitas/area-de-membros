@@ -7,7 +7,7 @@ export default async function WebhooksPage() {
   const [{ data: webhooks }, { data: products }] = await Promise.all([
     adminClient
       .from('outbound_webhooks')
-      .select('id, name, url, product_id, is_active, created_at, last_fired_at, last_status, products(title)')
+      .select('id, name, url, product_id, is_active, events, created_at, last_fired_at, last_status, products(title)')
       .order('created_at', { ascending: false }),
     adminClient
       .from('products')
