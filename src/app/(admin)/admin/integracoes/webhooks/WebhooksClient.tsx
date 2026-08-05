@@ -31,17 +31,21 @@ const EVENT_LABELS: Record<WebhookEvent, string> = {
   'member.disabled': 'Membro desativado',
   'access.granted': 'Acesso concedido',
   'access.revoked': 'Acesso revogado',
-  'sale.approved': 'Venda aprovada',
-  'sale.refused': 'Venda recusada',
-  'sale.refunded': 'Venda reembolsada',
+  'product.created': 'Produto criado',
+  'product.updated': 'Produto atualizado',
+  'purchase.approved': 'Compra aprovada',
+  'purchase.refused': 'Compra recusada',
+  'purchase.refunded': 'Compra reembolsada',
   'payment.approved': 'Pagamento aprovado',
   'payment.failed': 'Pagamento falhou',
   'payment.overdue': 'Pagamento em atraso',
   'payment.refunded': 'Pagamento reembolsado',
-  'certificate.issued': 'Certificado emitido',
+  'certificate.generated': 'Certificado emitido',
+  'lesson.completed': 'Aula concluída',
   'invite.sent': 'Convite enviado',
   'invite.accepted': 'Convite aceito',
   'login.created': 'Login realizado',
+  'password.reset': 'Senha redefinida',
 }
 
 function fmt(d: string | null) {
@@ -316,7 +320,7 @@ export function WebhooksClient({ webhooks, products }: { webhooks: Webhook[]; pr
           <EventCheckboxes defaultSelected={[]} />
           <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-500">
             <p className="font-semibold mb-1">Payload enviado (exemplo):</p>
-            <pre className="font-mono text-[11px] leading-relaxed">{JSON.stringify({ event: 'sale.approved', timestamp: new Date().toISOString(), user_id: 'uuid', product_id: 'uuid', user_name: 'João Silva', user_email: 'joao@email.com' }, null, 2)}</pre>
+            <pre className="font-mono text-[11px] leading-relaxed">{JSON.stringify({ event: 'purchase.approved', timestamp: new Date().toISOString(), user_id: 'uuid', product_id: 'uuid', user_name: 'João Silva', user_email: 'joao@email.com' }, null, 2)}</pre>
           </div>
           <div className="flex gap-2">
             <button

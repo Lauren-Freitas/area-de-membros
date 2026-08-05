@@ -3,11 +3,13 @@ import { createAdminClient } from './supabase/admin'
 export const ALL_WEBHOOK_EVENTS = [
   'member.created', 'member.updated', 'member.deleted', 'member.enabled', 'member.disabled',
   'access.granted', 'access.revoked',
-  'sale.approved', 'sale.refused', 'sale.refunded',
+  'product.created', 'product.updated',
+  'purchase.approved', 'purchase.refused', 'purchase.refunded',
   'payment.approved', 'payment.failed', 'payment.overdue', 'payment.refunded',
-  'certificate.issued',
+  'certificate.generated',
+  'lesson.completed',
   'invite.sent', 'invite.accepted',
-  'login.created',
+  'login.created', 'password.reset',
 ] as const
 
 export type WebhookEvent = typeof ALL_WEBHOOK_EVENTS[number]

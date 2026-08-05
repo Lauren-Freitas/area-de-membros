@@ -97,6 +97,7 @@ export async function saveProduct(
   }
 
   await logActivity({ action: isNew ? 'criar' : 'editar', entity: 'produto', entityName: title })
+  await fireOutboundWebhooks(isNew ? 'product.created' : 'product.updated', { product_id: saved?.id, title }, saved?.id)
   revalidatePath('/admin/produtos')
   revalidatePath('/dashboard')
   redirect('/admin/produtos')

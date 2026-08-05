@@ -117,7 +117,7 @@ async function handleGrant(admin: AdminClient, payment: Record<string, unknown>)
   }
 
   await Promise.all(productIds.map((pid) => Promise.all([
-    fireOutboundWebhooks('sale.approved', { user_id: userId, product_id: pid, email, name, value: billingSnapshot.value, provider: 'asaas' }, pid),
+    fireOutboundWebhooks('purchase.approved', { user_id: userId, product_id: pid, email, name, value: billingSnapshot.value, provider: 'asaas' }, pid),
     fireOutboundWebhooks('payment.approved', { user_id: userId, product_id: pid, email, value: billingSnapshot.value, provider: 'asaas' }, pid),
   ])))
 }
@@ -173,7 +173,7 @@ async function handleRevoke(admin: AdminClient, payment: Record<string, unknown>
     .in('granted_by', ['purchase', 'pack'])
 
   await Promise.all(productIds.map((pid) => Promise.all([
-    fireOutboundWebhooks('sale.refunded', { user_id: userId, product_id: pid, provider: 'asaas' }, pid),
+    fireOutboundWebhooks('purchase.refunded', { user_id: userId, product_id: pid, provider: 'asaas' }, pid),
     fireOutboundWebhooks('payment.refunded', { user_id: userId, product_id: pid, provider: 'asaas' }, pid),
   ])))
 }

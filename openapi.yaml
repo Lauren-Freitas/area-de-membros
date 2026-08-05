@@ -144,6 +144,24 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "502": { description: Falha ao enviar o e-mail }
 
+  /api/admin/usuarios/{id}/resetar-senha:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    post:
+      tags: [Membros]
+      summary: Solicitar redefinição de senha para um membro existente
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sent: { type: boolean }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
   /api/admin/produtos:
     get:
       tags: [Produtos]
@@ -197,6 +215,49 @@ paths:
         in: path
         required: true
         schema: { type: string, format: uuid }
+    get:
+      tags: [Produtos]
+      summary: Buscar produto
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  product: { $ref: "#/components/schemas/Product" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      tags: [Produtos]
+      summary: Editar produto
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                description: { type: string }
+                content_type: { type: string, enum: [video, pdf, curso] }
+                content_url: { type: string, nullable: true }
+                banner_url: { type: string, nullable: true }
+                is_pack: { type: boolean }
+                is_active: { type: boolean }
+                sort_order: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  product: { $ref: "#/components/schemas/Product" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
     delete:
       tags: [Produtos]
       summary: Excluir produto

@@ -22,6 +22,7 @@ export async function toggleLessonComplete(lessonId: string, productId: string, 
       awardXp(user.id, 'lesson_complete', { lesson_id: lessonId, product_id: productId }),
       checkBadgesAfterLesson(user.id),
       maybeIssueCertificate(supabase, user.id, productId),
+      fireOutboundWebhooks('lesson.completed', { user_id: user.id, lesson_id: lessonId, product_id: productId }, productId),
     ])
   }
 
@@ -85,7 +86,7 @@ async function maybeIssueCertificate(
         link: '/dashboard',
       })
 
-      await fireOutboundWebhooks('certificate.issued', { user_id: userId, product_id: productId, product_title: product?.title }, productId)
+      await fireOutboundWebhooks('certificate.generated', { user_id: userId, product_id: productId, product_title: product?.title }, productId)
     }
 
     revalidatePath('/dashboard')

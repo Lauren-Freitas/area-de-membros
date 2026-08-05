@@ -115,6 +115,20 @@ Reenvia o e-mail de definição de senha/acesso para um membro já existente (ú
 
 ---
 
+#### Redefinir senha
+```
+POST /api/admin/usuarios/:id/resetar-senha
+```
+
+Diferente de "reenviar convite" (link de primeiro acesso): aqui é um pedido de redefinição de senha para uma conta que já existe e já tem senha definida, usando o mesmo mecanismo (e e-mail padrão do Supabase) do fluxo de autoatendimento em `/esqueceu-senha`.
+
+**Response `200`:** `{ "sent": true }`
+**Response `404`:** `{ "error": "Usuário não encontrado" }`
+
+> Dispara `password.reset`.
+
+---
+
 ### Produtos
 
 #### Listar produtos
@@ -123,6 +137,16 @@ GET /api/admin/produtos
 ```
 
 **Response `200`:** `{ "products": [ { ...produto completo } ] }`
+
+---
+
+#### Buscar produto
+```
+GET /api/admin/produtos/:id
+```
+
+**Response `200`:** `{ "product": { ...produto completo } }`
+**Response `404`:** `{ "error": "Produto não encontrado" }`
 
 ---
 
@@ -147,6 +171,26 @@ POST /api/admin/produtos
 > `title` e `content_type` são obrigatórios.
 
 **Response `201`:** `{ "product": { ...produto criado } }`
+
+> Dispara `product.created`.
+
+---
+
+#### Editar produto
+```
+PATCH /api/admin/produtos/:id
+```
+
+**Body** (todos os campos opcionais, envie só o que quer alterar):
+```json
+{ "title": "Novo título", "is_active": false, "sort_order": 2 }
+```
+
+**Response `200`:** `{ "product": { ...produto atualizado } }`
+**Response `400`:** `{ "error": "Nenhum campo para atualizar" }`
+**Response `404`:** `{ "error": "Produto não encontrado" }`
+
+> Dispara `product.updated`.
 
 ---
 
@@ -281,7 +325,7 @@ POST /api/admin/certificados
 
 **Response `201` (novo) ou `200` (já existia):** `{ "certificate": { ... } }`
 
-> Dispara `certificate.issued` (apenas quando um certificado novo é emitido).
+> Dispara `certificate.generated` (apenas quando um certificado novo é emitido).
 
 ---
 
@@ -348,9 +392,9 @@ POST /api/webhook/asaas
 **Eventos tratados:**
 | Evento Asaas | Efeito |
 |---|---|
-| `PAYMENT_CONFIRMED`, `PAYMENT_RECEIVED` | Concede acesso (`sale.approved` + `payment.approved`) |
+| `PAYMENT_CONFIRMED`, `PAYMENT_RECEIVED` | Concede acesso (`purchase.approved` + `payment.approved`) |
 | `PAYMENT_OVERDUE` | Marca pagamento em atraso (`payment.overdue`) |
-| `PAYMENT_REFUNDED`, `PAYMENT_DELETED`, `PAYMENT_CHARGEBACK_REQUESTED` | Revoga acesso (`sale.refunded` + `payment.refunded`) |
+| `PAYMENT_REFUNDED`, `PAYMENT_DELETED`, `PAYMENT_CHARGEBACK_REQUESTED` | Revoga acesso (`purchase.refunded` + `payment.refunded`) |
 
 O produto concedido é identificado pelo campo `externalReference` do pagamento, que deve conter o UUID do produto na plataforma. Se o cliente não existir ainda, ele é criado e recebe um e-mail de boas-vindas com link de acesso; se já existir, recebe um e-mail de "acesso liberado".
 
@@ -366,9 +410,9 @@ O token vem por query string (`signature`), não por header — é assim que a K
 **Eventos tratados:**
 | Evento Kiwify | Efeito |
 |---|---|
-| `order_approved`, `compra_aprovada`, `subscription_renewed` | Concede acesso (`sale.approved` + `payment.approved`) |
+| `order_approved`, `compra_aprovada`, `subscription_renewed` | Concede acesso (`purchase.approved` + `payment.approved`) |
 | `subscription_late` | Marca pagamento em atraso (`payment.overdue`) |
-| `order_refunded`, `compra_reembolsada`, `refunded`, `order_rejected`, `compra_recusada`, `chargeback`, `chargedback`, `subscription_canceled`, `subscription_cancelled` | Revoga acesso (`sale.refunded` + `payment.refunded`) |
+| `order_refunded`, `compra_reembolsada`, `refunded`, `order_rejected`, `compra_recusada`, `chargeback`, `chargedback`, `subscription_canceled`, `subscription_cancelled` | Revoga acesso (`purchase.refunded` + `payment.refunded`) |
 
 O produto é identificado pela coluna `kiwify_product_id`, configurada em cada produto no painel. Assim como no Asaas, cria o membro se necessário e envia o e-mail correspondente.
 
@@ -391,23 +435,27 @@ Um webhook pode ser restrito a um produto específico (recebe só eventos daquel
 | `member.disabled` | Membro desativado |
 | `access.granted` | Acesso a um produto concedido |
 | `access.revoked` | Acesso a um produto revogado |
-| `sale.approved` | Venda aprovada por um gateway de pagamento |
-| `sale.refunded` | Venda estornada/cancelada |
+| `product.created` | Produto criado (painel ou API) |
+| `product.updated` | Produto editado (painel ou API) |
+| `purchase.approved` | Compra aprovada por um gateway de pagamento |
+| `purchase.refunded` | Compra estornada/cancelada |
 | `payment.approved` | Pagamento confirmado |
 | `payment.overdue` | Pagamento em atraso |
 | `payment.refunded` | Pagamento estornado |
-| `certificate.issued` | Certificado emitido (automático ao concluir o curso, ou manual via API) |
+| `certificate.generated` | Certificado emitido (automático ao concluir o curso, ou manual via API) |
+| `lesson.completed` | Aula marcada como concluída por um membro |
 | `invite.sent` | Convite criado ou reenviado |
 | `invite.accepted` | Convite resgatado no cadastro |
 | `login.created` | Login registrado (no máximo 1 disparo a cada 5 min por membro) |
+| `password.reset` | Redefinição de senha solicitada via API |
 
-> `sale.refused` e `payment.failed` estão reservados no catálogo mas nenhum fluxo atual os dispara — não há hoje uma origem de evento que distinga "recusado" de simplesmente não ter sido criado. `access.expired` não existe ainda (dependeria de uma rotina agendada, que a plataforma não tem).
+> `purchase.refused` e `payment.failed` estão reservados no catálogo mas nenhum fluxo atual os dispara — não há hoje uma origem de evento que distinga "recusado" de simplesmente não ter sido criado. `access.expired` não existe ainda (dependeria de uma rotina agendada, que a plataforma não tem).
 
 ### Payload
 
 ```json
 {
-  "event": "sale.approved",
+  "event": "purchase.approved",
   "timestamp": "2026-07-04T12:00:00.000Z",
   "user_id": "uuid",
   "product_id": "uuid",

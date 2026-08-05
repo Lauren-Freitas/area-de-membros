@@ -150,7 +150,7 @@ async function handleGrant(admin: AdminClient, parsed: ParsedKiwifyEvent) {
   }
 
   await Promise.all(productIds.map((pid) => Promise.all([
-    fireOutboundWebhooks('sale.approved', { user_id: userId, product_id: pid, email, name: displayName, value, provider: 'kiwify' }, pid),
+    fireOutboundWebhooks('purchase.approved', { user_id: userId, product_id: pid, email, name: displayName, value, provider: 'kiwify' }, pid),
     fireOutboundWebhooks('payment.approved', { user_id: userId, product_id: pid, email, value, provider: 'kiwify' }, pid),
   ])))
 }
@@ -199,7 +199,7 @@ async function handleRevoke(admin: AdminClient, parsed: ParsedKiwifyEvent) {
     .in('granted_by', ['purchase', 'pack'])
 
   await Promise.all(productIds.map((pid) => Promise.all([
-    fireOutboundWebhooks('sale.refunded', { user_id: profile.id, product_id: pid, email, provider: 'kiwify' }, pid),
+    fireOutboundWebhooks('purchase.refunded', { user_id: profile.id, product_id: pid, email, provider: 'kiwify' }, pid),
     fireOutboundWebhooks('payment.refunded', { user_id: profile.id, product_id: pid, email, provider: 'kiwify' }, pid),
   ])))
 }

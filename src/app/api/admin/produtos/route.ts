@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { checkApiKey } from '@/lib/api-auth'
+import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
 
 export async function GET(req: NextRequest) {
   if (!await checkApiKey(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -33,5 +34,6 @@ export async function POST(req: NextRequest) {
   }).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  await fireOutboundWebhooks('product.created', { product_id: data.id, title: data.title }, data.id)
   return NextResponse.json({ product: data }, { status: 201 })
 }

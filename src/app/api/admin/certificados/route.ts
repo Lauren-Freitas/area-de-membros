@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     link: '/dashboard',
   })
 
-  await fireOutboundWebhooks('certificate.issued', { user_id, product_id, product_title: product?.title }, product_id)
+  await fireOutboundWebhooks('certificate.generated', { user_id, product_id, product_title: product?.title }, product_id)
 
   return NextResponse.json({ certificate }, { status: 201 })
 }
