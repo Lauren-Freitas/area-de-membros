@@ -634,3 +634,18 @@ export async function revokeAccess(userId: string, productId: string) {
   revalidatePath('/admin/usuarios')
   revalidatePath(`/admin/usuarios/${userId}`)
 }
+
+export async function updateAccessExpiry(userId: string, productId: string, expiresAt: string | null) {
+  await requireAdmin()
+  const admin = createAdminClient()
+  const { error } = await admin.from('user_products').update({ expires_at: expiresAt }).eq('user_id', userId).eq('product_id', productId)
+  if (error) return { error: error.message }
+  const [{ data: member }, { data: product }] = await Promise.all([
+    admin.from('profiles').select('name').eq('id', userId).single(),
+    admin.from('products').select('title').eq('id', productId).single(),
+  ])
+  await logActivity({ action: 'editar', entity: 'validade_acesso', entityId: userId, entityName: `${member?.name ?? userId} → ${product?.title ?? productId}` })
+  revalidatePath('/admin/usuarios')
+  revalidatePath(`/admin/usuarios/${userId}`)
+  return { success: true }
+}

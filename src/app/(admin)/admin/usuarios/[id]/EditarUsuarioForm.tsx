@@ -4,7 +4,7 @@ import { useActionState, useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/Button'
-import { ProductAccessPill } from '@/components/admin/ProductAccessPill'
+import { AccessCard } from '@/components/admin/AccessCard'
 import type { AdminActionState } from '@/lib/actions/admin'
 import { resendAdminInvite } from '@/lib/actions/admin'
 
@@ -21,6 +21,7 @@ interface ProductItem {
   id: string
   title: string
   hasAccess: boolean
+  expiresAt: string | null
 }
 
 interface Props {
@@ -179,17 +180,18 @@ export function EditarUsuarioForm({ profile, action, products, userId }: Props) 
         <div className="bg-card rounded-2xl border border-gray-100 p-6">
           <h2 className="font-semibold text-gray-900 mb-1">Acesso aos produtos</h2>
           <p className="text-sm text-gray-500 mb-4">
-            Clique para liberar ou revogar o acesso. A alteração é imediata.
+            Cada card mostra o status e a validade do acesso. Clique em &quot;+ produto&quot; para liberar um novo.
           </p>
           {products.length === 0 ? (
             <p className="text-sm text-gray-400">Nenhum produto ativo cadastrado.</p>
           ) : (
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {products.map(p => (
-                <ProductAccessPill
+                <AccessCard
                   key={p.id}
                   title={p.title}
                   hasAccess={p.hasAccess}
+                  expiresAt={p.expiresAt}
                   userId={userId}
                   productId={p.id}
                 />
