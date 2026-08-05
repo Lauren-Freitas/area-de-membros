@@ -3,7 +3,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
-import { revalidatePath } from 'next/cache'
 import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
 
 async function requireAdmin() {
@@ -87,22 +86,6 @@ export interface MemberProductAccess {
   expiresAt: string | null
 }
 
-export interface MemberActivityEntry {
-  id: string
-  action: string
-  entity: string
-  entity_name: string | null
-  user_name: string
-  created_at: string
-}
-
-export interface MemberWebhookEntry {
-  id: string
-  event: string
-  success: boolean
-  attempted_at: string
-}
-
 export interface MemberDetail {
   profile: {
     id: string
@@ -114,24 +97,24 @@ export interface MemberDetail {
     is_active: boolean
     last_login_at: string | null
     created_at: string
-    notes: string | null
   }
   productAccess: MemberProductAccess[]
-  recentActivity: MemberActivityEntry[]
-  recentWebhookDeliveries: MemberWebhookEntry[]
 }
 
-/** Busca sob demanda — só quando o drawer abre, nunca faz parte da listagem. */
+/**
+ * Busca sob demanda — só quando o drawer abre, nunca faz parte da listagem.
+ * De propósito enxuto: o drawer é uma ficha rápida pra agir, não um CRM —
+ * histórico/webhooks/observações ficariam numa tela própria se algum dia
+ * fizerem falta de verdade, não aqui.
+ */
 export async function getMemberDetail(userId: string): Promise<MemberDetail | null> {
   await requireAdmin()
   const admin = createAdminClient()
 
-  const [{ data: profile }, { data: products }, { data: accesses }, { data: activity }, { data: deliveries }] = await Promise.all([
-    admin.from('profiles').select('id, name, email, phone, avatar_url, role, is_active, last_login_at, created_at, notes').eq('id', userId).maybeSingle(),
+  const [{ data: profile }, { data: products }, { data: accesses }] = await Promise.all([
+    admin.from('profiles').select('id, name, email, phone, avatar_url, role, is_active, last_login_at, created_at').eq('id', userId).maybeSingle(),
     admin.from('products').select('id, title').eq('is_active', true).order('sort_order'),
     admin.from('user_products').select('product_id, expires_at').eq('user_id', userId),
-    admin.from('activity_logs').select('id, action, entity, entity_name, user_name, created_at').eq('entity_id', userId).order('created_at', { ascending: false }).limit(8),
-    admin.from('outbound_webhook_deliveries').select('id, event, success, attempted_at').filter('payload->>user_id', 'eq', userId).order('attempted_at', { ascending: false }).limit(5),
   ])
 
   if (!profile) return null
@@ -147,8 +130,6 @@ export async function getMemberDetail(userId: string): Promise<MemberDetail | nu
   return {
     profile: { ...profile, is_active: profile.is_active !== false },
     productAccess,
-    recentActivity: activity ?? [],
-    recentWebhookDeliveries: deliveries ?? [],
   }
 }
 
@@ -190,14 +171,5 @@ export async function resetMemberPassword(userId: string): Promise<{ success?: b
   if (error) return { error: error.message }
 
   await fireOutboundWebhooks('password.reset', { user_id: userId, email: profile.email })
-  return { success: true }
-}
-
-export async function updateMemberNotes(userId: string, notes: string): Promise<{ success?: boolean; error?: string }> {
-  await requireAdmin()
-  const admin = createAdminClient()
-  const { error } = await admin.from('profiles').update({ notes: notes.trim() || null }).eq('id', userId)
-  if (error) return { error: error.message }
-  revalidatePath('/admin/usuarios')
   return { success: true }
 }

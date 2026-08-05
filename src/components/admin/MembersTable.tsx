@@ -139,7 +139,7 @@ export function MembersTable({ initialMembers, initialTotal }: Props) {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gerenciar membros</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Gerencie acessos, permissões e assinaturas dos membros da plataforma.</p>
         </div>
-        <Button href="/admin/usuarios/novo" size="sm" className="shrink-0">
+        <Button href="/admin/usuarios/novo" className="shrink-0">
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>

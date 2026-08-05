@@ -17,7 +17,8 @@ interface Props {
  * antigo. Empilha por cima do MemberDrawer (z maior) quando aberto a partir
  * dele, sem perder o contexto da tabela por trás.
  */
-export function ProductsDrawer({ userId, memberName, products, onClose }: Props) {
+export function ProductsDrawer({ userId, memberName, products: initialProducts, onClose }: Props) {
+  const [products, setProducts] = useState(initialProducts)
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -30,6 +31,13 @@ export function ProductsDrawer({ userId, memberName, products, onClose }: Props)
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose])
+
+  function handleChanged(productId: string, hasAccess: boolean, expiresAt: string | null) {
+    setProducts(prev => prev.map(p => p.id === productId ? { ...p, hasAccess, expiresAt } : p))
+  }
+
+  const active = products.filter(p => p.hasAccess)
+  const available = products.filter(p => !p.hasAccess)
 
   return createPortal(
     <div className="fixed inset-0 z-[45]">
@@ -52,22 +60,49 @@ export function ProductsDrawer({ userId, memberName, products, onClose }: Props)
           </button>
         </div>
 
-        <div className="px-6 divide-y divide-gray-100 dark:divide-[#1e2030]">
-          {products.length === 0 ? (
-            <p className="text-sm text-gray-400 py-6">Nenhum produto ativo cadastrado.</p>
-          ) : (
-            products.map(p => (
-              <ProductAccessRow
-                key={p.id}
-                userId={userId}
-                productId={p.id}
-                title={p.title}
-                hasAccess={p.hasAccess}
-                expiresAt={p.expiresAt}
-              />
-            ))
-          )}
-        </div>
+        {products.length === 0 ? (
+          <p className="text-sm text-gray-400 px-6 py-6">Nenhum produto ativo cadastrado.</p>
+        ) : (
+          <div className="px-6 py-2">
+            {active.length > 0 && (
+              <div className="mb-1">
+                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide pt-3 pb-1">Ativos</p>
+                <div className="divide-y divide-gray-100 dark:divide-[#1e2030]">
+                  {active.map(p => (
+                    <ProductAccessRow
+                      key={p.id}
+                      userId={userId}
+                      productId={p.id}
+                      title={p.title}
+                      hasAccess={p.hasAccess}
+                      expiresAt={p.expiresAt}
+                      onChanged={(hasAccess, expiresAt) => handleChanged(p.id, hasAccess, expiresAt)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {available.length > 0 && (
+              <div>
+                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide pt-3 pb-1">Disponíveis</p>
+                <div className="divide-y divide-gray-100 dark:divide-[#1e2030]">
+                  {available.map(p => (
+                    <ProductAccessRow
+                      key={p.id}
+                      userId={userId}
+                      productId={p.id}
+                      title={p.title}
+                      hasAccess={p.hasAccess}
+                      expiresAt={p.expiresAt}
+                      onChanged={(hasAccess, expiresAt) => handleChanged(p.id, hasAccess, expiresAt)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>,
     document.body

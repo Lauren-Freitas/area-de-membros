@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
+import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { getMemberDetail, updateMemberNotes, type MemberDetail } from '@/lib/actions/members'
+import { getMemberDetail, type MemberDetail } from '@/lib/actions/members'
 import { MemberActionsInline } from '@/components/admin/MemberActionsMenu'
 
 interface Props {
@@ -24,32 +24,13 @@ function fmtDate(iso: string | null, withTime = false) {
   return `${base} às ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
 }
 
-function expiryLabel(expiresAt: string | null) {
-  if (!expiresAt) return 'Permanente'
-  const diffDays = Math.ceil((new Date(expiresAt).getTime() - Date.now()) / 86400000)
-  if (diffDays < 0) return `Expirou há ${Math.abs(diffDays)} ${Math.abs(diffDays) === 1 ? 'dia' : 'dias'}`
-  if (diffDays === 0) return 'Expira hoje'
-  return `Expira em ${diffDays} ${diffDays === 1 ? 'dia' : 'dias'}`
-}
-
 const ROLE_LABELS: Record<string, string> = { admin: 'Admin', equipe: 'Equipe', membro: 'Membro' }
 
-const ACTIVITY_LABELS: Record<string, string> = {
-  criar: 'Criado',
-  editar: 'Editado',
-  excluir: 'Excluído',
-  ativar: 'Ativado',
-  desativar: 'Desativado',
-  conceder_acesso: 'Acesso concedido',
-  revogar_acesso: 'Acesso revogado',
-  ver_como: 'Visto como membro',
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">{title}</p>
-      {children}
+      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5">{label}</p>
+      <p className="text-sm text-gray-700 dark:text-gray-300">{value}</p>
     </div>
   )
 }
@@ -57,16 +38,13 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export function MemberDrawer({ userId, onClose, onManageAccess, onMutated }: Props) {
   const [detail, setDetail] = useState<MemberDetail | null>(null)
   const [loading, setLoading] = useState(true)
-  const [notes, setNotes] = useState('')
   const [visible, setVisible] = useState(false)
-  const [, startTransition] = useTransition()
 
   useEffect(() => {
     let cancelled = false
     getMemberDetail(userId).then(d => {
       if (cancelled) return
       setDetail(d)
-      setNotes(d?.profile.notes ?? '')
       setLoading(false)
     })
     return () => { cancelled = true }
@@ -83,10 +61,7 @@ export function MemberDrawer({ userId, onClose, onManageAccess, onMutated }: Pro
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  function saveNotes() {
-    if (!detail || notes === (detail.profile.notes ?? '')) return
-    startTransition(() => { updateMemberNotes(userId, notes) })
-  }
+  const activeCount = detail?.productAccess.filter(p => p.hasAccess).length ?? 0
 
   return createPortal(
     <div className="fixed inset-0 z-40">
@@ -95,19 +70,19 @@ export function MemberDrawer({ userId, onClose, onManageAccess, onMutated }: Pro
         onClick={onClose}
       />
       <div
-        className={`absolute right-0 top-0 bottom-0 w-full sm:w-[420px] bg-card shadow-2xl overflow-y-auto transition-transform duration-300 ${visible ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`absolute right-0 top-0 bottom-0 w-full sm:w-[380px] bg-card shadow-2xl overflow-y-auto transition-transform duration-300 ${visible ? 'translate-x-0' : 'translate-x-full'}`}
       >
         {loading || !detail ? (
           <div className="p-6 text-sm text-gray-400">Carregando...</div>
         ) : (
           <>
             {/* Header */}
-            <div className="p-6 border-b border-gray-100 dark:border-[#1e2030] flex items-start gap-4">
+            <div className="p-6 flex items-start gap-4">
               {detail.profile.avatar_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={detail.profile.avatar_url} alt={detail.profile.name} className="w-14 h-14 rounded-full object-cover shrink-0" />
+                <img src={detail.profile.avatar_url} alt={detail.profile.name} className="w-12 h-12 rounded-full object-cover shrink-0" />
               ) : (
-                <div className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold text-white shrink-0" style={{ backgroundColor: 'var(--brand)' }}>
+                <div className="w-12 h-12 rounded-full flex items-center justify-center text-base font-bold text-white shrink-0" style={{ backgroundColor: 'var(--brand)' }}>
                   {getInitials(detail.profile.name || detail.profile.email)}
                 </div>
               )}
@@ -128,89 +103,39 @@ export function MemberDrawer({ userId, onClose, onManageAccess, onMutated }: Pro
               </button>
             </div>
 
+            {/* Dados */}
+            <div className="px-6 pb-5 border-b border-gray-100 dark:border-[#1e2030] grid grid-cols-2 gap-4">
+              <Field label="Telefone" value={detail.profile.phone || '—'} />
+              <Field label="Cadastro" value={fmtDate(detail.profile.created_at)} />
+              <div className="col-span-2">
+                <Field label="Último acesso" value={fmtDate(detail.profile.last_login_at, true)} />
+              </div>
+            </div>
+
+            {/* Produtos */}
+            <div className="px-6 py-5 border-b border-gray-100 dark:border-[#1e2030] flex items-center justify-between">
+              <div>
+                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Produtos</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">{activeCount} {activeCount === 1 ? 'ativo' : 'ativos'}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => onManageAccess(detail.profile.id, detail.profile.name || detail.profile.email, detail.productAccess)}
+                className="text-sm font-medium hover:underline"
+                style={{ color: 'var(--brand)' }}
+              >
+                Gerenciar →
+              </button>
+            </div>
+
             {/* Ações */}
-            <div className="px-2 py-2 border-b border-gray-100 dark:border-[#1e2030]">
+            <div className="px-2 py-2">
               <MemberActionsInline
                 member={{ id: detail.profile.id, name: detail.profile.name, email: detail.profile.email, is_active: detail.profile.is_active, last_login_at: detail.profile.last_login_at }}
                 onManageAccess={() => onManageAccess(detail.profile.id, detail.profile.name || detail.profile.email, detail.productAccess)}
                 onToggled={onMutated}
                 onDeleted={() => { onMutated(); onClose() }}
               />
-            </div>
-
-            {/* Dados */}
-            <div className="p-6 space-y-6 text-sm">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Telefone</p>
-                  <p className="text-gray-700 dark:text-gray-300">{detail.profile.phone || '—'}</p>
-                </div>
-                <div>
-                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Cadastro</p>
-                  <p className="text-gray-700 dark:text-gray-300">{fmtDate(detail.profile.created_at)}</p>
-                </div>
-                <div className="col-span-2">
-                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Último acesso</p>
-                  <p className="text-gray-700 dark:text-gray-300">{fmtDate(detail.profile.last_login_at, true)}</p>
-                </div>
-              </div>
-
-              <Section title="Produtos liberados">
-                {detail.productAccess.filter(p => p.hasAccess).length === 0 ? (
-                  <p className="text-gray-400 text-xs">Nenhum conteúdo liberado.</p>
-                ) : (
-                  <div className="space-y-1.5">
-                    {detail.productAccess.filter(p => p.hasAccess).map(p => (
-                      <div key={p.id} className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-gray-50 dark:bg-[#12162a]">
-                        <span className="text-gray-700 dark:text-gray-300 truncate">{p.title}</span>
-                        <span className="text-xs text-gray-400 shrink-0">{expiryLabel(p.expiresAt)}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </Section>
-
-              <Section title="Histórico recente">
-                {detail.recentActivity.length === 0 ? (
-                  <p className="text-gray-400 text-xs">Nenhuma atividade registrada.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {detail.recentActivity.map(a => (
-                      <div key={a.id} className="flex items-center justify-between gap-2 text-xs">
-                        <span className="text-gray-600 dark:text-gray-300">{ACTIVITY_LABELS[a.action] ?? a.action}</span>
-                        <span className="text-gray-400 shrink-0">{fmtDate(a.created_at)}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </Section>
-
-              <Section title="Webhooks recentes">
-                {detail.recentWebhookDeliveries.length === 0 ? (
-                  <p className="text-gray-400 text-xs">Nenhum evento disparado ainda.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {detail.recentWebhookDeliveries.map(w => (
-                      <div key={w.id} className="flex items-center justify-between gap-2 text-xs">
-                        <span className="font-mono text-gray-600 dark:text-gray-300">{w.event}</span>
-                        <span className={w.success ? 'text-green-600' : 'text-red-500'}>{w.success ? 'Sucesso' : 'Falhou'}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </Section>
-
-              <Section title="Observações internas">
-                <textarea
-                  value={notes}
-                  onChange={e => setNotes(e.target.value)}
-                  onBlur={saveNotes}
-                  placeholder="Nenhuma observação ainda — visível só pra equipe."
-                  rows={3}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-[#2a2f45] bg-gray-50 dark:bg-[#12162a] text-sm text-gray-700 dark:text-gray-300 placeholder-gray-400 outline-none focus:ring-2 resize-none"
-                  style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
-                />
-              </Section>
             </div>
           </>
         )}
