@@ -179,8 +179,8 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAva
           onClick={() => setMobileOpen(false)}
           className={`flex items-center rounded-xl transition group relative ${
             collapsed && !mobile ? 'w-10 h-10 justify-center mx-auto' : 'gap-2.5 px-3 py-2.5'
-          } ${pathname === '/admin' ? 'text-white' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}
-          style={pathname === '/admin' ? { backgroundColor: 'var(--brand)' } : {}}
+          } ${pathname === '/admin' ? '' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}
+          style={pathname === '/admin' ? { backgroundColor: 'var(--brand-bg)', color: 'var(--brand-text)' } : {}}
           onMouseEnter={(e) => collapsed && !mobile && setTooltip({ label: 'Visão geral', y: e.currentTarget.getBoundingClientRect().top })}
           onMouseLeave={() => collapsed && !mobile && setTooltip(null)}
         >
@@ -214,8 +214,8 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAva
                     collapsed && !mobile
                       ? 'w-10 h-10 justify-center mx-auto'
                       : 'gap-2.5 px-3 py-2.5'
-                  } ${active ? 'text-white' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}
-                  style={active ? { backgroundColor: 'var(--brand)' } : {}}
+                  } ${active ? '' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}
+                  style={active ? { backgroundColor: 'var(--brand-bg)', color: 'var(--brand-text)' } : {}}
                   onMouseEnter={(e) => collapsed && !mobile && setTooltip({ label, y: e.currentTarget.getBoundingClientRect().top })}
                   onMouseLeave={() => collapsed && !mobile && setTooltip(null)}
                 >

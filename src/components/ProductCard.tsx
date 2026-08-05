@@ -30,7 +30,7 @@ export function ProductCard({ product, unlocked, expiresAt, progress, certificat
       {/* Banner */}
       <div
         className="relative aspect-video overflow-hidden rounded-2xl"
-        style={{ background: 'linear-gradient(135deg, var(--brand-bg) 0%, #ede0c8 100%)' }}
+        style={{ background: 'linear-gradient(135deg, var(--brand-bg) 0%, var(--brand-border) 100%)' }}
       >
         {product.banner_url ? (
           // eslint-disable-next-line @next/next/no-img-element

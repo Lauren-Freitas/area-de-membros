@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
+import { Button } from '@/components/Button'
 import { ProductCard } from '@/components/ProductCard'
 import { BannerList } from '@/components/BannerList'
 import { OfertaCard } from '@/components/OfertaCard'
@@ -214,16 +215,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               {featuredProduct.description && (
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">{featuredProduct.description}</p>
               )}
-              <Link
-                href={`/produto/${featuredProduct.id}`}
-                className="inline-flex items-center gap-2 self-start px-5 py-2.5 text-sm font-semibold text-white rounded-xl transition hover:opacity-90"
-                style={{ backgroundColor: 'var(--brand)' }}
-              >
+              <Button href={`/produto/${featuredProduct.id}`} className="self-start">
                 {(progressByProduct[featuredProduct.id]?.completed ?? 0) > 0 ? 'Continuar' : 'Começar agora'}
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
-              </Link>
+              </Button>
             </div>
           </div>
         </section>
@@ -265,13 +262,13 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
       {/* Card de turma */}
       {cohort && (
-        <div className="flex items-start gap-4 px-5 py-4 rounded-xl border" style={{ backgroundColor: '#f0f7ff', borderColor: '#bfdbfe' }}>
+        <div className="flex items-start gap-4 px-5 py-4 rounded-xl border bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/40">
           <span className="text-2xl mt-0.5">🏫</span>
           <div>
-            <p className="font-semibold text-sm text-blue-900">Você faz parte da turma: <strong>{cohort.name}</strong></p>
-            {cohort.description && <p className="text-xs text-blue-700 mt-0.5">{cohort.description}</p>}
+            <p className="font-semibold text-sm text-blue-900 dark:text-blue-200">Você faz parte da turma: <strong>{cohort.name}</strong></p>
+            {cohort.description && <p className="text-xs text-blue-700 dark:text-blue-300 mt-0.5">{cohort.description}</p>}
             {(cohort.starts_at || cohort.ends_at) && (
-              <p className="text-xs text-blue-500 mt-1">
+              <p className="text-xs text-blue-500 dark:text-blue-400 mt-1">
                 {cohort.starts_at && `Início: ${new Date(cohort.starts_at).toLocaleDateString('pt-BR')}`}
                 {cohort.starts_at && cohort.ends_at && ' · '}
                 {cohort.ends_at && `Encerramento: ${new Date(cohort.ends_at).toLocaleDateString('pt-BR')}`}
@@ -284,7 +281,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       {/* Meus conteúdos — apenas produtos desbloqueados */}
       {tab !== 'disponiveis' && (
         <section id="meus-conteudos">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-5">Meus conteúdos</h1>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Meus conteúdos</h2>
 
           {myProducts.length === 0 ? (
             <div className="text-center py-12 text-gray-400 dark:text-gray-500 bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030]">

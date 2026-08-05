@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Product, Module, Lesson } from '@/types'
+import { Button } from '@/components/Button'
 import { ProductCompleteButton } from '@/components/ProductCompleteButton'
 import { ProductRating } from '@/components/ProductRating'
 import { ProductComments } from '@/components/ProductComments'
@@ -137,16 +138,12 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
             </div>
 
             {nextLesson && (
-              <Link
-                href={`/produto/${id}/aula/${nextLesson.id}`}
-                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white rounded-xl transition hover:opacity-90"
-                style={{ backgroundColor: 'var(--brand)' }}
-              >
+              <Button href={`/produto/${id}/aula/${nextLesson.id}`}>
                 {completedLessons > 0 ? 'Continuar curso' : 'Começar curso'}
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
-              </Link>
+              </Button>
             )}
           </div>
         </div>
@@ -160,17 +157,13 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
         >
           <p className="text-4xl mb-2">🎉</p>
           <p className="text-xl font-bold mb-1" style={{ color: 'var(--brand-text)' }}>Parabéns!</p>
-          <p className="text-sm mb-6" style={{ color: '#9a7230' }}>Você concluiu este curso.</p>
-          <Link
-            href={`/certificado/${certificate.id}`}
-            className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white rounded-xl transition hover:opacity-90"
-            style={{ backgroundColor: 'var(--brand)' }}
-          >
+          <p className="text-sm mb-6" style={{ color: 'var(--brand-text)', opacity: 0.75 }}>Você concluiu este curso.</p>
+          <Button href={`/certificado/${certificate.id}`}>
             Baixar certificado
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
             </svg>
-          </Link>
+          </Button>
         </div>
       )}
 
@@ -393,9 +386,9 @@ async function FileContent({ productId, title }: { productId: string; title: str
         <p className="text-sm text-gray-500 mt-1">Clique para baixar o arquivo</p>
       </div>
       {data?.signedUrl ? (
-        <a href={data.signedUrl} download className="inline-flex items-center gap-2 px-6 py-3 text-white text-sm font-semibold rounded-lg transition hover:opacity-90" style={{ backgroundColor: 'var(--brand)' }}>
+        <Button href={data.signedUrl} download>
           Baixar arquivo
-        </a>
+        </Button>
       ) : (
         <p className="text-sm text-red-500">Arquivo não encontrado.</p>
       )}

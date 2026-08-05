@@ -5,6 +5,7 @@ import { after } from 'next/server'
 import Link from 'next/link'
 import sanitizeHtml from 'sanitize-html'
 import { Lesson, LessonAttachment } from '@/types'
+import { Button } from '@/components/Button'
 import { LessonCompleteButton } from '@/components/LessonCompleteButton'
 import { LessonComments } from '@/components/LessonComments'
 import { LessonSidebar } from '@/components/LessonSidebar'
@@ -222,27 +223,20 @@ export default async function AulaPage({
             {(prevLesson || nextLesson) && (
               <div className="flex items-center gap-2 pt-1 border-t border-gray-100 dark:border-[#1e2030]">
                 {prevLesson && (
-                  <Link
-                    href={`/produto/${id}/aula/${prevLesson.id}`}
-                    className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-                  >
+                  <Button href={`/produto/${id}/aula/${prevLesson.id}`} variant="secondary">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                     </svg>
                     Anterior
-                  </Link>
+                  </Button>
                 )}
                 {nextLesson && (
-                  <Link
-                    href={`/produto/${id}/aula/${nextLesson.id}`}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-white transition hover:opacity-90"
-                    style={{ backgroundColor: 'var(--brand)' }}
-                  >
+                  <Button href={`/produto/${id}/aula/${nextLesson.id}`} className="flex-1">
                     Próxima aula
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
-                  </Link>
+                  </Button>
                 )}
               </div>
             )}
@@ -331,14 +325,9 @@ function AttachmentsList({ attachments }: { attachments: (LessonAttachment & { u
                 </p>
               </div>
               {a.url ? (
-                <a
-                  href={a.url}
-                  download={a.file_name}
-                  className="text-xs font-semibold shrink-0 px-3 py-1.5 rounded-lg text-white transition hover:opacity-90"
-                  style={{ backgroundColor: 'var(--brand)' }}
-                >
+                <Button href={a.url} download={a.file_name} size="sm" className="shrink-0">
                   Baixar
-                </a>
+                </Button>
               ) : (
                 <span className="text-xs text-gray-300 shrink-0">Indisponível</span>
               )}
@@ -374,12 +363,9 @@ function FileLesson({ url, title }: { url: string | null; title: string }) {
         <p className="font-semibold text-gray-900 dark:text-white">{title}</p>
         <p className="text-sm text-gray-500 mt-1">Clique para baixar</p>
       </div>
-      <a href={url} download target="_blank" rel="noopener noreferrer"
-        className="inline-flex items-center gap-2 px-6 py-3 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-        style={{ backgroundColor: 'var(--brand)' }}
-      >
+      <Button href={url} download>
         Baixar arquivo
-      </a>
+      </Button>
     </div>
   )
 }
@@ -397,12 +383,9 @@ function LinkLesson({ url, title }: { url: string | null; title: string }) {
         <p className="font-semibold text-gray-900 dark:text-white">{title}</p>
         <p className="text-sm text-gray-500 mt-1 break-all">{url}</p>
       </div>
-      <a href={url} target="_blank" rel="noopener noreferrer"
-        className="inline-flex items-center gap-2 px-6 py-3 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-        style={{ backgroundColor: 'var(--brand)' }}
-      >
+      <Button href={url}>
         Acessar link
-      </a>
+      </Button>
     </div>
   )
 }
