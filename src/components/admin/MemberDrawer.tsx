@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { getMemberDetail, type MemberDetail } from '@/lib/actions/members'
 import { MemberActionsInline } from '@/components/admin/MemberActionsMenu'
+
+/** Duração da transição de slide — usada tanto na classe Tailwind quanto no timer abaixo, os dois precisam bater. */
+const TRANSITION_MS = 300
 
 interface Props {
   userId: string
@@ -36,9 +39,24 @@ function Field({ label, value }: { label: string; value: string }) {
 }
 
 export function MemberDrawer({ userId, onClose, onMutated }: Props) {
+  const router = useRouter()
   const [detail, setDetail] = useState<MemberDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [visible, setVisible] = useState(false)
+
+  /**
+   * Nunca navega com o drawer ainda visualmente aberto — ou ele está aberto
+   * mostrando contexto, ou fechou e foi pra uma tela cheia, nunca os dois ao
+   * mesmo tempo. Fecha com a animação normal e só troca de rota depois dela
+   * terminar.
+   */
+  function navigateAndClose(href: string) {
+    setVisible(false)
+    setTimeout(() => {
+      onClose()
+      router.push(href)
+    }, TRANSITION_MS)
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -118,13 +136,14 @@ export function MemberDrawer({ userId, onClose, onMutated }: Props) {
                 <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Produtos</p>
                 <p className="text-sm text-gray-700 dark:text-gray-300">{activeCount} {activeCount === 1 ? 'ativo' : 'ativos'}</p>
               </div>
-              <Link
-                href={`/admin/usuarios/${detail.profile.id}`}
+              <button
+                type="button"
+                onClick={() => navigateAndClose(`/admin/usuarios/${detail.profile.id}`)}
                 className="text-sm font-medium hover:underline"
                 style={{ color: 'var(--brand)' }}
               >
                 Gerenciar →
-              </Link>
+              </button>
             </div>
 
             {/* Ações */}
@@ -133,6 +152,7 @@ export function MemberDrawer({ userId, onClose, onMutated }: Props) {
                 member={{ id: detail.profile.id, name: detail.profile.name, email: detail.profile.email, is_active: detail.profile.is_active, last_login_at: detail.profile.last_login_at }}
                 onToggled={onMutated}
                 onDeleted={() => { onMutated(); onClose() }}
+                onNavigate={navigateAndClose}
               />
             </div>
           </>

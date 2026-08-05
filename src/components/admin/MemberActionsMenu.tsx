@@ -18,6 +18,13 @@ interface MemberLite {
 interface ActionCallbacks {
   onToggled?: (nowActive: boolean) => void
   onDeleted?: () => void
+  /**
+   * Sobrescreve a navegação de "Editar" — usado pelo drawer pra fechar com
+   * animação antes de sair pra página cheia, em vez de navegar por cima do
+   * painel ainda aberto (nunca um estado híbrido: ou o drawer está aberto
+   * mostrando contexto, ou fechou e foi pra uma tela cheia — nunca os dois).
+   */
+  onNavigate?: (href: string) => void
 }
 
 type Feedback = { label: string; tone: 'ok' | 'error' } | null
@@ -44,13 +51,19 @@ function Icon({ d }: { d: ReactNode }) {
  * uma ação daqui — produtos vivem só na página de edição (/admin/usuarios/:id),
  * que "Editar" já abre; ter os dois destinos seria duplicar a mesma coisa.
  */
-function useMemberActions(member: MemberLite, { onToggled, onDeleted }: ActionCallbacks) {
+function useMemberActions(member: MemberLite, { onToggled, onDeleted, onNavigate }: ActionCallbacks) {
   const router = useRouter()
   const [confirmAction, setConfirmAction] = useState<'suspend' | 'delete' | null>(null)
   const [feedback, setFeedback] = useState<Feedback>(null)
 
   const isActive = member.is_active !== false
   const hasActivated = !!member.last_login_at
+
+  function goToEdit() {
+    const href = `/admin/usuarios/${member.id}`
+    if (onNavigate) onNavigate(href)
+    else router.push(href)
+  }
 
   function flash(label: string, tone: 'ok' | 'error' = 'ok') {
     setFeedback({ label, tone })
@@ -88,7 +101,7 @@ function useMemberActions(member: MemberLite, { onToggled, onDeleted }: ActionCa
 
   const items = (
     <>
-      <MenuItem icon={<Icon d={icons.edit} />} onSelect={() => router.push(`/admin/usuarios/${member.id}`)}>
+      <MenuItem icon={<Icon d={icons.edit} />} onSelect={goToEdit}>
         Editar...
       </MenuItem>
       <MenuItem icon={<Icon d={icons.mail} />} keepOpen onSelect={handleSendAccess}>
@@ -154,8 +167,8 @@ interface DropdownProps extends ActionCallbacks {
 }
 
 /** Uso na linha da lista: "⋯" que abre um dropdown. */
-export function MemberActionsMenu({ member, trigger, align = 'right', onToggled, onDeleted }: DropdownProps) {
-  const { items, modals } = useMemberActions(member, { onToggled, onDeleted })
+export function MemberActionsMenu({ member, trigger, align = 'right', onToggled, onDeleted, onNavigate }: DropdownProps) {
+  const { items, modals } = useMemberActions(member, { onToggled, onDeleted, onNavigate })
   return (
     <>
       <Menu align={align} panelClassName="w-56" trigger={trigger}>{items}</Menu>
@@ -169,8 +182,8 @@ interface InlineProps extends ActionCallbacks {
 }
 
 /** Uso no drawer: mesma lista de ações, sempre visível (sem menu escondido atrás de outro clique). */
-export function MemberActionsInline({ member, onToggled, onDeleted }: InlineProps) {
-  const { items, modals } = useMemberActions(member, { onToggled, onDeleted })
+export function MemberActionsInline({ member, onToggled, onDeleted, onNavigate }: InlineProps) {
+  const { items, modals } = useMemberActions(member, { onToggled, onDeleted, onNavigate })
   return (
     <>
       <div className="py-1">{items}</div>
