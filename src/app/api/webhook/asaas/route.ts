@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAsaasCustomer } from '@/lib/asaas'
 import { sendWelcomeEmail, sendAccessGrantedEmail } from '@/lib/resend'
+import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
 
 type AdminClient = ReturnType<typeof createAdminClient>
 
@@ -114,6 +115,11 @@ async function handleGrant(admin: AdminClient, payment: Record<string, unknown>)
   } else {
     await sendAccessGrantedEmail({ email, name, productTitle: product.title })
   }
+
+  await Promise.all(productIds.map((pid) => Promise.all([
+    fireOutboundWebhooks('sale.approved', { user_id: userId, product_id: pid, email, name, value: billingSnapshot.value, provider: 'asaas' }, pid),
+    fireOutboundWebhooks('payment.approved', { user_id: userId, product_id: pid, email, value: billingSnapshot.value, provider: 'asaas' }, pid),
+  ])))
 }
 
 async function handleOverdue(admin: AdminClient, payment: Record<string, unknown>) {
@@ -137,6 +143,10 @@ async function handleOverdue(admin: AdminClient, payment: Record<string, unknown
     .eq('user_id', userId)
     .in('product_id', productIds)
     .in('granted_by', ['purchase', 'pack'])
+
+  await Promise.all(productIds.map((pid) =>
+    fireOutboundWebhooks('payment.overdue', { user_id: userId, product_id: pid, provider: 'asaas' }, pid)
+  ))
 }
 
 async function handleRevoke(admin: AdminClient, payment: Record<string, unknown>) {
@@ -161,6 +171,11 @@ async function handleRevoke(admin: AdminClient, payment: Record<string, unknown>
     .eq('user_id', userId)
     .in('product_id', productIds)
     .in('granted_by', ['purchase', 'pack'])
+
+  await Promise.all(productIds.map((pid) => Promise.all([
+    fireOutboundWebhooks('sale.refunded', { user_id: userId, product_id: pid, provider: 'asaas' }, pid),
+    fireOutboundWebhooks('payment.refunded', { user_id: userId, product_id: pid, provider: 'asaas' }, pid),
+  ])))
 }
 
 export async function POST(req: NextRequest) {

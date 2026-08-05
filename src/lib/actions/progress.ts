@@ -2,6 +2,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { awardXp, checkBadgesAfterLesson } from '@/lib/xp'
+import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
 
 export async function toggleLessonComplete(lessonId: string, productId: string, completed: boolean) {
   const supabase = await createClient()
@@ -83,6 +84,8 @@ async function maybeIssueCertificate(
         body: `Você concluiu "${product?.title}". Seu certificado está pronto para download.`,
         link: '/dashboard',
       })
+
+      await fireOutboundWebhooks('certificate.issued', { user_id: userId, product_id: productId, product_title: product?.title }, productId)
     }
 
     revalidatePath('/dashboard')

@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { sendWelcomeEmail, sendAccessGrantedEmail, sendCollaboratorInviteEmail } from '@/lib/resend'
 import { logActivity } from '@/lib/log-activity'
+import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
 import sanitizeHtml from 'sanitize-html'
 
 function sanitizeLessonHtml(html: string): string {
@@ -221,6 +222,14 @@ export async function createUser(
   }
 
   await logActivity({ action: 'criar', entity: 'membro', entityName: `${name} (${email})` })
+
+  if (isNewUser) {
+    await fireOutboundWebhooks('member.created', { user_id: userId, name, email, role })
+  }
+  await Promise.all(productIds.map((productId) =>
+    fireOutboundWebhooks('access.granted', { user_id: userId, product_id: productId, user_name: name, user_email: email }, productId)
+  ))
+
   revalidatePath('/admin/usuarios')
   revalidatePath('/admin/configuracoes')
   if (role === 'admin' || role === 'equipe') redirect('/admin/configuracoes')
@@ -234,6 +243,7 @@ export async function deleteUser(userId: string): Promise<{ success?: boolean; e
   const { error } = await admin.auth.admin.deleteUser(userId)
   if (error) return { error: error.message }
   await logActivity({ action: 'excluir', entity: 'membro', entityId: userId, entityName: profile?.name ?? profile?.email ?? null })
+  await fireOutboundWebhooks('member.deleted', { user_id: userId, name: profile?.name, email: profile?.email })
   revalidatePath('/admin/usuarios')
   revalidatePath('/admin/configuracoes')
   return { success: true }
@@ -279,6 +289,8 @@ export async function updateUser(
 
   if (!name) return { error: 'O nome é obrigatório.' }
 
+  const { data: before } = await admin.from('profiles').select('is_active, email').eq('id', userId).single()
+
   const { error } = await admin
     .from('profiles')
     .update({ name, role, is_active })
@@ -287,6 +299,14 @@ export async function updateUser(
   if (error) return { error: error.message }
 
   await logActivity({ action: 'editar', entity: 'membro', entityId: userId, entityName: name })
+
+  const wasActive = before?.is_active !== false
+  if (wasActive !== is_active) {
+    await fireOutboundWebhooks(is_active ? 'member.enabled' : 'member.disabled', { user_id: userId, name, email: before?.email })
+  } else {
+    await fireOutboundWebhooks('member.updated', { user_id: userId, name, email: before?.email, role })
+  }
+
   revalidatePath('/admin/usuarios')
   revalidatePath(`/admin/usuarios/${userId}`)
   return { success: true }
@@ -561,6 +581,7 @@ export async function createInvite(
 
   if (error) return { error: error.message }
   await logActivity({ action: 'criar', entity: 'convite', entityName: note ?? code })
+  await fireOutboundWebhooks('invite.sent', { code, note, product_ids })
   revalidatePath('/admin/convites')
   redirect('/admin/convites')
 }
@@ -618,6 +639,7 @@ export async function grantAccess(userId: string, productId: string) {
     admin.from('products').select('title').eq('id', productId).single(),
   ])
   await logActivity({ action: 'conceder_acesso', entity: 'acesso', entityId: userId, entityName: `${member?.name ?? userId} → ${product?.title ?? productId}` })
+  await fireOutboundWebhooks('access.granted', { user_id: userId, product_id: productId, user_name: member?.name, product_title: product?.title }, productId)
   revalidatePath('/admin/usuarios')
   revalidatePath(`/admin/usuarios/${userId}`)
 }
@@ -631,6 +653,7 @@ export async function revokeAccess(userId: string, productId: string) {
   ])
   await admin.from('user_products').delete().eq('user_id', userId).eq('product_id', productId)
   await logActivity({ action: 'revogar_acesso', entity: 'acesso', entityId: userId, entityName: `${member?.name ?? userId} → ${product?.title ?? productId}` })
+  await fireOutboundWebhooks('access.revoked', { user_id: userId, product_id: productId, user_name: member?.name, product_title: product?.title }, productId)
   revalidatePath('/admin/usuarios')
   revalidatePath(`/admin/usuarios/${userId}`)
 }

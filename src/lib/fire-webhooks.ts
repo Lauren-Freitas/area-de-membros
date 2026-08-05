@@ -1,7 +1,16 @@
 import { createAdminClient } from './supabase/admin'
 
+export type WebhookEvent =
+  | 'member.created' | 'member.updated' | 'member.deleted' | 'member.enabled' | 'member.disabled'
+  | 'access.granted' | 'access.revoked'
+  | 'sale.approved' | 'sale.refused' | 'sale.refunded'
+  | 'payment.approved' | 'payment.failed' | 'payment.overdue' | 'payment.refunded'
+  | 'certificate.issued'
+  | 'invite.sent' | 'invite.accepted'
+  | 'login.created'
+
 export async function fireOutboundWebhooks(
-  event: 'sale.created' | 'member.created',
+  event: WebhookEvent,
   payload: Record<string, unknown>,
   productId?: string | null,
 ) {

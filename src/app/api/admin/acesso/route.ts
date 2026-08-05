@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   // Fetch user info for webhook payload
   const { data: profile } = await admin.from('profiles').select('name, email').eq('id', user_id).maybeSingle()
 
-  fireOutboundWebhooks('sale.created', {
+  await fireOutboundWebhooks('access.granted', {
     user_id,
     product_id,
     user_name: profile?.name,
@@ -38,5 +38,14 @@ export async function DELETE(req: NextRequest) {
   const admin = createAdminClient()
   const { error } = await admin.from('user_products').delete().eq('user_id', user_id).eq('product_id', product_id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  const { data: profile } = await admin.from('profiles').select('name, email').eq('id', user_id).maybeSingle()
+  await fireOutboundWebhooks('access.revoked', {
+    user_id,
+    product_id,
+    user_name: profile?.name,
+    user_email: profile?.email,
+  }, product_id)
+
   return NextResponse.json({ revoked: true })
 }

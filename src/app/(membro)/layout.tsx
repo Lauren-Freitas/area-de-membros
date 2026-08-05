@@ -11,11 +11,13 @@ import { ProfileMenu } from '@/components/ProfileMenu'
 import { MobileSidebar } from '@/components/MobileSidebar'
 import { ProteinoFAB } from '@/components/ProteinoFAB'
 import { ViewAsBanner } from '@/components/ViewAsBanner'
+import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
 
 async function touchLastLogin(adminClient: ReturnType<typeof createAdminClient>, userId: string, lastLoginAt: string | null | undefined) {
   const isStale = !lastLoginAt || Date.now() - new Date(lastLoginAt).getTime() > 5 * 60 * 1000
   if (isStale) {
     await adminClient.from('profiles').update({ last_login_at: new Date().toISOString() }).eq('id', userId)
+    await fireOutboundWebhooks('login.created', { user_id: userId })
   }
 }
 

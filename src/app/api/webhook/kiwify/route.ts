@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendWelcomeEmail, sendAccessGrantedEmail } from '@/lib/resend'
+import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
 
 type AdminClient = ReturnType<typeof createAdminClient>
 type Json = Record<string, unknown>
@@ -147,6 +148,11 @@ async function handleGrant(admin: AdminClient, parsed: ParsedKiwifyEvent) {
   } else {
     await sendAccessGrantedEmail({ email, name: displayName, productTitle: product.title })
   }
+
+  await Promise.all(productIds.map((pid) => Promise.all([
+    fireOutboundWebhooks('sale.approved', { user_id: userId, product_id: pid, email, name: displayName, value, provider: 'kiwify' }, pid),
+    fireOutboundWebhooks('payment.approved', { user_id: userId, product_id: pid, email, value, provider: 'kiwify' }, pid),
+  ])))
 }
 
 async function handleOverdue(admin: AdminClient, parsed: ParsedKiwifyEvent) {
@@ -167,6 +173,10 @@ async function handleOverdue(admin: AdminClient, parsed: ParsedKiwifyEvent) {
     .eq('user_id', profile.id)
     .in('product_id', productIds)
     .in('granted_by', ['purchase', 'pack'])
+
+  await Promise.all(productIds.map((pid) =>
+    fireOutboundWebhooks('payment.overdue', { user_id: profile.id, product_id: pid, email, provider: 'kiwify' }, pid)
+  ))
 }
 
 async function handleRevoke(admin: AdminClient, parsed: ParsedKiwifyEvent) {
@@ -187,6 +197,11 @@ async function handleRevoke(admin: AdminClient, parsed: ParsedKiwifyEvent) {
     .eq('user_id', profile.id)
     .in('product_id', productIds)
     .in('granted_by', ['purchase', 'pack'])
+
+  await Promise.all(productIds.map((pid) => Promise.all([
+    fireOutboundWebhooks('sale.refunded', { user_id: profile.id, product_id: pid, email, provider: 'kiwify' }, pid),
+    fireOutboundWebhooks('payment.refunded', { user_id: profile.id, product_id: pid, email, provider: 'kiwify' }, pid),
+  ])))
 }
 
 export async function POST(req: NextRequest) {

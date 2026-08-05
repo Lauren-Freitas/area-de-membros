@@ -1,5 +1,6 @@
 'use server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
 
 export async function registerWithInvite(
   code: string,
@@ -53,6 +54,13 @@ export async function registerWithInvite(
     .from('invites')
     .update({ used_count: invite.used_count + 1 })
     .eq('id', invite.id)
+
+  const userId = created.user.id
+  await fireOutboundWebhooks('member.created', { user_id: userId, name, email: email.toLowerCase() })
+  await fireOutboundWebhooks('invite.accepted', { code: invite.code, user_id: userId, name, email: email.toLowerCase() })
+  await Promise.all(productIds.map((pid) =>
+    fireOutboundWebhooks('access.granted', { user_id: userId, product_id: pid, user_name: name, user_email: email.toLowerCase() }, pid)
+  ))
 
   return { success: true }
 }
