@@ -4,6 +4,7 @@ import { DeleteUserButton } from '@/components/admin/DeleteUserButton'
 import { ProductPill } from '@/components/admin/ProductPill'
 import { Profile, Product } from '@/types'
 import Link from 'next/link'
+import { Button } from '@/components/Button'
 
 export default async function AdminUsuariosPage() {
   const supabase = await createClient()
@@ -28,13 +29,7 @@ export default async function AdminUsuariosPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Membros</h1>
-        <Link
-          href="/admin/usuarios/novo"
-          className="px-4 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-          style={{ backgroundColor: 'var(--brand)' }}
-        >
-          + Novo membro
-        </Link>
+        <Button href="/admin/usuarios/novo">+ Novo membro</Button>
       </div>
 
       {profiles?.length ? (

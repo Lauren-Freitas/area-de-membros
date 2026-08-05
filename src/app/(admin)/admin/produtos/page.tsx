@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import Link from 'next/link'
 import { DeleteProductButton } from '@/components/admin/DeleteProductButton'
+import { Button } from '@/components/Button'
 
 export default async function AdminProdutosPage() {
   const supabase = await createClient()
@@ -10,13 +10,7 @@ export default async function AdminProdutosPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Produtos</h1>
-        <Link
-          href="/admin/produtos/novo"
-          className="px-4 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-          style={{ backgroundColor: 'var(--brand)' }}
-        >
-          + Novo produto
-        </Link>
+        <Button href="/admin/produtos/novo">+ Novo produto</Button>
       </div>
 
       {!products?.length ? (
@@ -56,13 +50,9 @@ export default async function AdminProdutosPage() {
                 </div>
                 <div className="w-44 shrink-0">
                   <div className="flex items-center gap-2">
-                    <Link
-                      href={`/admin/produtos/${product.id}`}
-                      className="text-xs font-medium px-3 py-1.5 rounded-lg border transition hover:bg-gray-50"
-                      style={{ borderColor: 'var(--brand)', color: 'var(--brand-text)' }}
-                    >
+                    <Button href={`/admin/produtos/${product.id}`} variant="secondary" size="sm">
                       Editar
-                    </Link>
+                    </Button>
                     <DeleteProductButton id={product.id} />
                   </div>
                 </div>
