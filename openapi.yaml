@@ -1,0 +1,593 @@
+openapi: 3.0.3
+info:
+  title: Área de Membros — Thiago Cantalovo
+  version: "1.0.0"
+  description: >
+    API REST para integrações externas (n8n, Make, Zapier, Flowise, Langflow, checkouts, etc.).
+    Documentação em prosa equivalente: API.md. Mantida manualmente — não é gerada a partir do código.
+servers:
+  - url: https://membros.thiagocantalovo.com
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: Membros
+  - name: Produtos
+  - name: Acesso
+  - name: Convites
+  - name: Certificados
+  - name: Vendas
+  - name: Webhooks de Entrada
+
+paths:
+  /api/admin/usuarios:
+    get:
+      tags: [Membros]
+      summary: Listar membros
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items: { $ref: "#/components/schemas/Profile" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    post:
+      tags: [Membros]
+      summary: Criar membro (ou adicionar produtos a um já existente com o mesmo e-mail)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email]
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+                phone: { type: string, nullable: true }
+                products:
+                  type: array
+                  items: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Membro já existia — produtos adicionados
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserCreatedResult" }
+        "201":
+          description: Membro novo criado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserCreatedResult" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/admin/usuarios/{id}:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      tags: [Membros]
+      summary: Buscar membro
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: { $ref: "#/components/schemas/Profile" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      tags: [Membros]
+      summary: Editar membro
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                role: { type: string, enum: [admin, equipe, membro] }
+                is_active: { type: boolean }
+                phone: { type: string, nullable: true }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: { $ref: "#/components/schemas/Profile" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      tags: [Membros]
+      summary: Excluir membro
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted: { type: boolean }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /api/admin/usuarios/{id}/reenviar-convite:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    post:
+      tags: [Membros]
+      summary: Reenviar e-mail de acesso a um membro existente
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sent: { type: boolean }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "502": { description: Falha ao enviar o e-mail }
+
+  /api/admin/produtos:
+    get:
+      tags: [Produtos]
+      summary: Listar produtos
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items: { $ref: "#/components/schemas/Product" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    post:
+      tags: [Produtos]
+      summary: Criar produto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, content_type]
+              properties:
+                title: { type: string }
+                description: { type: string }
+                content_type: { type: string, enum: [video, pdf, curso] }
+                content_url: { type: string, nullable: true }
+                banner_url: { type: string, nullable: true }
+                is_pack: { type: boolean, default: false }
+                sort_order: { type: integer, default: 0 }
+                is_active: { type: boolean, default: true }
+      responses:
+        "201":
+          description: Criado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  product: { $ref: "#/components/schemas/Product" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/admin/produtos/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    delete:
+      tags: [Produtos]
+      summary: Excluir produto
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted: { type: boolean }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/admin/acesso:
+    get:
+      tags: [Acesso]
+      summary: Consultar acessos
+      parameters:
+        - name: user_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: product_id
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access:
+                    type: array
+                    items: { $ref: "#/components/schemas/UserProduct" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    post:
+      tags: [Acesso]
+      summary: Conceder acesso a um produto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AccessRef" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  granted: { type: boolean }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    patch:
+      tags: [Acesso]
+      summary: Atualizar validade de um acesso
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/AccessRef"
+                - type: object
+                  properties:
+                    expires_at:
+                      type: string
+                      format: date-time
+                      nullable: true
+                      description: "null torna o acesso permanente"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access: { $ref: "#/components/schemas/UserProduct" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      tags: [Acesso]
+      summary: Revogar acesso a um produto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AccessRef" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  revoked: { type: boolean }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/admin/convites:
+    get:
+      tags: [Convites]
+      summary: Listar convites de auto-cadastro
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invites:
+                    type: array
+                    items: { $ref: "#/components/schemas/Invite" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    post:
+      tags: [Convites]
+      summary: Criar convite de auto-cadastro
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note: { type: string, nullable: true }
+                product_ids:
+                  type: array
+                  items: { type: string, format: uuid }
+                max_uses: { type: integer, nullable: true }
+                expires_at: { type: string, format: date-time, nullable: true }
+      responses:
+        "201":
+          description: Criado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invite: { $ref: "#/components/schemas/Invite" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/admin/certificados:
+    get:
+      tags: [Certificados]
+      summary: Listar certificados emitidos
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  certificates:
+                    type: array
+                    items: { $ref: "#/components/schemas/Certificate" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    post:
+      tags: [Certificados]
+      summary: Emitir certificado manualmente (ignora a exigência de conclusão do curso)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AccessRef" }
+      responses:
+        "200":
+          description: Já existia um certificado para este par membro/produto — retorna o existente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  certificate: { $ref: "#/components/schemas/Certificate" }
+        "201":
+          description: Certificado novo emitido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  certificate: { $ref: "#/components/schemas/Certificate" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/admin/vendas:
+    get:
+      tags: [Vendas]
+      summary: Consultar vendas (acessos concedidos por compra)
+      parameters:
+        - name: user_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: product_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: payment_status
+          in: query
+          schema: { type: string, enum: [confirmed, overdue, refunded] }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sales:
+                    type: array
+                    items: { $ref: "#/components/schemas/UserProduct" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/webhook/asaas:
+    post:
+      tags: [Webhooks de Entrada]
+      summary: Notificação de pagamento do Asaas
+      security: []
+      parameters:
+        - name: asaas-access-token
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event: { type: string, example: PAYMENT_CONFIRMED }
+                payment:
+                  type: object
+                  properties:
+                    id: { type: string }
+                    customer: { type: string }
+                    value: { type: number }
+                    externalReference:
+                      type: string
+                      description: UUID do produto na plataforma
+      responses:
+        "200":
+          description: Sempre 200 — falhas de processamento ficam em webhook_logs, não na resposta HTTP
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/webhook/kiwify:
+    post:
+      tags: [Webhooks de Entrada]
+      summary: Notificação de pagamento da Kiwify
+      security: []
+      parameters:
+        - name: signature
+          in: query
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Payload da Kiwify — formato varia por versão, veja API.md
+      responses:
+        "200":
+          description: Sempre 200 — falhas de processamento ficam em webhook_logs, não na resposta HTTP
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+
+  parameters:
+    UserId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+  responses:
+    Unauthorized:
+      description: x-api-key ausente ou inválida
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: { type: string }
+    BadRequest:
+      description: Dados inválidos ou faltando na requisição
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: { type: string }
+    NotFound:
+      description: Recurso não encontrado
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: { type: string }
+    ServerError:
+      description: Erro interno do servidor
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error: { type: string }
+
+  schemas:
+    Profile:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        email: { type: string, format: email }
+        phone: { type: string, nullable: true }
+        role: { type: string, enum: [admin, equipe, membro] }
+        is_active: { type: boolean }
+        created_at: { type: string, format: date-time }
+        last_login_at: { type: string, format: date-time, nullable: true }
+
+    UserCreatedResult:
+      type: object
+      properties:
+        userId: { type: string, format: uuid }
+        isNewUser: { type: boolean }
+
+    Product:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: string }
+        content_type: { type: string, enum: [video, pdf, curso] }
+        content_url: { type: string, nullable: true }
+        banner_url: { type: string, nullable: true }
+        is_pack: { type: boolean }
+        is_active: { type: boolean }
+        is_featured: { type: boolean }
+        sort_order: { type: integer }
+        created_at: { type: string, format: date-time }
+
+    AccessRef:
+      type: object
+      required: [user_id, product_id]
+      properties:
+        user_id: { type: string, format: uuid }
+        product_id: { type: string, format: uuid }
+
+    UserProduct:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid }
+        product_id: { type: string, format: uuid }
+        granted_at: { type: string, format: date-time }
+        granted_by: { type: string, enum: [manual, api, purchase, pack] }
+        expires_at: { type: string, format: date-time, nullable: true }
+        payment_status: { type: string, nullable: true, enum: [confirmed, overdue, refunded] }
+        value: { type: number, nullable: true }
+        billing_type: { type: string, nullable: true }
+        invoice_url: { type: string, nullable: true }
+        asaas_payment_id: { type: string, nullable: true }
+
+    Invite:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        note: { type: string, nullable: true }
+        product_ids:
+          type: array
+          items: { type: string, format: uuid }
+        max_uses: { type: integer, nullable: true }
+        expires_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+
+    Certificate:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid }
+        product_id: { type: string, format: uuid }
+        issued_at: { type: string, format: date-time }

@@ -1,44 +1,39 @@
 # API Reference — Área de Membros
 
-Documentação dos endpoints REST disponíveis para integrações externas (n8n, Make, Zapier, sistemas de checkout, etc.).
+Documentação dos endpoints REST disponíveis para integrações externas (n8n, Make, Zapier, Flowise, Langflow, sistemas de checkout, etc.).
 
 **Base URL:** `https://membros.thiagocantalovo.com`
+
+Especificação machine-readable equivalente: [`openapi.yaml`](./openapi.yaml).
 
 ---
 
 ## Autenticação
 
-A maioria dos endpoints administrativos requer autenticação via header:
+Todos os endpoints em `/api/admin/*` requerem o header:
 
 ```
 x-api-key: sua-chave-de-api
 ```
 
-As chaves são criadas no painel em **Integrações → API**.
+A chave pode ser a chave mestra (variável de ambiente `ADMIN_API_KEY`) ou qualquer chave nomeada criada no painel em **Integrações → API**. Uma chave ausente, inválida ou uma falha na consulta ao banco sempre resulta em `401` — nunca em acesso liberado.
+
+Os endpoints de webhook de entrada (`/api/webhook/*`) usam autenticação própria (token/assinatura do provedor de pagamento), não a `x-api-key`. Veja a seção específica.
 
 ---
 
 ## Endpoints Administrativos
 
-### Usuários
+### Membros
 
 #### Listar membros
 ```
 GET /api/admin/usuarios
 ```
 
-**Response:**
+**Response `200`:**
 ```json
-[
-  {
-    "id": "uuid",
-    "name": "João Silva",
-    "email": "joao@email.com",
-    "role": "membro",
-    "is_active": true,
-    "created_at": "2026-01-01T00:00:00Z"
-  }
-]
+{ "users": [ { "id": "uuid", "name": "João Silva", "email": "joao@email.com", "role": "membro", "is_active": true, "created_at": "2026-01-01T00:00:00Z" } ] }
 ```
 
 ---
@@ -48,17 +43,8 @@ GET /api/admin/usuarios
 GET /api/admin/usuarios/:id
 ```
 
-**Response:**
-```json
-{
-  "id": "uuid",
-  "name": "João Silva",
-  "email": "joao@email.com",
-  "role": "membro",
-  "is_active": true,
-  "created_at": "2026-01-01T00:00:00Z"
-}
-```
+**Response `200`:** `{ "user": { ...perfil completo } }`
+**Response `404`:** `{ "error": "Usuário não encontrado" }`
 
 ---
 
@@ -76,17 +62,32 @@ POST /api/admin/usuarios
   "products": ["product-uuid-1", "product-uuid-2"]
 }
 ```
-> `phone` é opcional. Formato livre (o app não normaliza) — recomendado DDI + DDD + número, sem espaços ou símbolos.
+> `phone` e `products` são opcionais. Se o e-mail já existir, o membro não é duplicado — apenas os produtos listados são adicionados ao acesso dele.
 
-**Response:**
+**Response `201` (membro novo) ou `200` (e-mail já existia):**
 ```json
-{
-  "userId": "uuid",
-  "isNewUser": true
-}
+{ "userId": "uuid", "isNewUser": true }
 ```
 
-> Se o e-mail já existir, apenas os produtos são adicionados. Um e-mail de convite/acesso é enviado automaticamente.
+> Se for um membro novo, um e-mail de convite/acesso é enviado automaticamente.
+
+---
+
+#### Editar membro
+```
+PATCH /api/admin/usuarios/:id
+```
+
+**Body** (todos os campos opcionais, envie só o que quer alterar):
+```json
+{ "name": "João Silva", "role": "membro", "is_active": true, "phone": "5561999999999" }
+```
+> `role` aceita `admin`, `equipe` ou `membro`.
+
+**Response `200`:** `{ "user": { ...perfil atualizado } }`
+**Response `400`:** `{ "error": "Nenhum campo para atualizar" }`
+
+> Dispara `member.enabled`/`member.disabled` quando `is_active` muda, ou `member.updated` nos demais casos.
 
 ---
 
@@ -95,10 +96,22 @@ POST /api/admin/usuarios
 DELETE /api/admin/usuarios/:id
 ```
 
-**Response:**
-```json
-{ "ok": true }
+**Response `200`:** `{ "deleted": true }`
+
+> Dispara `member.deleted`.
+
+---
+
+#### Reenviar convite de acesso
 ```
+POST /api/admin/usuarios/:id/reenviar-convite
+```
+
+Reenvia o e-mail de definição de senha/acesso para um membro já existente (útil quando o primeiro e-mail não chegou).
+
+**Response `200`:** `{ "sent": true }`
+
+> Dispara `invite.sent`.
 
 ---
 
@@ -109,25 +122,7 @@ DELETE /api/admin/usuarios/:id
 GET /api/admin/produtos
 ```
 
-**Response:**
-```json
-[
-  {
-    "id": "uuid",
-    "title": "Protocolo Emagrecimento",
-    "is_active": true,
-    "sort_order": 1,
-    "created_at": "2026-01-01T00:00:00Z"
-  }
-]
-```
-
----
-
-#### Buscar produto
-```
-GET /api/admin/produtos/:id
-```
+**Response `200`:** `{ "products": [ { ...produto completo } ] }`
 
 ---
 
@@ -142,18 +137,16 @@ POST /api/admin/produtos
   "title": "Protocolo Emagrecimento",
   "description": "Descrição do produto",
   "content_type": "video",
-  "is_active": true,
-  "sort_order": 1
+  "content_url": null,
+  "banner_url": null,
+  "is_pack": false,
+  "sort_order": 1,
+  "is_active": true
 }
 ```
+> `title` e `content_type` são obrigatórios.
 
-**Response:**
-```json
-{
-  "ok": true,
-  "product_id": "uuid"
-}
-```
+**Response `201`:** `{ "product": { ...produto criado } }`
 
 ---
 
@@ -162,9 +155,24 @@ POST /api/admin/produtos
 DELETE /api/admin/produtos/:id
 ```
 
+**Response `200`:** `{ "deleted": true }`
+
 ---
 
 ### Acesso a Produtos
+
+#### Consultar acessos
+```
+GET /api/admin/acesso?user_id=uuid&product_id=uuid
+```
+Ambos os parâmetros são opcionais e combináveis (sem nenhum, retorna todos os acessos).
+
+**Response `200`:**
+```json
+{ "access": [ { "id": "uuid", "user_id": "uuid", "product_id": "uuid", "granted_at": "...", "granted_by": "api", "expires_at": null, "payment_status": "confirmed", "value": 297.0, "billing_type": "kiwify" } ] }
+```
+
+---
 
 #### Conceder acesso
 ```
@@ -173,18 +181,28 @@ POST /api/admin/acesso
 
 **Body:**
 ```json
-{
-  "user_id": "uuid",
-  "product_id": "uuid"
-}
+{ "user_id": "uuid", "product_id": "uuid" }
 ```
 
-**Response:**
+**Response `200`:** `{ "granted": true }`
+
+> Dispara `access.granted`.
+
+---
+
+#### Atualizar validade do acesso
+```
+PATCH /api/admin/acesso
+```
+
+**Body:**
 ```json
-{ "ok": true }
+{ "user_id": "uuid", "product_id": "uuid", "expires_at": "2026-12-31T23:59:59Z" }
 ```
+> Envie `"expires_at": null` para tornar o acesso permanente.
 
-> Após conceder acesso, os webhooks de saída configurados são disparados automaticamente.
+**Response `200`:** `{ "access": { ...linha atualizada } }`
+**Response `404`:** `{ "error": "Acesso não encontrado" }`
 
 ---
 
@@ -195,15 +213,89 @@ DELETE /api/admin/acesso
 
 **Body:**
 ```json
-{
-  "user_id": "uuid",
-  "product_id": "uuid"
-}
+{ "user_id": "uuid", "product_id": "uuid" }
 ```
 
-**Response:**
+**Response `200`:** `{ "revoked": true }`
+
+> Dispara `access.revoked`.
+
+---
+
+### Convites
+
+Convites são códigos de auto-cadastro (`/convite/:code`) que liberam um ou mais produtos a quem se cadastra com o código — diferente do "reenviar convite" de um membro já existente (veja acima).
+
+#### Listar convites
+```
+GET /api/admin/convites
+```
+
+**Response `200`:** `{ "invites": [ { ...convite completo } ] }`
+
+---
+
+#### Criar convite
+```
+POST /api/admin/convites
+```
+
+**Body:**
 ```json
-{ "ok": true }
+{
+  "note": "Turma de fevereiro",
+  "product_ids": ["product-uuid-1"],
+  "max_uses": 50,
+  "expires_at": "2026-03-01T00:00:00Z"
+}
+```
+> Todos os campos são opcionais. `max_uses` e `expires_at` nulos significam sem limite. O código é gerado automaticamente pela plataforma.
+
+**Response `201`:** `{ "invite": { "id": "uuid", "code": "AB12CD34", ... } }`
+
+> Dispara `invite.sent`.
+
+---
+
+### Certificados
+
+#### Listar certificados emitidos
+```
+GET /api/admin/certificados
+```
+
+**Response `200`:** `{ "certificates": [ { "id": "uuid", "user_id": "uuid", "product_id": "uuid", "issued_at": "..." } ] }`
+
+---
+
+#### Emitir certificado manualmente
+```
+POST /api/admin/certificados
+```
+
+**Body:**
+```json
+{ "user_id": "uuid", "product_id": "uuid" }
+```
+> Emite mesmo que o membro não tenha concluído todas as aulas (uso administrativo). Se já existir um certificado para esse par membro/produto, retorna o existente sem duplicar.
+
+**Response `201` (novo) ou `200` (já existia):** `{ "certificate": { ... } }`
+
+> Dispara `certificate.issued` (apenas quando um certificado novo é emitido).
+
+---
+
+### Vendas
+
+#### Consultar vendas
+```
+GET /api/admin/vendas?user_id=uuid&product_id=uuid&payment_status=confirmed
+```
+Todos os parâmetros são opcionais e combináveis. Considera apenas acessos concedidos por compra (`granted_by` = `purchase` ou `pack`) — não inclui acessos manuais.
+
+**Response `200`:**
+```json
+{ "sales": [ { "id": "uuid", "user_id": "uuid", "product_id": "uuid", "granted_at": "...", "granted_by": "purchase", "value": 297.0, "billing_type": "asaas", "payment_status": "confirmed", "invoice_url": "https://...", "asaas_payment_id": "pay_xxx" } ] }
 ```
 
 ---
@@ -214,27 +306,21 @@ DELETE /api/admin/acesso
 ```
 POST /api/appearance
 ```
+> Requer sessão de navegador autenticada como admin/equipe (cookie do Supabase) — **não** aceita `x-api-key`.
 
-**Body:**
+**Body:** pares chave/valor livres, ex:
 ```json
 {
   "platform_name": "Thiago Cantalovo",
   "primary_color": "#b48840",
-  "brand_light": "#d2b17b",
-  "bg_light": "#e4e4e4",
-  "bg_dark": "#00060f",
-  "card_bg_light": "#ffffff",
-  "card_bg_dark": "#0d1020",
   "welcome_message": "Bem-vindo à área de membros!",
   "support_whatsapp": "5561991900589",
   "support_email": "nutri@thiagocantalovo.com"
 }
 ```
 
-**Response:**
-```json
-{ "ok": true }
-```
+**Response `200`:** `{ "ok": true }`
+**Response `401`:** `{ "ok": false, "error": "Não autorizado." }`
 
 ---
 
@@ -242,72 +328,86 @@ POST /api/appearance
 ```
 DELETE /api/appearance
 ```
+> Mesma exigência de sessão admin/equipe do endpoint acima.
 
-**Response:**
-```json
-{
-  "ok": true,
-  "defaults": { ... }
-}
-```
+**Response `200`:** `{ "ok": true, "defaults": { ... } }`
 
 ---
 
 ## Webhooks de Entrada
 
-### Asaas — Confirmação de Pagamento
+Recebem notificações de gateways de pagamento externos e concedem/revogam acesso automaticamente. Cada evento recebido é registrado em `webhook_logs` com o status `processed`, `ignored` ou `failed`.
 
+### Asaas
 ```
 POST /api/webhook/asaas
 ```
 
-**Header obrigatório:**
-```
-asaas-access-token: seu-token-webhook
-```
+**Header obrigatório:** `asaas-access-token: seu-token-webhook`
 
-**Evento suportado:** `PAYMENT_CONFIRMED`
+**Eventos tratados:**
+| Evento Asaas | Efeito |
+|---|---|
+| `PAYMENT_CONFIRMED`, `PAYMENT_RECEIVED` | Concede acesso (`sale.approved` + `payment.approved`) |
+| `PAYMENT_OVERDUE` | Marca pagamento em atraso (`payment.overdue`) |
+| `PAYMENT_REFUNDED`, `PAYMENT_DELETED`, `PAYMENT_CHARGEBACK_REQUESTED` | Revoga acesso (`sale.refunded` + `payment.refunded`) |
 
-**Payload esperado (enviado pelo Asaas):**
-```json
-{
-  "event": "PAYMENT_CONFIRMED",
-  "payment": {
-    "id": "pay_xxx",
-    "customer": "cus_xxx",
-    "value": 297.00,
-    "externalReference": "product-uuid"
-  }
-}
+O produto concedido é identificado pelo campo `externalReference` do pagamento, que deve conter o UUID do produto na plataforma. Se o cliente não existir ainda, ele é criado e recebe um e-mail de boas-vindas com link de acesso; se já existir, recebe um e-mail de "acesso liberado".
+
+---
+
+### Kiwify
+```
+POST /api/webhook/kiwify?signature=seu-token-webhook
 ```
 
-**O que acontece:**
-1. Valida o token do header
-2. Busca dados do cliente no Asaas
-3. Cria o usuário na plataforma (se ainda não existir)
-4. Concede acesso ao produto identificado em `externalReference`
-5. Envia e-mail de boas-vindas com link de acesso
-6. Registra o evento em `webhook_logs`
+O token vem por query string (`signature`), não por header — é assim que a Kiwify envia.
+
+**Eventos tratados:**
+| Evento Kiwify | Efeito |
+|---|---|
+| `order_approved`, `compra_aprovada`, `subscription_renewed` | Concede acesso (`sale.approved` + `payment.approved`) |
+| `subscription_late` | Marca pagamento em atraso (`payment.overdue`) |
+| `order_refunded`, `compra_reembolsada`, `refunded`, `order_rejected`, `compra_recusada`, `chargeback`, `chargedback`, `subscription_canceled`, `subscription_cancelled` | Revoga acesso (`sale.refunded` + `payment.refunded`) |
+
+O produto é identificado pela coluna `kiwify_product_id`, configurada em cada produto no painel. Assim como no Asaas, cria o membro se necessário e envia o e-mail correspondente.
 
 ---
 
 ## Webhooks de Saída
 
-A plataforma dispara webhooks para URLs configuradas no painel em **Integrações → Webhooks**.
+A plataforma envia um `POST` (`Content-Type: application/json`) para cada URL ativa cadastrada em **Integrações → Webhooks**, sempre que um dos eventos abaixo acontece. Cada envio é registrado (com status HTTP, corpo da resposta e sucesso/falha) e pode ser reenviado ou testado direto pelo painel.
 
-### Eventos
+Um webhook pode ser restrito a um produto específico (recebe só eventos daquele produto) e a uma lista de eventos (recebe só os eventos marcados) — por padrão, sem nenhum filtro, recebe tudo.
 
-#### `sale.created`
-Disparado quando um usuário recebe acesso a um produto (manual, via API ou via pagamento).
+### Catálogo de eventos
 
-#### `member.created`
-Disparado quando um novo usuário é criado na plataforma.
+| Evento | Quando dispara |
+|---|---|
+| `member.created` | Novo membro criado (cadastro manual, API, convite ou primeira compra) |
+| `member.updated` | Dados do membro alterados (exceto ativar/desativar) |
+| `member.deleted` | Membro excluído |
+| `member.enabled` | Membro reativado |
+| `member.disabled` | Membro desativado |
+| `access.granted` | Acesso a um produto concedido |
+| `access.revoked` | Acesso a um produto revogado |
+| `sale.approved` | Venda aprovada por um gateway de pagamento |
+| `sale.refunded` | Venda estornada/cancelada |
+| `payment.approved` | Pagamento confirmado |
+| `payment.overdue` | Pagamento em atraso |
+| `payment.refunded` | Pagamento estornado |
+| `certificate.issued` | Certificado emitido (automático ao concluir o curso, ou manual via API) |
+| `invite.sent` | Convite criado ou reenviado |
+| `invite.accepted` | Convite resgatado no cadastro |
+| `login.created` | Login registrado (no máximo 1 disparo a cada 5 min por membro) |
+
+> `sale.refused` e `payment.failed` estão reservados no catálogo mas nenhum fluxo atual os dispara — não há hoje uma origem de evento que distinga "recusado" de simplesmente não ter sido criado. `access.expired` não existe ainda (dependeria de uma rotina agendada, que a plataforma não tem).
 
 ### Payload
 
 ```json
 {
-  "event": "sale.created",
+  "event": "sale.approved",
   "timestamp": "2026-07-04T12:00:00.000Z",
   "user_id": "uuid",
   "product_id": "uuid",
@@ -315,52 +415,41 @@ Disparado quando um novo usuário é criado na plataforma.
   "user_email": "joao@email.com"
 }
 ```
-
-O webhook é enviado via `POST` com `Content-Type: application/json`. A plataforma registra o status HTTP da resposta para monitoramento no painel.
+Campos além de `event`/`timestamp` variam conforme o evento (veja a tabela acima para o contexto de cada um).
 
 ---
 
 ## Assistente de IA
 
 ### Chat (streaming)
-
 ```
 POST /api/assistente
 ```
-
-Requer sessão autenticada (cookie de sessão do Supabase).
+> Requer sessão de navegador autenticada (cookie do Supabase) — endpoint interno da interface, não pensado para chamadas via `x-api-key`.
 
 **Body:**
 ```json
-{
-  "conversation_id": "uuid",
-  "message": "Qual a quantidade ideal de proteína por kg de peso corporal?",
-  "attachments": []
-}
+{ "conversationId": "uuid", "message": "Qual a quantidade ideal de proteína por kg de peso corporal?", "history": [], "attachments": [], "persona": "membro" }
 ```
 
-**Response:** Stream de texto (`text/event-stream`)
+**Response:** stream de texto puro (`Content-Type: text/plain`).
 
-O assistente **Proteíno** utiliza o modelo Claude Haiku com contexto personalizado baseado no perfil do usuário, produtos adquiridos e tom de voz configurado.
+O assistente usa o modelo Claude Haiku, com um system prompt diferente para membro (**Proteíno**, foco em nutrição) e para admin/equipe (**IAN**, foco em gestão da plataforma).
 
 ---
 
 ## Erros
 
-Todos os endpoints retornam erros no formato:
+A convenção de erro **não é uniforme entre grupos de endpoints** — vale a pena checar o formato antes de programar contra ele:
 
-```json
-{
-  "ok": false,
-  "error": "Mensagem descrevendo o erro"
-}
-```
+- **`/api/admin/*`** (todos os endpoints desta doc protegidos por `x-api-key`): `{ "error": "mensagem" }`, sem campo `ok`.
+- **`/api/appearance`**: `{ "ok": false, "error": "mensagem" }`.
+- **`/api/webhook/*`**: sempre respondem `200 { "received": true }` mesmo em falha de processamento (o provedor de pagamento não deve re-tentar em loop) — o erro real fica registrado em `webhook_logs`, não na resposta HTTP. Só um token inválido retorna `401`.
 
 | Status | Significado |
 |---|---|
-| `400` | Dados inválidos na requisição |
-| `401` | API Key ausente ou inválida |
-| `403` | Sem permissão para a operação |
+| `400` | Dados inválidos ou faltando na requisição |
+| `401` | `x-api-key` ausente/inválida, ou token do provedor de pagamento inválido |
 | `404` | Recurso não encontrado |
 | `500` | Erro interno do servidor |
 
@@ -368,7 +457,7 @@ Todos os endpoints retornam erros no formato:
 
 ## Exemplo de Integração com n8n
 
-Para automatizar a liberação de acesso após uma venda em plataforma externa:
+Para automatizar a liberação de acesso após uma venda em uma plataforma externa sem webhook nativo integrado:
 
 1. **Trigger:** HTTP Webhook (recebe dados do checkout)
 2. **Ação 1:** HTTP Request → `POST /api/admin/acesso`
@@ -376,4 +465,4 @@ Para automatizar a liberação de acesso após uma venda em plataforma externa:
    - Body: `{ "user_id": "...", "product_id": "..." }`
 3. **Ação 2 (opcional):** Enviar confirmação por WhatsApp, atualizar CRM, etc.
 
-A plataforma também dispara webhooks de saída automaticamente, que podem ser usados como trigger no n8n diretamente.
+Para reagir a eventos que já acontecem na plataforma (nova venda, certificado emitido, membro desativado etc.), cadastre a URL do seu workflow n8n em **Integrações → Webhooks** e use-a como trigger diretamente — sem precisar consultar a API por polling.
