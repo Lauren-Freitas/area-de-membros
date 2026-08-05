@@ -20,25 +20,16 @@ export default async function EditarUsuarioPage({ params }: { params: Promise<{ 
   if (me?.role !== 'admin' && me?.role !== 'equipe') redirect('/dashboard')
 
   const admin = createAdminClient()
-  const [{ data: target }, { data: products }, { data: accesses }] = await Promise.all([
-    admin.from('profiles').select('id, name, email, role, is_active, created_at').eq('id', id).single(),
-    admin.from('products').select('id, title').eq('is_active', true).order('sort_order'),
-    admin.from('user_products').select('product_id, expires_at').eq('user_id', id),
-  ])
+  const { data: target } = await admin
+    .from('profiles')
+    .select('id, name, email, role, is_active, created_at')
+    .eq('id', id)
+    .single()
 
   if (!target) redirect('/admin/usuarios')
 
   // Equipe não pode editar contas Admin
   if (me?.role === 'equipe' && target.role === 'admin') redirect('/admin/configuracoes')
-
-  const accessMap = new Map((accesses ?? []).map((a: { product_id: string; expires_at: string | null }) => [a.product_id, a.expires_at]))
-
-  const productList = (products ?? []).map((p: { id: string; title: string }) => ({
-    id: p.id,
-    title: p.title,
-    hasAccess: accessMap.has(p.id),
-    expiresAt: accessMap.get(p.id) ?? null,
-  }))
 
   const canViewAs = target.role === 'membro' && target.id !== user.id
 
@@ -60,7 +51,6 @@ export default async function EditarUsuarioPage({ params }: { params: Promise<{ 
       <EditarUsuarioForm
         profile={{ ...target, is_active: target.is_active !== false }}
         action={updateUser.bind(null, id)}
-        products={productList}
         userId={id}
       />
     </div>

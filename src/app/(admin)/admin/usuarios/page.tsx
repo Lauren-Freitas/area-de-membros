@@ -1,7 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { grantAccess, revokeAccess } from '@/lib/actions/admin'
-import { DeleteUserButton } from '@/components/admin/DeleteUserButton'
-import { ProductPill } from '@/components/admin/ProductPill'
+import { MemberRow } from '@/components/admin/MemberRow'
 import { Profile, Product } from '@/types'
 import Link from 'next/link'
 import { Button } from '@/components/Button'
@@ -16,13 +14,13 @@ export default async function AdminUsuariosPage() {
   ] = await Promise.all([
     supabase.from('profiles').select('*').or('role.eq.membro,role.is.null').order('created_at', { ascending: false }),
     supabase.from('products').select('id, title').eq('is_active', true).order('sort_order'),
-    supabase.from('user_products').select('user_id, product_id'),
+    supabase.from('user_products').select('user_id, product_id, expires_at'),
   ])
 
-  const accessMap = new Map<string, Set<string>>()
+  const accessMap = new Map<string, Map<string, string | null>>()
   accesses?.forEach((a) => {
-    if (!accessMap.has(a.user_id)) accessMap.set(a.user_id, new Set())
-    accessMap.get(a.user_id)!.add(a.product_id)
+    if (!accessMap.has(a.user_id)) accessMap.set(a.user_id, new Map())
+    accessMap.get(a.user_id)!.set(a.product_id, a.expires_at)
   })
 
   return (
@@ -33,73 +31,45 @@ export default async function AdminUsuariosPage() {
       </div>
 
       {profiles?.length ? (
-        <div className="space-y-4">
-          {(profiles as Profile[]).map((profile) => (
-            <div key={profile.id} className="bg-card rounded-2xl border border-gray-100 p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <p className="font-semibold text-gray-900">{profile.name || '(sem nome)'}</p>
-                  <p className="text-sm text-gray-500">{profile.email}</p>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    {/* Tipo */}
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                      profile.role === 'admin'
-                        ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400'
-                        : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
-                    }`}>
-                      Tipo: {profile.role === 'admin' ? 'Admin' : 'Membro'}
-                    </span>
-                    {/* Status */}
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                      profile.is_active === false
-                        ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
-                        : 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
-                    }`}>
-                      Status: {profile.is_active === false ? 'Inativo' : 'Ativo'}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Desde {new Date(profile.created_at).toLocaleDateString('pt-BR')}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap justify-end">
-                  <Link
-                    href={`/admin/usuarios/${profile.id}`}
-                    className="text-xs font-medium px-2.5 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 transition"
-                  >
-                    Editar
-                  </Link>
-                  <DeleteUserButton userId={profile.id} userName={profile.name || profile.email} />
-                </div>
-              </div>
-
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-                Acesso aos produtos
-              </p>
-
-              <div className="flex flex-wrap gap-2">
-                {(products as Product[])?.map((product) => {
-                  const hasAccess = accessMap.get(profile.id)?.has(product.id) ?? false
-                  return (
-                    <ProductPill
-                      key={product.id}
-                      title={product.title}
-                      hasAccess={hasAccess}
-                      action={
-                        hasAccess
-                          ? revokeAccess.bind(null, profile.id, product.id)
-                          : grantAccess.bind(null, profile.id, product.id)
-                      }
-                    />
-                  )
-                })}
-
-                {!products?.length && (
-                  <p className="text-sm text-gray-400">Nenhum produto ativo cadastrado.</p>
-                )}
-              </div>
+        <div className="bg-card rounded-2xl border border-gray-100 p-4 overflow-x-auto">
+          <div className="min-w-[900px]">
+            {/* Header */}
+            <div className="flex items-center gap-4 pb-2 px-1 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+              <span className="flex-1">Membro</span>
+              <span className="w-20 shrink-0">Últ. acesso</span>
+              <span className="w-20 shrink-0">Cadastro</span>
+              <span className="w-56 shrink-0">Conteúdos</span>
+              <span className="w-24 shrink-0">Expira</span>
+              <span className="w-8 shrink-0" />
             </div>
-          ))}
+            <div className="divide-y divide-gray-50 dark:divide-[#1a1f30]">
+              {(profiles as Profile[]).map((profile) => {
+                const userAccess = accessMap.get(profile.id)
+                const productAccess = (products as Product[] ?? []).map((product) => ({
+                  id: product.id,
+                  title: product.title,
+                  hasAccess: userAccess?.has(product.id) ?? false,
+                  expiresAt: userAccess?.get(product.id) ?? null,
+                }))
+                return (
+                  <MemberRow
+                    key={profile.id}
+                    profile={{
+                      id: profile.id,
+                      name: profile.name,
+                      email: profile.email,
+                      role: profile.role,
+                      is_active: profile.is_active !== false,
+                      avatar_url: profile.avatar_url ?? null,
+                      last_login_at: (profile as { last_login_at?: string | null }).last_login_at ?? null,
+                      created_at: profile.created_at,
+                    }}
+                    products={productAccess}
+                  />
+                )
+              })}
+            </div>
+          </div>
         </div>
       ) : (
         <div className="text-center py-16 text-gray-400 bg-card rounded-2xl border border-gray-100">

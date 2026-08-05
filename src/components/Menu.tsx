@@ -67,12 +67,15 @@ interface MenuItemProps {
   href?: string
   icon?: ReactNode
   danger?: boolean
+  disabled?: boolean
+  /** Não fecha o menu ao selecionar — pra ações assíncronas que mostram feedback inline (ex: "Enviando..."). */
+  keepOpen?: boolean
   children: ReactNode
 }
 
-export function MenuItem({ onSelect, href, icon, danger, children }: MenuItemProps) {
+export function MenuItem({ onSelect, href, icon, danger, disabled, keepOpen, children }: MenuItemProps) {
   const ctx = useContext(MenuContext)
-  const classes = `w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition ${
+  const classes = `w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition disabled:opacity-60 ${
     danger
       ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
       : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1a1f35]'
@@ -90,9 +93,10 @@ export function MenuItem({ onSelect, href, icon, danger, children }: MenuItemPro
   return (
     <button
       type="button"
+      disabled={disabled}
       onClick={() => {
         onSelect?.()
-        ctx?.close()
+        if (!keepOpen) ctx?.close()
       }}
       className={classes}
     >

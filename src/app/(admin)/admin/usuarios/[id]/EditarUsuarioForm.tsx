@@ -1,10 +1,10 @@
 'use client'
 
-import { useActionState, useEffect, useState, useTransition } from 'react'
+import { useActionState, useEffect, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/Button'
-import { AccessCard } from '@/components/admin/AccessCard'
+import { ConfirmModal } from '@/components/ConfirmModal'
 import type { AdminActionState } from '@/lib/actions/admin'
 import { resendAdminInvite } from '@/lib/actions/admin'
 
@@ -17,24 +17,19 @@ interface Profile {
   created_at: string
 }
 
-interface ProductItem {
-  id: string
-  title: string
-  hasAccess: boolean
-  expiresAt: string | null
-}
-
 interface Props {
   profile: Profile
   action: (prevState: AdminActionState, formData: FormData) => Promise<AdminActionState>
-  products: ProductItem[]
   userId: string
 }
 
-export function EditarUsuarioForm({ profile, action, products, userId }: Props) {
+export function EditarUsuarioForm({ profile, action, userId }: Props) {
   const router = useRouter()
   const [state, formAction, isPending] = useActionState(action, undefined)
   const [isActive, setIsActive] = useState(profile.is_active)
+  const formRef = useRef<HTMLFormElement>(null)
+  const bypassConfirmRef = useRef(false)
+  const [confirmDeactivate, setConfirmDeactivate] = useState(false)
 
   const isAdmin = profile.role === 'admin' || profile.role === 'equipe'
   const backHref = isAdmin ? '/admin/configuracoes' : '/admin/usuarios'
@@ -49,6 +44,24 @@ export function EditarUsuarioForm({ profile, action, products, userId }: Props) 
       const result = await resendAdminInvite(userId, profile.email, profile.name)
       setInviteState(result)
     })
+  }
+
+  // Desativar é uma ação sensível (suspende o acesso) — nunca dispara direto no "Salvar",
+  // sempre passa por confirmação antes do form realmente submeter.
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const isDeactivating = profile.is_active && !isActive
+    if (isDeactivating && !bypassConfirmRef.current) {
+      e.preventDefault()
+      setConfirmDeactivate(true)
+      return
+    }
+    bypassConfirmRef.current = false
+  }
+
+  function handleConfirmDeactivate() {
+    setConfirmDeactivate(false)
+    bypassConfirmRef.current = true
+    formRef.current?.requestSubmit()
   }
 
   useEffect(() => {
@@ -68,7 +81,7 @@ export function EditarUsuarioForm({ profile, action, products, userId }: Props) 
 
       {/* Formulário principal */}
       <div className="bg-card rounded-2xl border border-gray-100 p-6">
-        <form action={formAction} className="space-y-5">
+        <form ref={formRef} action={formAction} onSubmit={handleSubmit} className="space-y-5">
           {state?.error && (
             <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
               {state.error}
@@ -175,31 +188,14 @@ export function EditarUsuarioForm({ profile, action, products, userId }: Props) 
         </form>
       </div>
 
-      {/* Acesso aos produtos — só para membros */}
-      {!isAdmin && (
-        <div className="bg-card rounded-2xl border border-gray-100 p-6">
-          <h2 className="font-semibold text-gray-900 mb-1">Acesso aos produtos</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            Cada card mostra o status e a validade do acesso. Clique em &quot;+ produto&quot; para liberar um novo.
-          </p>
-          {products.length === 0 ? (
-            <p className="text-sm text-gray-400">Nenhum produto ativo cadastrado.</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {products.map(p => (
-                <AccessCard
-                  key={p.id}
-                  title={p.title}
-                  hasAccess={p.hasAccess}
-                  expiresAt={p.expiresAt}
-                  userId={userId}
-                  productId={p.id}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={confirmDeactivate}
+        onClose={() => setConfirmDeactivate(false)}
+        onConfirm={handleConfirmDeactivate}
+        title={isAdmin ? 'Desativar colaborador' : 'Desativar membro'}
+        message={`${profile.name || profile.email} perde acesso à plataforma imediatamente. Você pode reativar a qualquer momento.`}
+        confirmLabel="Desativar"
+      />
     </div>
   )
 }

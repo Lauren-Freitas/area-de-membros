@@ -272,6 +272,22 @@ export async function resendAdminInvite(userId: string, email: string, name: str
     console.error('[resendAdminInvite] Resend error:', err)
     return { error: `Email não enviado: ${err instanceof Error ? err.message : String(err)}` }
   }
+  await fireOutboundWebhooks('invite.sent', { user_id: userId, email, name })
+  return { success: true }
+}
+
+export async function toggleUserActive(userId: string, currentlyActive: boolean): Promise<{ success?: boolean; error?: string }> {
+  await requireAdmin()
+  const admin = createAdminClient()
+
+  const { data: profile } = await admin.from('profiles').select('name, email').eq('id', userId).single()
+  const { error } = await admin.from('profiles').update({ is_active: !currentlyActive }).eq('id', userId)
+  if (error) return { error: error.message }
+
+  await logActivity({ action: currentlyActive ? 'desativar' : 'ativar', entity: 'membro', entityId: userId, entityName: profile?.name ?? null })
+  await fireOutboundWebhooks(currentlyActive ? 'member.disabled' : 'member.enabled', { user_id: userId, name: profile?.name, email: profile?.email })
+  revalidatePath('/admin/usuarios')
+  revalidatePath(`/admin/usuarios/${userId}`)
   return { success: true }
 }
 
