@@ -8,6 +8,7 @@ export default async function AdminPage() {
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+  const firstOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
 
   const [
     { data: membroProfiles },
@@ -17,6 +18,11 @@ export default async function AdminPage() {
     { count: activeProducts },
     { count: totalCertificates },
     { data: recentActivity },
+    { data: revenueRows },
+    { count: completedCount },
+    { data: lessonProgressRows },
+    { data: lessonCommentsRows },
+    { data: productCommentsRows },
   ] = await Promise.all([
     adminClient.from('profiles').select('id, name, email, created_at').eq('role', 'membro').order('created_at', { ascending: false }),
     adminClient.from('profiles').select('id, name, email, created_at').is('role', null).order('created_at', { ascending: false }),
@@ -29,6 +35,11 @@ export default async function AdminPage() {
       .select('granted_at, profiles(name, email), products(title)')
       .order('granted_at', { ascending: false })
       .limit(5),
+    adminClient.from('user_products').select('value').gte('granted_at', firstOfMonth).not('value', 'is', null),
+    adminClient.from('user_products').select('*', { count: 'exact', head: true }).eq('is_completed', true),
+    adminClient.from('lesson_progress').select('lessons(modules(products(title)))'),
+    adminClient.from('lesson_comments').select('id, content, created_at, profiles(name), lessons(title)').order('created_at', { ascending: false }).limit(5),
+    adminClient.from('product_comments').select('id, content, created_at, profiles(name), products(title)').order('created_at', { ascending: false }).limit(5),
   ])
 
   const allMembers = [
@@ -43,6 +54,35 @@ export default async function AdminPage() {
   function fmt(d: string) {
     return new Date(d).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })
   }
+
+  const monthlyRevenue = (revenueRows ?? []).reduce((acc, r) => acc + (r.value ?? 0), 0)
+  const completionRate = totalAccesses ? Math.round(((completedCount ?? 0) / totalAccesses) * 100) : 0
+
+  // Conteúdo mais acessado — aproximado pelo nº de aulas concluídas por produto (não há log de visualização)
+  const engagementByProduct = new Map<string, number>()
+  for (const row of lessonProgressRows ?? []) {
+    const lessonRel = Array.isArray(row.lessons) ? row.lessons[0] : row.lessons
+    const modRel = lessonRel ? (Array.isArray(lessonRel.modules) ? lessonRel.modules[0] : lessonRel.modules) : null
+    const prodRel = modRel ? (Array.isArray(modRel.products) ? modRel.products[0] : modRel.products) : null
+    const title = prodRel?.title
+    if (title) engagementByProduct.set(title, (engagementByProduct.get(title) ?? 0) + 1)
+  }
+  const topEngaged = [...engagementByProduct.entries()].sort((a, b) => b[1] - a[1])[0] ?? null
+
+  // Comentários recentes — junta de aula e de produto, ordena por data
+  type RecentComment = { id: string; content: string; created_at: string; author: string; context: string }
+  const recentComments: RecentComment[] = [
+    ...(lessonCommentsRows ?? []).map(c => {
+      const author = Array.isArray(c.profiles) ? c.profiles[0] : c.profiles
+      const lesson = Array.isArray(c.lessons) ? c.lessons[0] : c.lessons
+      return { id: c.id, content: c.content, created_at: c.created_at, author: author?.name ?? '—', context: lesson?.title ?? 'Aula' }
+    }),
+    ...(productCommentsRows ?? []).map(c => {
+      const author = Array.isArray(c.profiles) ? c.profiles[0] : c.profiles
+      const product = Array.isArray(c.products) ? c.products[0] : c.products
+      return { id: c.id, content: c.content, created_at: c.created_at, author: author?.name ?? '—', context: product?.title ?? 'Produto' }
+    }),
+  ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 5)
 
   const metrics = [
     {
@@ -93,6 +133,30 @@ export default async function AdminPage() {
         </svg>
       ),
     },
+    {
+      label: 'Receita do mês',
+      value: monthlyRevenue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }),
+      sub: 'acessos com valor registrado',
+      up: null,
+      href: '/admin/cobranca/vendas',
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+    },
+    {
+      label: 'Taxa de conclusão',
+      value: `${completionRate}%`,
+      sub: 'dos acessos concedidos',
+      up: null,
+      href: '/admin/relatorios',
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+    },
   ]
 
   const quickActions = [
@@ -112,7 +176,7 @@ export default async function AdminPage() {
       </div>
 
       {/* Metric cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {metrics.map(({ label, value, sub, up, href, icon }) => (
           <Link
             key={label}
@@ -136,7 +200,17 @@ export default async function AdminPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Conteúdo mais acessado */}
+      {topEngaged && (
+        <div className="flex items-center gap-3 px-5 py-3.5 rounded-xl border border-gray-100 bg-card text-sm">
+          <span className="text-lg">📈</span>
+          <span className="text-gray-500">Conteúdo mais acessado:</span>
+          <span className="font-semibold text-gray-900">{topEngaged[0]}</span>
+          <span className="text-gray-400 text-xs">({topEngaged[1]} {topEngaged[1] === 1 ? 'aula concluída' : 'aulas concluídas'} no total)</span>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent members */}
         <div className="bg-card rounded-2xl border border-gray-100 p-6">
           <div className="flex items-center justify-between pb-4 border-b border-gray-100">
@@ -193,6 +267,29 @@ export default async function AdminPage() {
                   </div>
                 )
               })}
+            </div>
+          )}
+        </div>
+
+        {/* Recent comments */}
+        <div className="bg-card rounded-2xl border border-gray-100 p-6">
+          <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+            <h2 className="font-semibold text-gray-900">Comentários recentes</h2>
+          </div>
+          {!recentComments.length ? (
+            <p className="text-sm text-gray-400 py-4 text-center">Nenhum comentário ainda.</p>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {recentComments.map(c => (
+                <div key={c.id} className="py-3 last:pb-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-medium text-gray-900 truncate">{c.author}</p>
+                    <span className="text-xs text-gray-400 shrink-0">{fmt(c.created_at)}</span>
+                  </div>
+                  <p className="text-xs text-gray-400 truncate mt-0.5">em {c.context}</p>
+                  <p className="text-sm text-gray-600 mt-1 line-clamp-2">{c.content}</p>
+                </div>
+              ))}
             </div>
           )}
         </div>
