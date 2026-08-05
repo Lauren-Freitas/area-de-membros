@@ -36,7 +36,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     adminClient.from('cohort_members').select('cohorts(id, name, description, starts_at, ends_at, products(title))').eq('user_id', targetUserId).limit(1).maybeSingle(),
     adminClient.from('offers').select('id, title, description, original_price, promo_price, coupon_code, ends_at, product_id, products(title, buy_url)').eq('is_active', true).or(`ends_at.is.null,ends_at.gt.${now}`).order('sort_order'),
     adminClient.from('site_config').select('key, value').in('key', ['welcome_message']),
-    adminClient.from('profiles').select('name, last_login_at, welcome_seen_at').eq('id', targetUserId).single(),
+    adminClient.from('profiles').select('name, last_login_at, welcome_seen_at, last_lesson_id, last_lesson_viewed_at').eq('id', targetUserId).single(),
   ])
 
   const banners = (bannersData ?? []) as Banner[]
@@ -130,6 +130,38 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     }
   }
 
+  // Continue de onde parou — última aula vista, se ainda não concluída e ainda acessível
+  let continueLesson: { id: string; title: string; productId: string; productTitle: string; bannerUrl: string | null } | null = null
+  if (targetUserId === user.id && profileData?.last_lesson_id) {
+    const { data: lessonRow } = await supabase
+      .from('lessons')
+      .select('id, title, is_published, modules(product_id, products(title, banner_url))')
+      .eq('id', profileData.last_lesson_id)
+      .eq('is_published', true)
+      .maybeSingle()
+
+    if (lessonRow) {
+      const mod = Array.isArray(lessonRow.modules) ? lessonRow.modules[0] : lessonRow.modules
+      const prod = mod ? (Array.isArray(mod.products) ? mod.products[0] : mod.products) : null
+      const { data: prog } = await supabase
+        .from('lesson_progress')
+        .select('lesson_id')
+        .eq('user_id', user.id)
+        .eq('lesson_id', profileData.last_lesson_id)
+        .maybeSingle()
+
+      if (mod && prod && unlockedIds.has(mod.product_id) && !prog) {
+        continueLesson = {
+          id: lessonRow.id,
+          title: lessonRow.title,
+          productId: mod.product_id,
+          productTitle: prod.title,
+          bannerUrl: prod.banner_url ?? null,
+        }
+      }
+    }
+  }
+
   return (
     <div className="space-y-12">
       {showWelcome && <WelcomeModal firstName={firstName} />}
@@ -194,6 +226,40 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               </Link>
             </div>
           </div>
+        </section>
+      )}
+
+      {/* Continue de onde parou */}
+      {continueLesson && (
+        <section>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Continue de onde parou</h2>
+          <Link
+            href={`/produto/${continueLesson.productId}/aula/${continueLesson.id}`}
+            className="rounded-2xl overflow-hidden border border-gray-100 dark:border-[#1e2030] bg-card flex items-center gap-4 p-4 hover:shadow-md transition group"
+          >
+            {continueLesson.bannerUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={continueLesson.bannerUrl} alt={continueLesson.productTitle} className="w-20 h-20 rounded-xl object-cover shrink-0" />
+            ) : (
+              <div className="w-20 h-20 rounded-xl shrink-0 flex items-center justify-center" style={{ backgroundColor: 'var(--brand-bg)' }}>
+                <svg className="w-8 h-8" style={{ color: 'var(--brand)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-2.72a.75.75 0 011.28.53v7.38a.75.75 0 01-1.28.53l-4.72-2.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-7.5A2.25 2.25 0 0013.5 6.75h-9A2.25 2.25 0 002.25 9v7.5a2.25 2.25 0 002.25 2.25z" />
+                </svg>
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5 truncate">{continueLesson.productTitle}</p>
+              <p className="font-semibold text-gray-900 dark:text-white truncate">{continueLesson.title}</p>
+            </div>
+            <span
+              className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition group-hover:opacity-90"
+              style={{ backgroundColor: 'var(--brand)' }}
+            >
+              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+              </svg>
+            </span>
+          </Link>
         </section>
       )}
 

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
+import { after } from 'next/server'
 import Link from 'next/link'
 import sanitizeHtml from 'sanitize-html'
 import { Lesson, LessonAttachment } from '@/types'
@@ -55,6 +56,11 @@ export default async function AulaPage({
   if (!releaseState.isReleased || releaseState.isExpired) redirect(`/produto/${id}`)
 
   const admin = createAdminClient()
+
+  // "Continue de onde parou" — grava a última aula vista, depois da resposta
+  after(async () => {
+    await admin.from('profiles').update({ last_lesson_id: aulaId, last_lesson_viewed_at: new Date().toISOString() }).eq('id', user.id)
+  })
   const { data: attachmentRows } = await admin
     .from('lesson_attachments')
     .select('*')
