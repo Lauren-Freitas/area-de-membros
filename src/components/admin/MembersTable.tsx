@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/Button'
 import { MemberActionsMenu } from '@/components/admin/MemberActionsMenu'
 import { MemberDrawer } from '@/components/admin/MemberDrawer'
-import { ManageAccessModal } from '@/components/admin/ManageAccessModal'
+import { ProductsDrawer } from '@/components/admin/ProductsDrawer'
 import {
   listMembers, getMemberDetail,
   type MemberSummary, type MemberFilter, type MemberSort, type MemberProductAccess,
@@ -17,7 +17,7 @@ const FILTERS: { value: MemberFilter; label: string }[] = [
   { value: 'active', label: 'Ativos' },
   { value: 'inactive', label: 'Inativos' },
   { value: 'expiring', label: 'Expirando' },
-  { value: 'no-access', label: 'Sem acesso' },
+  { value: 'no-access', label: 'Sem produtos' },
   { value: 'subscribers', label: 'Assinantes' },
 ]
 
@@ -63,22 +63,20 @@ function statusInfo(member: MemberSummary): { color: string; label: string } {
 
 function ProductChips({ titles }: { titles: string[] }) {
   if (titles.length === 0) return <span className="text-xs text-gray-300">—</span>
-  const visible = titles.slice(0, 3)
-  const rest = titles.slice(3)
+  const visible = titles.slice(0, 2)
+  const rest = titles.slice(2)
   return (
-    <div className="flex flex-wrap items-center gap-1">
-      {visible.map(t => (
-        <span key={t} className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-[#1a2035] text-gray-600 dark:text-gray-300 truncate max-w-[100px]" title={t}>
-          {t}
+    <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300">
+      {visible.map((t, i) => (
+        <span key={t} className="truncate max-w-[90px]" title={t}>
+          {t}{i < visible.length - 1 ? ',' : ''}
         </span>
       ))}
       {rest.length > 0 && (
-        <span className="relative group/tip">
-          <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 dark:bg-[#1a2035] text-gray-500 dark:text-gray-400 cursor-default">
-            +{rest.length}
-          </span>
-          <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 hidden group-hover/tip:block whitespace-nowrap rounded-lg bg-gray-900 text-white text-[11px] px-2.5 py-1.5 shadow-lg z-20">
-            {rest.join(', ')}
+        <span className="relative group/tip shrink-0">
+          <span className="text-gray-400 dark:text-gray-500 cursor-default">+{rest.length}</span>
+          <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 hidden group-hover/tip:block rounded-lg bg-gray-900 text-white text-[11px] px-2.5 py-1.5 shadow-lg z-20 space-y-0.5">
+            {rest.map(t => <p key={t} className="whitespace-nowrap">{t}</p>)}
           </span>
         </span>
       )}
@@ -141,7 +139,12 @@ export function MembersTable({ initialMembers, initialTotal }: Props) {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gerenciar membros</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Gerencie acessos, permissões e assinaturas dos membros da plataforma.</p>
         </div>
-        <Button href="/admin/usuarios/novo" className="shrink-0">Novo membro</Button>
+        <Button href="/admin/usuarios/novo" size="sm" className="shrink-0">
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          Novo membro
+        </Button>
       </div>
 
       {/* Toolbar */}
@@ -190,8 +193,8 @@ export function MembersTable({ initialMembers, initialTotal }: Props) {
         <div className={`transition-opacity duration-150 ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
           <div className="flex items-center gap-4 px-4 py-2.5 border-b border-gray-100 dark:border-[#1e2030] text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
             <span className="flex-1">Membro</span>
+            <span className="w-40 shrink-0">Produtos</span>
             <span className="w-28 shrink-0">Status</span>
-            <span className="w-56 shrink-0">Produtos</span>
             <span className="w-32 shrink-0">Expiração</span>
             <span className="w-24 shrink-0">Último acesso</span>
             <span className="w-8 shrink-0" />
@@ -227,13 +230,13 @@ export function MembersTable({ initialMembers, initialTotal }: Props) {
                       </div>
                     </div>
 
+                    <div className="w-40 shrink-0" onClick={e => e.stopPropagation()}>
+                      <ProductChips titles={m.product_titles} />
+                    </div>
+
                     <div className="w-28 shrink-0 flex items-center gap-1.5">
                       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${status.color}`} />
                       <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{status.label}</span>
-                    </div>
-
-                    <div className="w-56 shrink-0" onClick={e => e.stopPropagation()}>
-                      <ProductChips titles={m.product_titles} />
                     </div>
 
                     <div className={`w-32 shrink-0 text-xs ${expiry.tone === 'danger' ? 'text-red-500' : expiry.tone === 'warning' ? 'text-orange-500' : 'text-gray-400'}`}>
@@ -309,8 +312,7 @@ export function MembersTable({ initialMembers, initialTotal }: Props) {
       )}
 
       {manageAccess && (
-        <ManageAccessModal
-          isOpen
+        <ProductsDrawer
           onClose={() => { setManageAccess(null); fetchPage() }}
           memberName={manageAccess.name}
           userId={manageAccess.userId}

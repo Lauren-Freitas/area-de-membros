@@ -53,7 +53,7 @@ export function Menu({ trigger, children, align = 'right', panelClassName = 'w-5
       {trigger({ open, toggle })}
       {open && (
         <div
-          className={`absolute ${align === 'right' ? 'right-0' : 'left-0'} top-full mt-2 ${panelClassName} bg-card border border-gray-100 dark:border-[#1e2030] rounded-xl shadow-lg z-50 overflow-hidden`}
+          className={`absolute ${align === 'right' ? 'right-0' : 'left-0'} top-full mt-2 ${panelClassName} bg-card border border-gray-100 dark:border-[#1e2030] rounded-xl shadow-lg z-50 overflow-hidden py-1`}
         >
           <MenuContext.Provider value={{ close }}>{children}</MenuContext.Provider>
         </div>
@@ -75,7 +75,7 @@ interface MenuItemProps {
 
 export function MenuItem({ onSelect, href, icon, danger, disabled, keepOpen, children }: MenuItemProps) {
   const ctx = useContext(MenuContext)
-  const classes = `w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left transition disabled:opacity-60 ${
+  const classes = `w-full flex items-center gap-2 px-3 py-1.5 text-[13px] text-left transition disabled:opacity-60 ${
     danger
       ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
       : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1a1f35]'

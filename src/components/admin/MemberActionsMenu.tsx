@@ -35,7 +35,7 @@ const icons = {
 
 function Icon({ d }: { d: ReactNode }) {
   return (
-    <svg className="w-4 h-4 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <svg className="w-3.5 h-3.5 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
       {d}
     </svg>
   )
@@ -87,19 +87,19 @@ function useMemberActions(member: MemberLite, { onManageAccess, onToggled, onDel
   const items = (
     <>
       <MenuItem icon={<Icon d={icons.edit} />} onSelect={() => router.push(`/admin/usuarios/${member.id}`)}>
-        Editar
+        Editar...
       </MenuItem>
 
       <MenuDivider />
 
       <MenuItem icon={<Icon d={icons.mail} />} keepOpen onSelect={handleSendAccess}>
-        {hasActivated ? 'Enviar login' : 'Enviar convite'}
+        Enviar acesso
       </MenuItem>
       <MenuItem icon={<Icon d={icons.link} />} keepOpen onSelect={handleCopyLink}>
-        Copiar link de acesso
+        Copiar link
       </MenuItem>
       {feedback && (
-        <p className={`px-4 pb-2 -mt-1 text-xs ${feedback.tone === 'error' ? 'text-red-500' : 'text-gray-400'}`}>
+        <p className={`px-3 pb-1.5 -mt-0.5 text-xs ${feedback.tone === 'error' ? 'text-red-500' : 'text-gray-400'}`}>
           {feedback.label}
         </p>
       )}
@@ -107,19 +107,22 @@ function useMemberActions(member: MemberLite, { onManageAccess, onToggled, onDel
       <MenuDivider />
 
       <MenuItem icon={<Icon d={icons.access} />} onSelect={onManageAccess}>
-        Gerenciar acessos
+        Gerenciar produtos
       </MenuItem>
       <MenuItem icon={<Icon d={icons.calendar} />} onSelect={onManageAccess}>
-        Alterar validade
+        Validade do acesso
       </MenuItem>
 
       <MenuDivider />
 
       <MenuItem icon={<Icon d={isActive ? icons.suspend : icons.play} />} onSelect={() => setConfirmAction('suspend')}>
-        {isActive ? 'Suspender membro' : 'Reativar membro'}
+        {isActive ? 'Desativar membro' : 'Reativar membro'}
       </MenuItem>
+
+      <MenuDivider />
+
       <MenuItem danger onSelect={() => setConfirmAction('delete')}>
-        Excluir membro
+        Excluir...
       </MenuItem>
     </>
   )
@@ -130,13 +133,13 @@ function useMemberActions(member: MemberLite, { onManageAccess, onToggled, onDel
         isOpen={confirmAction === 'suspend'}
         onClose={() => setConfirmAction(null)}
         onConfirm={handleSuspendToggle}
-        title={isActive ? 'Suspender membro' : 'Reativar membro'}
+        title={isActive ? 'Desativar membro' : 'Reativar membro'}
         message={
           isActive
             ? `${member.name || member.email} perde acesso à plataforma imediatamente. Você pode reativar a qualquer momento.`
             : `${member.name || member.email} volta a ter acesso à plataforma.`
         }
-        confirmLabel={isActive ? 'Suspender' : 'Reativar'}
+        confirmLabel={isActive ? 'Desativar' : 'Reativar'}
       />
 
       <ConfirmModal
@@ -165,7 +168,7 @@ export function MemberActionsMenu({ member, trigger, align = 'right', onManageAc
   const { items, modals } = useMemberActions(member, { onManageAccess, onToggled, onDeleted })
   return (
     <>
-      <Menu align={align} panelClassName="w-64" trigger={trigger}>{items}</Menu>
+      <Menu align={align} panelClassName="w-56" trigger={trigger}>{items}</Menu>
       {modals}
     </>
   )
