@@ -173,12 +173,12 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAva
       </div>
 
       {/* Dashboard link */}
-      <div className={`shrink-0 px-2 pt-3 ${collapsed && !mobile ? 'flex justify-center px-0' : ''}`}>
+      <div className={`shrink-0 px-2 pt-4 ${collapsed && !mobile ? 'flex justify-center px-0' : ''}`}>
         <Link
           href="/admin"
           onClick={() => setMobileOpen(false)}
-          className={`flex items-center rounded-lg transition group relative ${
-            collapsed && !mobile ? 'w-10 h-10 justify-center mx-auto' : 'gap-2.5 px-3 py-2'
+          className={`flex items-center rounded-xl transition group relative ${
+            collapsed && !mobile ? 'w-10 h-10 justify-center mx-auto' : 'gap-2.5 px-3 py-2.5'
           } ${pathname === '/admin' ? 'text-white' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}
           style={pathname === '/admin' ? { backgroundColor: 'var(--brand)' } : {}}
           onMouseEnter={(e) => collapsed && !mobile && setTooltip({ label: 'Visão geral', y: e.currentTarget.getBoundingClientRect().top })}
@@ -192,9 +192,9 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAva
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto pb-4 pt-2 px-2">
         {nav.map(({ section, items }) => (
-          <div key={section} className="mt-4">
+          <div key={section} className="mt-6">
             {(!collapsed || mobile) && (
-              <p className="px-3 mb-1 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
+              <p className="px-3 mb-2 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
                 {section}
               </p>
             )}
@@ -210,10 +210,10 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAva
                     if (href.includes('#')) setHash('#' + href.split('#')[1])
                     else setHash('')
                   }}
-                  className={`flex items-center rounded-lg transition mb-0.5 relative ${
+                  className={`flex items-center rounded-xl transition mb-1 relative ${
                     collapsed && !mobile
                       ? 'w-10 h-10 justify-center mx-auto'
-                      : 'gap-2.5 px-3 py-2'
+                      : 'gap-2.5 px-3 py-2.5'
                   } ${active ? 'text-white' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}
                   style={active ? { backgroundColor: 'var(--brand)' } : {}}
                   onMouseEnter={(e) => collapsed && !mobile && setTooltip({ label, y: e.currentTarget.getBoundingClientRect().top })}
@@ -229,12 +229,12 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAva
       </nav>
 
       {/* Footer */}
-      <div className={`shrink-0 border-t border-gray-100 py-3 px-2 space-y-1`}>
+      <div className={`shrink-0 border-t border-gray-100 py-4 px-2 space-y-1.5`}>
         <Link
           href="/dashboard"
           onClick={() => setMobileOpen(false)}
-          className={`flex items-center rounded-lg transition text-xs font-medium ${
-            collapsed && !mobile ? 'w-10 h-10 justify-center mx-auto' : 'gap-2 px-3 py-2'
+          className={`flex items-center rounded-xl transition text-xs font-medium ${
+            collapsed && !mobile ? 'w-10 h-10 justify-center mx-auto' : 'gap-2 px-3 py-2.5'
           }`}
           style={{ color: 'var(--brand)', backgroundColor: collapsed && !mobile ? 'transparent' : 'var(--brand-bg)' }}
           onMouseEnter={(e) => collapsed && !mobile && setTooltip({ label: 'Ver área de membros', y: e.currentTarget.getBoundingClientRect().top })}
@@ -245,7 +245,7 @@ export function AdminSidebar({ collapsed, onToggle, userName, userEmail, userAva
         </Link>
 
         {(!collapsed || mobile) && (
-          <div className="flex items-center gap-2.5 px-3 py-1">
+          <div className="flex items-center gap-2.5 px-3 py-2">
             <Link href="/admin/configuracoes" onClick={() => setMobileOpen(false)} className="shrink-0 hover:opacity-80 transition">
               {userAvatar ? (
                 <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200">
