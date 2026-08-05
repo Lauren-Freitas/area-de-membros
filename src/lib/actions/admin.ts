@@ -112,6 +112,104 @@ export async function deleteProduct(id: string) {
   revalidatePath('/dashboard')
 }
 
+export async function toggleProductActive(id: string, currentlyActive: boolean): Promise<{ success?: boolean; error?: string }> {
+  await requireAdmin()
+  const admin = createAdminClient()
+  const { data: product } = await admin.from('products').select('title').eq('id', id).single()
+  const { error } = await admin.from('products').update({ is_active: !currentlyActive }).eq('id', id)
+  if (error) return { error: error.message }
+  await logActivity({ action: currentlyActive ? 'desativar' : 'ativar', entity: 'produto', entityId: id, entityName: product?.title ?? null })
+  await fireOutboundWebhooks('product.updated', { product_id: id, title: product?.title }, id)
+  revalidatePath('/admin/produtos')
+  revalidatePath('/dashboard')
+  return { success: true }
+}
+
+export async function updateProductOrder(id: string, sortOrder: number): Promise<{ success?: boolean; error?: string }> {
+  await requireAdmin()
+  const admin = createAdminClient()
+  const { error } = await admin.from('products').update({ sort_order: sortOrder }).eq('id', id)
+  if (error) return { error: error.message }
+  await logActivity({ action: 'editar', entity: 'produto', entityId: id, entityName: 'ordem' })
+  revalidatePath('/admin/produtos')
+  revalidatePath('/dashboard')
+  return { success: true }
+}
+
+/**
+ * Cópia completa: produto + módulos + aulas (sem anexos — ficam só no
+ * original, não duplicamos arquivos de storage aqui). kiwify_product_id
+ * nunca é copiado: duas linhas com o mesmo ID quebrariam o lookup do
+ * webhook da Kiwify (que espera achar no máximo um produto por ID externo).
+ * A cópia nasce inativa e fora de destaque, pra não expor por acidente
+ * antes de revisão.
+ */
+export async function duplicateProduct(id: string): Promise<{ error?: string; newId?: string }> {
+  await requireAdmin()
+  const admin = createAdminClient()
+
+  const { data: original } = await admin.from('products').select('*').eq('id', id).single()
+  if (!original) return { error: 'Produto não encontrado.' }
+
+  const { data: maxOrderRow } = await admin.from('products').select('sort_order').order('sort_order', { ascending: false }).limit(1).maybeSingle()
+  const nextOrder = (maxOrderRow?.sort_order ?? 0) + 1
+
+  const { data: newProduct, error } = await admin.from('products').insert({
+    title: `${original.title} (cópia)`,
+    description: original.description,
+    banner_url: original.banner_url,
+    buy_url: original.buy_url,
+    price: original.price,
+    billing_cycle: original.billing_cycle,
+    content_type: original.content_type,
+    content_url: original.content_url,
+    kiwify_product_id: null,
+    is_pack: original.is_pack,
+    sort_order: nextOrder,
+    is_active: false,
+    is_featured: false,
+  }).select('id').single()
+
+  if (error || !newProduct) return { error: error?.message ?? 'Erro ao duplicar produto.' }
+
+  const { data: modules } = await admin.from('modules').select('*').eq('product_id', id).order('sort_order')
+  for (const mod of modules ?? []) {
+    const { data: newModule, error: modError } = await admin.from('modules').insert({
+      product_id: newProduct.id,
+      title: mod.title,
+      description: mod.description,
+      release_type: mod.release_type,
+      release_after_days: mod.release_after_days,
+      release_at: mod.release_at,
+      sort_order: mod.sort_order,
+    }).select('id').single()
+    if (modError || !newModule) continue
+
+    const { data: lessons } = await admin.from('lessons').select('*').eq('module_id', mod.id).order('sort_order')
+    if (lessons?.length) {
+      await admin.from('lessons').insert(lessons.map(l => ({
+        module_id: newModule.id,
+        title: l.title,
+        description: l.description,
+        lesson_type: l.lesson_type,
+        content_url: l.content_url,
+        content_html: l.content_html,
+        is_published: l.is_published,
+        release_type: l.release_type,
+        release_after_days: l.release_after_days,
+        release_at: l.release_at,
+        access_duration_days: l.access_duration_days,
+        sort_order: l.sort_order,
+      })))
+    }
+  }
+
+  await logActivity({ action: 'duplicar', entity: 'produto', entityId: newProduct.id, entityName: `${original.title} (cópia)` })
+  await fireOutboundWebhooks('product.created', { product_id: newProduct.id, title: `${original.title} (cópia)` }, newProduct.id)
+  revalidatePath('/admin/produtos')
+  return { newId: newProduct.id }
+}
+
 // ─── Usuários ────────────────────────────────────────────────────────────────
 
 export async function createUser(
