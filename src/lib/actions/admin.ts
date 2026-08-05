@@ -273,6 +273,7 @@ export async function resendAdminInvite(userId: string, email: string, name: str
     console.error('[resendAdminInvite] Resend error:', err)
     return { error: `Email não enviado: ${err instanceof Error ? err.message : String(err)}` }
   }
+  await logActivity({ action: 'enviar_convite', entity: 'membro', entityId: userId, entityName: name })
   await fireOutboundWebhooks('invite.sent', { user_id: userId, email, name })
   return { success: true }
 }
@@ -303,6 +304,7 @@ export async function updateUser(
   const name = (formData.get('name') as string)?.trim()
   const role = (formData.get('role') as string) as 'admin' | 'equipe' | 'membro'
   const is_active = formData.get('is_active') === 'on'
+  const phone = (formData.get('phone') as string)?.trim() || null
 
   if (!name) return { error: 'O nome é obrigatório.' }
 
@@ -310,7 +312,7 @@ export async function updateUser(
 
   const { error } = await admin
     .from('profiles')
-    .update({ name, role, is_active })
+    .update({ name, role, is_active, phone })
     .eq('id', userId)
 
   if (error) return { error: error.message }

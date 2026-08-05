@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
+import { logActivity } from '@/lib/log-activity'
 
 async function requireAdmin() {
   const supabase = await createClient()
@@ -161,7 +162,7 @@ export async function getMemberAccessLink(userId: string): Promise<{ link?: stri
 export async function resetMemberPassword(userId: string): Promise<{ success?: boolean; error?: string }> {
   await requireAdmin()
   const admin = createAdminClient()
-  const { data: profile } = await admin.from('profiles').select('email').eq('id', userId).maybeSingle()
+  const { data: profile } = await admin.from('profiles').select('name, email').eq('id', userId).maybeSingle()
   if (!profile) return { error: 'Usuário não encontrado' }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL!
@@ -170,6 +171,7 @@ export async function resetMemberPassword(userId: string): Promise<{ success?: b
   })
   if (error) return { error: error.message }
 
+  await logActivity({ action: 'enviar_login', entity: 'membro', entityId: userId, entityName: profile.name })
   await fireOutboundWebhooks('password.reset', { user_id: userId, email: profile.email })
   return { success: true }
 }

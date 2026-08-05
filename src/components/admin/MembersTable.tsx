@@ -4,10 +4,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/Button'
 import { MemberActionsMenu } from '@/components/admin/MemberActionsMenu'
 import { MemberDrawer } from '@/components/admin/MemberDrawer'
-import { ProductsDrawer } from '@/components/admin/ProductsDrawer'
 import {
-  listMembers, getMemberDetail,
-  type MemberSummary, type MemberFilter, type MemberSort, type MemberProductAccess,
+  listMembers,
+  type MemberSummary, type MemberFilter, type MemberSort,
 } from '@/lib/actions/members'
 
 const PAGE_SIZE = 25
@@ -101,7 +100,6 @@ export function MembersTable({ initialMembers, initialTotal }: Props) {
   const isFirstRender = useRef(true)
 
   const [drawerId, setDrawerId] = useState<string | null>(null)
-  const [manageAccess, setManageAccess] = useState<{ userId: string; name: string; products: MemberProductAccess[] } | null>(null)
 
   useEffect(() => {
     const t = setTimeout(() => { setSearch(searchInput); setPage(1) }, 300)
@@ -123,11 +121,6 @@ export function MembersTable({ initialMembers, initialTotal }: Props) {
 
   function handleFilterChange(f: MemberFilter) { setFilter(f); setPage(1) }
   function handleSortChange(s: MemberSort) { setSort(s); setPage(1) }
-
-  async function openManageAccess(userId: string, name: string) {
-    const detail = await getMemberDetail(userId)
-    if (detail) setManageAccess({ userId, name, products: detail.productAccess })
-  }
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
@@ -263,7 +256,6 @@ export function MembersTable({ initialMembers, initialTotal }: Props) {
                             </svg>
                           </button>
                         )}
-                        onManageAccess={() => openManageAccess(m.id, m.name || m.email)}
                         onToggled={fetchPage}
                         onDeleted={fetchPage}
                       />
@@ -306,17 +298,7 @@ export function MembersTable({ initialMembers, initialTotal }: Props) {
         <MemberDrawer
           userId={drawerId}
           onClose={() => setDrawerId(null)}
-          onManageAccess={(userId, name, products) => setManageAccess({ userId, name, products })}
           onMutated={fetchPage}
-        />
-      )}
-
-      {manageAccess && (
-        <ProductsDrawer
-          onClose={() => { setManageAccess(null); fetchPage() }}
-          memberName={manageAccess.name}
-          userId={manageAccess.userId}
-          products={manageAccess.products}
         />
       )}
     </div>

@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import Link from 'next/link'
 import { getMemberDetail, type MemberDetail } from '@/lib/actions/members'
 import { MemberActionsInline } from '@/components/admin/MemberActionsMenu'
 
 interface Props {
   userId: string
   onClose: () => void
-  onManageAccess: (userId: string, name: string, products: MemberDetail['productAccess']) => void
   onMutated: () => void
 }
 
@@ -35,7 +35,7 @@ function Field({ label, value }: { label: string; value: string }) {
   )
 }
 
-export function MemberDrawer({ userId, onClose, onManageAccess, onMutated }: Props) {
+export function MemberDrawer({ userId, onClose, onMutated }: Props) {
   const [detail, setDetail] = useState<MemberDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [visible, setVisible] = useState(false)
@@ -118,21 +118,19 @@ export function MemberDrawer({ userId, onClose, onManageAccess, onMutated }: Pro
                 <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5">Produtos</p>
                 <p className="text-sm text-gray-700 dark:text-gray-300">{activeCount} {activeCount === 1 ? 'ativo' : 'ativos'}</p>
               </div>
-              <button
-                type="button"
-                onClick={() => onManageAccess(detail.profile.id, detail.profile.name || detail.profile.email, detail.productAccess)}
+              <Link
+                href={`/admin/usuarios/${detail.profile.id}`}
                 className="text-sm font-medium hover:underline"
                 style={{ color: 'var(--brand)' }}
               >
                 Gerenciar →
-              </button>
+              </Link>
             </div>
 
             {/* Ações */}
             <div className="px-2 py-2">
               <MemberActionsInline
                 member={{ id: detail.profile.id, name: detail.profile.name, email: detail.profile.email, is_active: detail.profile.is_active, last_login_at: detail.profile.last_login_at }}
-                onManageAccess={() => onManageAccess(detail.profile.id, detail.profile.name || detail.profile.email, detail.productAccess)}
                 onToggled={onMutated}
                 onDeleted={() => { onMutated(); onClose() }}
               />

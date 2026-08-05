@@ -16,7 +16,6 @@ interface MemberLite {
 }
 
 interface ActionCallbacks {
-  onManageAccess: () => void
   onToggled?: (nowActive: boolean) => void
   onDeleted?: () => void
 }
@@ -27,7 +26,6 @@ const icons = {
   edit: <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />,
   mail: <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />,
   link: <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />,
-  access: <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />,
   suspend: <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />,
   play: <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />,
 }
@@ -40,8 +38,13 @@ function Icon({ d }: { d: ReactNode }) {
   )
 }
 
-/** Estado e handlers compartilhados pelas duas formas de exibir as ações (dropdown na linha, lista fixa no drawer). */
-function useMemberActions(member: MemberLite, { onManageAccess, onToggled, onDeleted }: ActionCallbacks) {
+/**
+ * Estado e handlers compartilhados pelas duas formas de exibir as ações
+ * (dropdown na linha, lista fixa no drawer). "Gerenciar produtos" não é mais
+ * uma ação daqui — produtos vivem só na página de edição (/admin/usuarios/:id),
+ * que "Editar" já abre; ter os dois destinos seria duplicar a mesma coisa.
+ */
+function useMemberActions(member: MemberLite, { onToggled, onDeleted }: ActionCallbacks) {
   const router = useRouter()
   const [confirmAction, setConfirmAction] = useState<'suspend' | 'delete' | null>(null)
   const [feedback, setFeedback] = useState<Feedback>(null)
@@ -102,12 +105,6 @@ function useMemberActions(member: MemberLite, { onManageAccess, onToggled, onDel
 
       <MenuDivider />
 
-      <MenuItem icon={<Icon d={icons.access} />} onSelect={onManageAccess}>
-        Gerenciar produtos...
-      </MenuItem>
-
-      <MenuDivider />
-
       <MenuItem icon={<Icon d={isActive ? icons.suspend : icons.play} />} onSelect={() => setConfirmAction('suspend')}>
         {isActive ? 'Desativar membro' : 'Reativar membro'}
       </MenuItem>
@@ -157,8 +154,8 @@ interface DropdownProps extends ActionCallbacks {
 }
 
 /** Uso na linha da lista: "⋯" que abre um dropdown. */
-export function MemberActionsMenu({ member, trigger, align = 'right', onManageAccess, onToggled, onDeleted }: DropdownProps) {
-  const { items, modals } = useMemberActions(member, { onManageAccess, onToggled, onDeleted })
+export function MemberActionsMenu({ member, trigger, align = 'right', onToggled, onDeleted }: DropdownProps) {
+  const { items, modals } = useMemberActions(member, { onToggled, onDeleted })
   return (
     <>
       <Menu align={align} panelClassName="w-56" trigger={trigger}>{items}</Menu>
@@ -172,8 +169,8 @@ interface InlineProps extends ActionCallbacks {
 }
 
 /** Uso no drawer: mesma lista de ações, sempre visível (sem menu escondido atrás de outro clique). */
-export function MemberActionsInline({ member, onManageAccess, onToggled, onDeleted }: InlineProps) {
-  const { items, modals } = useMemberActions(member, { onManageAccess, onToggled, onDeleted })
+export function MemberActionsInline({ member, onToggled, onDeleted }: InlineProps) {
+  const { items, modals } = useMemberActions(member, { onToggled, onDeleted })
   return (
     <>
       <div className="py-1">{items}</div>
