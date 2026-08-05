@@ -16,6 +16,13 @@ export async function POST(req: NextRequest) {
   if (!await checkApiKey(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
+  if (body.max_uses !== undefined && body.max_uses !== null && typeof body.max_uses !== 'number') {
+    return NextResponse.json({ error: 'max_uses deve ser um número ou null (sem limite)' }, { status: 400 })
+  }
+  if (body.expires_at !== undefined && body.expires_at !== null && typeof body.expires_at !== 'string') {
+    return NextResponse.json({ error: 'expires_at deve ser uma data ISO ou null (sem expiração)' }, { status: 400 })
+  }
+
   const note = typeof body.note === 'string' ? body.note.trim() || null : null
   const product_ids: string[] = Array.isArray(body.product_ids) ? body.product_ids : []
   const max_uses = typeof body.max_uses === 'number' ? body.max_uses : null

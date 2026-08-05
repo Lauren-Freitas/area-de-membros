@@ -1,9 +1,26 @@
 'use server'
 
+import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { logActivity } from '@/lib/log-activity'
 import { ALL_WEBHOOK_EVENTS, type WebhookEvent } from '@/lib/fire-webhooks'
+
+/**
+ * Server Actions são endpoints próprios (RPC), não protegidos pelo redirect()
+ * da página/layout que os renderiza — cada uma precisa checar autorização por
+ * conta própria, senão fica invocável por qualquer um que descubra sua
+ * referência (ex: no bundle JS público da página).
+ */
+async function requireAdmin() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (profile?.role !== 'admin' && profile?.role !== 'equipe') redirect('/dashboard')
+}
 
 function parseEvents(formData: FormData): WebhookEvent[] | null {
   const selected = formData.getAll('events') as string[]
@@ -14,6 +31,7 @@ function parseEvents(formData: FormData): WebhookEvent[] | null {
 // ── API Keys ────────────────────────────────────────────────────────────────
 
 export async function createApiKey(_: unknown, formData: FormData) {
+  await requireAdmin()
   const name = (formData.get('name') as string ?? '').trim()
   if (!name) return { error: 'Nome obrigatório' }
 
@@ -28,6 +46,7 @@ export async function createApiKey(_: unknown, formData: FormData) {
 }
 
 export async function deleteApiKey(id: string) {
+  await requireAdmin()
   const admin = createAdminClient()
   const { data } = await admin.from('api_keys').select('name').eq('id', id).single()
   await admin.from('api_keys').delete().eq('id', id)
@@ -38,6 +57,7 @@ export async function deleteApiKey(id: string) {
 // ── Outbound Webhooks ───────────────────────────────────────────────────────
 
 export async function createOutboundWebhook(_: unknown, formData: FormData) {
+  await requireAdmin()
   const name = (formData.get('name') as string ?? '').trim()
   const url = (formData.get('url') as string ?? '').trim()
   const product_id = (formData.get('product_id') as string) || null
@@ -56,6 +76,7 @@ export async function createOutboundWebhook(_: unknown, formData: FormData) {
 }
 
 export async function updateOutboundWebhook(id: string, _prevState: unknown, formData: FormData) {
+  await requireAdmin()
   const name = (formData.get('name') as string ?? '').trim()
   const url = (formData.get('url') as string ?? '').trim()
   const product_id = (formData.get('product_id') as string) || null
@@ -74,6 +95,7 @@ export async function updateOutboundWebhook(id: string, _prevState: unknown, for
 }
 
 export async function deleteOutboundWebhook(id: string) {
+  await requireAdmin()
   const admin = createAdminClient()
   const { data } = await admin.from('outbound_webhooks').select('name').eq('id', id).single()
   await admin.from('outbound_webhooks').delete().eq('id', id)
@@ -82,6 +104,7 @@ export async function deleteOutboundWebhook(id: string) {
 }
 
 export async function toggleOutboundWebhook(id: string, currentlyActive: boolean) {
+  await requireAdmin()
   const admin = createAdminClient()
   await admin.from('outbound_webhooks').update({ is_active: !currentlyActive }).eq('id', id)
   await logActivity({ action: currentlyActive ? 'desativar' : 'ativar', entity: 'webhook', entityId: id })
@@ -97,6 +120,7 @@ export interface WebhookDelivery {
 }
 
 export async function getWebhookDeliveries(webhookId: string): Promise<WebhookDelivery[]> {
+  await requireAdmin()
   const admin = createAdminClient()
   const { data } = await admin
     .from('outbound_webhook_deliveries')
@@ -144,6 +168,7 @@ async function deliverToWebhook(webhookId: string, url: string, event: string, p
 }
 
 export async function resendWebhookDelivery(deliveryId: string) {
+  await requireAdmin()
   const admin = createAdminClient()
   const { data: delivery } = await admin
     .from('outbound_webhook_deliveries')
@@ -163,6 +188,7 @@ export async function resendWebhookDelivery(deliveryId: string) {
 }
 
 export async function testOutboundWebhook(id: string) {
+  await requireAdmin()
   const admin = createAdminClient()
   const { data: webhook } = await admin.from('outbound_webhooks').select('id, url').eq('id', id).single()
   if (!webhook) return { error: 'Webhook não encontrado' }

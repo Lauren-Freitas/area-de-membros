@@ -27,7 +27,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const update: Record<string, unknown> = {}
   if (typeof body.name === 'string') update.name = body.name.trim()
-  if (typeof body.role === 'string') update.role = body.role
+  if (typeof body.role === 'string') {
+    if (!['admin', 'equipe', 'membro'].includes(body.role)) {
+      return NextResponse.json({ error: "role deve ser 'admin', 'equipe' ou 'membro'" }, { status: 400 })
+    }
+    update.role = body.role
+  }
   if (typeof body.is_active === 'boolean') update.is_active = body.is_active
   if (typeof body.phone === 'string') update.phone = body.phone.trim() || null
 
