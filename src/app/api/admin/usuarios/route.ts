@@ -33,6 +33,10 @@ export async function POST(req: NextRequest) {
     },
     getApiActor(auth.keyName),
   )
-  if (result.error) return NextResponse.json({ error: result.error }, { status: 400 })
+  // userId ausente = falhou antes de criar nada (ex: e-mail inválido). userId presente
+  // + error = membro foi criado mas a liberação de produto(s) falhou — o caller precisa
+  // do id pra saber o que corrigir, por isso não descarta a resposta num 400 puro.
+  if (result.error && !result.userId) return NextResponse.json({ error: result.error }, { status: 400 })
+  if (result.error) return NextResponse.json({ userId: result.userId, isNewUser: result.isNewUser, error: result.error }, { status: 207 })
   return NextResponse.json({ userId: result.userId, isNewUser: result.isNewUser }, { status: result.isNewUser ? 201 : 200 })
 }

@@ -103,7 +103,13 @@ export async function createMember(input: CreateMemberInput, actor: Actor): Prom
     await fireOutboundWebhooks('member.created', { member: { id: userId, name, email }, actor, metadata: { role } })
   }
 
-  await Promise.all(productIds.map((pid) => grantAccess(userId, pid, actor, { expiresAt: input.accessExpiresAt ?? null })))
+  const grantResults = await Promise.all(
+    productIds.map((pid) => grantAccess(userId, pid, actor, { expiresAt: input.accessExpiresAt ?? null })),
+  )
+  const grantError = grantResults.find(r => r.error)
+  // O membro já foi criado nesse ponto — um erro aqui não desfaz isso, só
+  // avisa quem chamou que a liberação de produto(s) não completou.
+  if (grantError) return { userId, isNewUser, error: `Membro criado, mas falha ao liberar produto(s): ${grantError.error}` }
 
   return { userId, isNewUser }
 }
