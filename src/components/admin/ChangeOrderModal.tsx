@@ -7,11 +7,12 @@ import { Button } from '@/components/Button'
 interface Props {
   isOpen: boolean
   onClose: () => void
-  currentOrder: number
-  onSave: (order: number) => void
+  /** 1-indexado — "posição 1" pro usuário, nunca o sort_order cru (que começa em 0). */
+  currentPosition: number
+  onSave: (position: number) => void
 }
 
-export function ChangeOrderModal({ isOpen, onClose, currentOrder, onSave }: Props) {
+export function ChangeOrderModal({ isOpen, onClose, currentPosition, onSave }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -24,7 +25,8 @@ export function ChangeOrderModal({ isOpen, onClose, currentOrder, onSave }: Prop
   if (!isOpen) return null
 
   function handleSave() {
-    onSave(parseInt(inputRef.current?.value ?? '') || 0)
+    const typed = parseInt(inputRef.current?.value ?? '') || 1
+    onSave(Math.max(1, typed))
     onClose()
   }
 
@@ -39,8 +41,8 @@ export function ChangeOrderModal({ isOpen, onClose, currentOrder, onSave }: Prop
         onClick={e => e.stopPropagation()}
       >
         <div>
-          <h2 className="font-semibold text-gray-800 dark:text-gray-100 text-base">Alterar ordem</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Posição do produto na listagem — menor aparece primeiro.</p>
+          <h2 className="font-semibold text-gray-800 dark:text-gray-100 text-base">Alterar posição</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Posição do produto na listagem — 1 aparece primeiro.</p>
         </div>
 
         {/* Não controlado de propósito: o componente já desmonta o input inteiro ao
@@ -49,7 +51,8 @@ export function ChangeOrderModal({ isOpen, onClose, currentOrder, onSave }: Prop
         <input
           ref={inputRef}
           type="number"
-          defaultValue={currentOrder}
+          min={1}
+          defaultValue={currentPosition}
           autoFocus
           className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-[#2a2f45] bg-card text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2"
           style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}

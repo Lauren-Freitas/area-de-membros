@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { ProductActionsMenu } from '@/components/admin/ProductActionsMenu'
+import { toggleProductActive } from '@/lib/actions/admin'
 
 interface Props {
   product: {
@@ -16,8 +17,16 @@ interface Props {
 export function ProductRow({ product: initial }: Props) {
   const [product, setProduct] = useState(initial)
   const [deleted, setDeleted] = useState(false)
+  const [isPending, startTransition] = useTransition()
 
   if (deleted) return null
+
+  function handleToggleStatus() {
+    startTransition(async () => {
+      await toggleProductActive(product.id, product.is_active)
+      setProduct(p => ({ ...p, is_active: !p.is_active }))
+    })
+  }
 
   return (
     <div className="flex items-center py-3.5 gap-4 hover:bg-gray-50 transition">
@@ -26,19 +35,23 @@ export function ProductRow({ product: initial }: Props) {
         {product.description && (
           <p className="text-xs text-gray-400 truncate max-w-sm mt-0.5">{product.description}</p>
         )}
-        <p className="text-xs text-gray-300 mt-0.5">Ordem {product.sort_order}</p>
+        <p className="text-xs text-gray-300 mt-0.5">Posição {product.sort_order + 1}</p>
       </div>
 
       <div className="w-20 text-center shrink-0">
-        <span
-          className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+        <button
+          type="button"
+          onClick={handleToggleStatus}
+          disabled={isPending}
+          title={product.is_active ? 'Clique para desativar' : 'Clique para ativar'}
+          className={`text-xs font-medium px-2.5 py-1 rounded-full transition disabled:opacity-60 ${
             product.is_active
-              ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
-              : 'bg-gray-100 dark:bg-gray-500/10 text-gray-500 dark:text-gray-400'
+              ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30'
+              : 'bg-gray-100 dark:bg-gray-500/10 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-500/20'
           }`}
         >
           {product.is_active ? 'Ativo' : 'Inativo'}
-        </span>
+        </button>
       </div>
 
       <div className="w-10 shrink-0 flex justify-end">
