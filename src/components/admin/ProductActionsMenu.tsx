@@ -4,7 +4,9 @@ import { useState, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { Menu, MenuItem, MenuDivider } from '@/components/Menu'
 import { ConfirmModal } from '@/components/ConfirmModal'
+import { DuplicateProductModal } from '@/components/admin/DuplicateProductModal'
 import { deleteProduct, duplicateProduct, toggleProductActive } from '@/lib/actions/admin'
+import type { DuplicateMode } from '@/lib/core/products'
 
 interface ProductLite {
   id: string
@@ -39,14 +41,16 @@ function Icon({ d, muted = true }: { d: ReactNode; muted?: boolean }) {
 export function ProductActionsMenu({ product, trigger, onToggled, onDeleted }: Props) {
   const router = useRouter()
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [duplicateModalOpen, setDuplicateModalOpen] = useState(false)
   const [duplicating, setDuplicating] = useState(false)
 
   const isActive = product.is_active
 
-  async function handleDuplicate() {
+  async function handleDuplicate(mode: DuplicateMode) {
     setDuplicating(true)
-    const result = await duplicateProduct(product.id)
+    const result = await duplicateProduct(product.id, mode)
     setDuplicating(false)
+    setDuplicateModalOpen(false)
     if (result.newId) router.push(`/admin/produtos/${result.newId}`)
   }
 
@@ -66,8 +70,8 @@ export function ProductActionsMenu({ product, trigger, onToggled, onDeleted }: P
         <MenuItem icon={<Icon d={icons.edit} />} href={`/admin/produtos/${product.id}`}>
           Editar...
         </MenuItem>
-        <MenuItem icon={<Icon d={icons.duplicate} />} keepOpen disabled={duplicating} onSelect={handleDuplicate}>
-          {duplicating ? 'Duplicando...' : 'Duplicar'}
+        <MenuItem icon={<Icon d={icons.duplicate} />} keepOpen onSelect={() => setDuplicateModalOpen(true)}>
+          Duplicar...
         </MenuItem>
 
         <MenuDivider />
@@ -82,6 +86,15 @@ export function ProductActionsMenu({ product, trigger, onToggled, onDeleted }: P
           Excluir...
         </MenuItem>
       </Menu>
+
+      {duplicateModalOpen && (
+        <DuplicateProductModal
+          productTitle={product.title}
+          pending={duplicating}
+          onClose={() => setDuplicateModalOpen(false)}
+          onConfirm={handleDuplicate}
+        />
+      )}
 
       <ConfirmModal
         isOpen={confirmDelete}

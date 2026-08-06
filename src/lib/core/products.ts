@@ -3,6 +3,39 @@ import { logActivity } from '@/lib/log-activity'
 import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
 import type { Actor } from './actor'
 
+const ATTACHMENTS_BUCKET = 'lesson-attachments'
+
+/**
+ * Copia o arquivo físico no Storage (não só a linha do banco) — se
+ * compartilhasse o mesmo `file_path` entre original e cópia, excluir um
+ * anexo de um lado apagaria o arquivo do outro (deleteAttachment remove do
+ * Storage). Falha silenciosa por anexo: um arquivo corrompido/ausente não
+ * deve travar a duplicação inteira do produto.
+ */
+async function copyLessonAttachments(admin: ReturnType<typeof createAdminClient>, oldLessonId: string, newLessonId: string) {
+  const { data: attachments } = await admin
+    .from('lesson_attachments')
+    .select('*')
+    .eq('lesson_id', oldLessonId)
+    .order('sort_order')
+
+  for (const att of attachments ?? []) {
+    const ext = att.file_path.split('.').pop() ?? 'bin'
+    const newPath = `${newLessonId}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`
+    const { error: copyError } = await admin.storage.from(ATTACHMENTS_BUCKET).copy(att.file_path, newPath)
+    if (copyError) continue
+
+    await admin.from('lesson_attachments').insert({
+      lesson_id: newLessonId,
+      file_name: att.file_name,
+      file_path: newPath,
+      file_size: att.file_size,
+      mime_type: att.mime_type,
+      sort_order: att.sort_order,
+    })
+  }
+}
+
 export interface ProductPayload {
   title: string
   description?: string | null
@@ -126,12 +159,12 @@ export async function reorderProducts(orderedIds: string[], actor: Actor): Promi
 export type DuplicateMode = 'full' | 'shallow'
 
 /**
- * `shallow` copia só o cadastro do produto. `full` também copia módulos e
- * aulas (anexos entram na Fase 3 — cópia de arquivo de Storage, não só a
- * linha do banco). kiwify_product_id nunca é copiado: duas linhas com o
- * mesmo ID quebrariam o lookup do webhook da Kiwify. Certificados nunca são
- * copiados em nenhum modo — são recibo de conclusão por aluno, não conteúdo
- * do produto; a cópia nasce sem nenhum aluno matriculado.
+ * `shallow` copia só o cadastro do produto. `full` também copia módulos,
+ * aulas e anexos (arquivo físico no Storage, via copyLessonAttachments —
+ * não só a linha do banco). kiwify_product_id nunca é copiado: duas linhas
+ * com o mesmo ID quebrariam o lookup do webhook da Kiwify. Certificados
+ * nunca são copiados em nenhum modo — são recibo de conclusão por aluno,
+ * não conteúdo do produto; a cópia nasce sem nenhum aluno matriculado.
  */
 export async function duplicateProduct(id: string, mode: DuplicateMode, actor: Actor): Promise<{ error?: string; newId?: string }> {
   const admin = createAdminClient()
@@ -175,7 +208,9 @@ export async function duplicateProduct(id: string, mode: DuplicateMode, actor: A
 
       const { data: lessons } = await admin.from('lessons').select('*').eq('module_id', mod.id).order('sort_order')
       if (lessons?.length) {
-        await admin.from('lessons').insert(lessons.map(l => ({
+        // .select('id') num insert multi-linha preserva a ordem de entrada —
+        // usa isso pra mapear aula antiga → aula nova e copiar os anexos de cada uma.
+        const { data: newLessons } = await admin.from('lessons').insert(lessons.map(l => ({
           module_id: newModule.id,
           title: l.title,
           description: l.description,
@@ -188,7 +223,13 @@ export async function duplicateProduct(id: string, mode: DuplicateMode, actor: A
           release_at: l.release_at,
           access_duration_days: l.access_duration_days,
           sort_order: l.sort_order,
-        })))
+        }))).select('id')
+
+        for (let i = 0; i < lessons.length && newLessons; i++) {
+          const newLessonId = newLessons[i]?.id
+          if (!newLessonId) continue
+          await copyLessonAttachments(admin, lessons[i].id, newLessonId)
+        }
       }
     }
   }
