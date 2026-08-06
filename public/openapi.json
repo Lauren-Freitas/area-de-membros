@@ -1,0 +1,273 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Área de Membros API",
+    "version": "1.0.0",
+    "description": "API pública da plataforma, construída seguindo o princípio API First. Qualquer ferramenta capaz de fazer requisições HTTP — n8n, Make, Zapier, um script Python, uma aplicação Node — pode criar membros, conceder acessos, gerenciar produtos e reagir a eventos via Webhooks. Toda resposta usa o mesmo envelope: `{\"success\": true, \"data\": {...}}` ou `{\"success\": false, \"error\": {\"code\", \"message\"}}`."
+  },
+  "servers": [{ "url": "/api/v1" }],
+  "security": [{ "ApiKeyAuth": [] }],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key",
+        "description": "Chave mestra ou chave nomeada, criadas em Integrações → API."
+      }
+    },
+    "parameters": {
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": false,
+        "description": "Chave opcional (qualquer string única por chamada, ex: um UUID). Repetir a mesma chave pro mesmo endpoint replay a resposta já registrada em vez de repetir o efeito colateral — segura contra retry de rede.",
+        "schema": { "type": "string" }
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": false },
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": { "type": "string", "example": "MEMBER_NOT_FOUND" },
+              "message": { "type": "string", "example": "Membro não encontrado." }
+            },
+            "required": ["code", "message"]
+          }
+        },
+        "required": ["success", "error"]
+      },
+      "Member": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "phone": { "type": ["string", "null"] },
+          "role": { "type": "string", "enum": ["admin", "equipe", "membro"] },
+          "is_active": { "type": "boolean" },
+          "last_login_at": { "type": ["string", "null"], "format": "date-time" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Product": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "content_type": { "type": "string", "enum": ["file", "video"] },
+          "content_url": { "type": ["string", "null"] },
+          "banner_url": { "type": ["string", "null"] },
+          "is_pack": { "type": "boolean" },
+          "is_active": { "type": "boolean" },
+          "sort_order": { "type": "integer" }
+        }
+      },
+      "AccessGrant": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "user_id": { "type": "string", "format": "uuid" },
+          "product_id": { "type": "string", "format": "uuid" },
+          "granted_at": { "type": "string", "format": "date-time" },
+          "granted_by": { "type": "string", "enum": ["manual", "api", "purchase", "pack"] },
+          "expires_at": { "type": ["string", "null"], "format": "date-time" },
+          "payment_status": { "type": ["string", "null"] }
+        }
+      },
+      "Certificate": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "user_id": { "type": "string", "format": "uuid" },
+          "product_id": { "type": "string", "format": "uuid" },
+          "issued_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Invite": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "code": { "type": "string" },
+          "note": { "type": ["string", "null"] },
+          "product_ids": { "type": "array", "items": { "type": "string", "format": "uuid" } },
+          "max_uses": { "type": ["integer", "null"] },
+          "used_count": { "type": "integer" },
+          "expires_at": { "type": ["string", "null"], "format": "date-time" }
+        }
+      },
+      "Sale": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "user_id": { "type": "string", "format": "uuid" },
+          "product_id": { "type": "string", "format": "uuid" },
+          "value": { "type": ["number", "null"] },
+          "billing_type": { "type": ["string", "null"] },
+          "payment_status": { "type": ["string", "null"] },
+          "invoice_url": { "type": ["string", "null"] },
+          "granted_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "responses": {
+      "Unauthorized": { "description": "Chave de API ausente ou inválida.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "NotFound": { "description": "Recurso não encontrado.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+      "ValidationError": { "description": "Corpo da requisição inválido.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+    }
+  },
+  "paths": {
+    "/members": {
+      "get": {
+        "summary": "Listar membros",
+        "tags": ["Membros"],
+        "responses": { "200": { "description": "Lista de membros e colaboradores.", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "object", "properties": { "members": { "type": "array", "items": { "$ref": "#/components/schemas/Member" } } } } } } } } }, "401": { "$ref": "#/components/responses/Unauthorized" } }
+      },
+      "post": {
+        "summary": "Criar membro",
+        "description": "Idempotente por e-mail — se já existir um membro com esse e-mail, reaproveita o cadastro em vez de duplicar. Se `products` for enviado, já libera o acesso na mesma chamada.",
+        "tags": ["Membros"],
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "type": "object", "required": ["name", "email"], "properties": {
+            "name": { "type": "string" },
+            "email": { "type": "string", "format": "email" },
+            "phone": { "type": "string" },
+            "products": { "type": "array", "items": { "type": "string", "format": "uuid" } },
+            "access_expires_at": { "type": ["string", "null"], "format": "date-time" }
+          } }, "example": { "name": "João Silva", "email": "joao@email.com", "products": ["uuid-do-produto"] } } }
+        },
+        "responses": {
+          "201": { "description": "Membro criado.", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "object", "properties": { "member_id": { "type": "string" }, "is_new": { "type": "boolean" } } } } } } } },
+          "200": { "description": "Membro já existia (reaproveitado)." },
+          "207": { "description": "Membro criado, mas a liberação de algum produto falhou — veja `data.warning`." },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/members/{id}": {
+      "get": { "summary": "Detalhe do membro", "tags": ["Membros"], "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }], "responses": { "200": { "description": "Membro encontrado." }, "404": { "$ref": "#/components/responses/NotFound" } } },
+      "patch": {
+        "summary": "Atualizar membro",
+        "description": "Parcial — só envie os campos que quer mudar.",
+        "tags": ["Membros"],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }, { "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object", "properties": {
+          "name": { "type": "string" }, "role": { "type": "string", "enum": ["admin", "equipe", "membro"] }, "is_active": { "type": "boolean" }, "phone": { "type": "string" }
+        } } } } },
+        "responses": { "200": { "description": "Membro atualizado." }, "404": { "$ref": "#/components/responses/NotFound" } }
+      },
+      "delete": {
+        "summary": "Excluir membro",
+        "description": "Idempotente — excluir um membro já excluído também retorna sucesso.",
+        "tags": ["Membros"],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }, { "$ref": "#/components/parameters/IdempotencyKey" }],
+        "responses": { "200": { "description": "Membro excluído." } }
+      }
+    },
+    "/members/{id}/resend-access": {
+      "post": {
+        "summary": "Enviar acesso",
+        "description": "Decide sozinho entre convite de primeiro acesso (nunca ativou a conta) e redefinição de senha (já ativou) — nunca as duas ações separadas.",
+        "tags": ["Membros"],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }, { "$ref": "#/components/parameters/IdempotencyKey" }],
+        "responses": { "200": { "description": "Acesso enviado." }, "404": { "$ref": "#/components/responses/NotFound" } }
+      }
+    },
+    "/access-grants": {
+      "post": {
+        "summary": "Conceder acesso",
+        "description": "Upsert real — chamar de novo com o mesmo par user_id/product_id é sempre seguro (mesma validade = mesmo estado; validade diferente = atualiza).",
+        "tags": ["Acessos"],
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["user_id", "product_id"], "properties": {
+          "user_id": { "type": "string", "format": "uuid" }, "product_id": { "type": "string", "format": "uuid" }, "expires_at": { "type": ["string", "null"], "format": "date-time" }
+        } } } } },
+        "responses": { "200": { "description": "Acesso concedido." }, "400": { "$ref": "#/components/responses/ValidationError" } }
+      },
+      "get": {
+        "summary": "Listar acessos",
+        "tags": ["Acessos"],
+        "parameters": [{ "name": "user_id", "in": "query", "schema": { "type": "string" } }, { "name": "product_id", "in": "query", "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Lista de acessos.", "content": { "application/json": { "schema": { "type": "object", "properties": { "data": { "type": "object", "properties": { "access_grants": { "type": "array", "items": { "$ref": "#/components/schemas/AccessGrant" } } } } } } } } } }
+      },
+      "patch": {
+        "summary": "Alterar validade de um acesso",
+        "tags": ["Acessos"],
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["user_id", "product_id", "expires_at"], "properties": {
+          "user_id": { "type": "string" }, "product_id": { "type": "string" }, "expires_at": { "type": ["string", "null"], "format": "date-time" }
+        } } } } },
+        "responses": { "200": { "description": "Validade atualizada." } }
+      },
+      "delete": {
+        "summary": "Revogar acesso",
+        "description": "Idempotente — revogar um acesso que já não existe também retorna sucesso.",
+        "tags": ["Acessos"],
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["user_id", "product_id"], "properties": {
+          "user_id": { "type": "string" }, "product_id": { "type": "string" }
+        } } } } },
+        "responses": { "200": { "description": "Acesso revogado." } }
+      }
+    },
+    "/products": {
+      "get": { "summary": "Listar produtos", "tags": ["Produtos"], "responses": { "200": { "description": "Lista de produtos.", "content": { "application/json": { "schema": { "type": "object", "properties": { "data": { "type": "object", "properties": { "products": { "type": "array", "items": { "$ref": "#/components/schemas/Product" } } } } } } } } } } },
+      "post": {
+        "summary": "Criar produto",
+        "description": "Sem chave natural de deduplicação — use Idempotency-Key pra reintentos seguros, senão cada chamada cria um produto novo.",
+        "tags": ["Produtos"],
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["title", "content_type"], "properties": {
+          "title": { "type": "string" }, "content_type": { "type": "string", "enum": ["file", "video"] }, "description": { "type": "string" }, "content_url": { "type": "string" }, "banner_url": { "type": "string" }, "is_pack": { "type": "boolean" }, "is_active": { "type": "boolean" }
+        } } } } },
+        "responses": { "201": { "description": "Produto criado." }, "400": { "$ref": "#/components/responses/ValidationError" } }
+      }
+    },
+    "/products/{id}": {
+      "get": { "summary": "Detalhe do produto", "tags": ["Produtos"], "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }], "responses": { "200": { "description": "Produto encontrado." }, "404": { "$ref": "#/components/responses/NotFound" } } },
+      "patch": { "summary": "Atualizar produto", "description": "Parcial.", "tags": ["Produtos"], "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }, { "$ref": "#/components/parameters/IdempotencyKey" }], "responses": { "200": { "description": "Produto atualizado." }, "404": { "$ref": "#/components/responses/NotFound" } } },
+      "delete": { "summary": "Excluir produto", "description": "Exclui o produto e todo o conteúdo (módulos, aulas). Idempotente.", "tags": ["Produtos"], "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }, { "$ref": "#/components/parameters/IdempotencyKey" }], "responses": { "200": { "description": "Produto excluído." } } }
+    },
+    "/certificates": {
+      "get": { "summary": "Listar certificados", "tags": ["Certificados"], "responses": { "200": { "description": "Lista de certificados.", "content": { "application/json": { "schema": { "type": "object", "properties": { "data": { "type": "object", "properties": { "certificates": { "type": "array", "items": { "$ref": "#/components/schemas/Certificate" } } } } } } } } } } },
+      "post": {
+        "summary": "Emitir certificado",
+        "description": "Idempotente de propósito — chamar de novo com o mesmo par user_id/product_id retorna o certificado já existente, nunca duplica.",
+        "tags": ["Certificados"],
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["user_id", "product_id"], "properties": { "user_id": { "type": "string" }, "product_id": { "type": "string" } } } } } },
+        "responses": { "201": { "description": "Certificado emitido." }, "200": { "description": "Certificado já existia." } }
+      }
+    },
+    "/invites": {
+      "get": { "summary": "Listar convites", "tags": ["Convites"], "responses": { "200": { "description": "Lista de convites.", "content": { "application/json": { "schema": { "type": "object", "properties": { "data": { "type": "object", "properties": { "invites": { "type": "array", "items": { "$ref": "#/components/schemas/Invite" } } } } } } } } } } },
+      "post": {
+        "summary": "Criar link de convite",
+        "description": "Sem chave natural de deduplicação (cada chamada gera um código novo de propósito) — use Idempotency-Key pra reintentos seguros.",
+        "tags": ["Convites"],
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": { "content": { "application/json": { "schema": { "type": "object", "properties": {
+          "note": { "type": "string" }, "product_ids": { "type": "array", "items": { "type": "string" } }, "max_uses": { "type": ["integer", "null"] }, "expires_at": { "type": ["string", "null"] }
+        } } } } },
+        "responses": { "201": { "description": "Convite criado." } }
+      }
+    },
+    "/sales": {
+      "get": {
+        "summary": "Listar vendas",
+        "description": "Somente leitura — populado pelos webhooks de entrada do Asaas/Kiwify ou por concessões manuais com granted_by='purchase'/'pack'.",
+        "tags": ["Compras & Pagamentos"],
+        "parameters": [{ "name": "user_id", "in": "query", "schema": { "type": "string" } }, { "name": "product_id", "in": "query", "schema": { "type": "string" } }, { "name": "payment_status", "in": "query", "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Lista de vendas.", "content": { "application/json": { "schema": { "type": "object", "properties": { "data": { "type": "object", "properties": { "sales": { "type": "array", "items": { "$ref": "#/components/schemas/Sale" } } } } } } } } } }
+      }
+    }
+  }
+}
