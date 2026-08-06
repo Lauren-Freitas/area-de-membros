@@ -1,8 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { logActivity } from '@/lib/log-activity'
-import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
 import { sendWelcomeEmail, sendAccessGrantedEmail, sendCollaboratorInviteEmail } from '@/lib/resend'
 import { grantAccess } from './access'
+import { emitEvent } from './events'
 import type { Actor } from './actor'
 
 type Role = 'admin' | 'equipe' | 'membro'
@@ -25,9 +24,11 @@ interface CreateMemberResult {
 
 /**
  * Cria um membro/colaborador ou reaproveita um perfil já existente pelo
- * e-mail. Único ponto de criação usado pela UI, pela API pública e (via
- * webhook de convite aceito) pelo fluxo de auto-cadastro — concessão de
- * produtos passa por `grantAccess` em vez de duplicar o upsert aqui.
+ * e-mail — idempotente por natureza: chamar de novo com o mesmo e-mail nunca
+ * cria um segundo cadastro. Único ponto de criação usado pela UI, pela API
+ * pública e (via webhook de convite aceito) pelo fluxo de auto-cadastro —
+ * concessão de produtos passa por `grantAccess` em vez de duplicar o upsert
+ * aqui (que por sua vez também é idempotente).
  */
 export async function createMember(input: CreateMemberInput, actor: Actor): Promise<CreateMemberResult> {
   const name = input.name.trim()
@@ -98,9 +99,12 @@ export async function createMember(input: CreateMemberInput, actor: Actor): Prom
     await sendAccessGrantedEmail({ email, name, productTitle }).catch(() => null)
   }
 
-  await logActivity({ action: 'criar', entity: 'membro', entityName: `${name} (${email})`, actor })
   if (isNewUser) {
-    await fireOutboundWebhooks('member.created', { member: { id: userId, name, email }, actor, metadata: { role } })
+    await emitEvent({
+      event: 'member.created',
+      actor, member: { id: userId, name, email }, metadata: { role },
+      activity: { action: 'criar', entity: 'membro', entityName: `${name} (${email})` },
+    })
   }
 
   const grantResults = await Promise.all(
@@ -137,42 +141,54 @@ export async function updateMember(userId: string, patch: UpdateMemberInput, act
   const { data, error } = await admin.from('profiles').update(update).eq('id', userId).select().single()
   if (error) return { error: error.message }
 
-  await logActivity({ action: 'editar', entity: 'membro', entityId: userId, entityName: data.name, actor })
-
   const wasActive = before.is_active !== false
   const member = { id: userId, name: data.name, email: data.email }
   if ('is_active' in update && update.is_active !== wasActive) {
-    await fireOutboundWebhooks(update.is_active ? 'member.activated' : 'member.deactivated', { member, actor })
+    await emitEvent({
+      event: update.is_active ? 'member.activated' : 'member.deactivated',
+      actor, member,
+      activity: { action: 'editar', entity: 'membro', entityId: userId, entityName: data.name },
+    })
   } else {
-    await fireOutboundWebhooks('member.updated', { member, actor, metadata: { role: data.role } })
+    await emitEvent({
+      event: 'member.updated',
+      actor, member, metadata: { role: data.role },
+      activity: { action: 'editar', entity: 'membro', entityId: userId, entityName: data.name },
+    })
   }
 
   return { data }
 }
 
-/** Toggle rápido (menu de ações / drawer) — distinto de updateMember pra manter o rótulo semântico "ativar/desativar" no histórico. */
+/** Toggle rápido (menu de ações / drawer) — distinto de updateMember pra manter o rótulo semântico "ativar/desativar" no histórico. Idempotente: chamar de novo com o mesmo estado é um no-op. */
 export async function setMemberActive(userId: string, active: boolean, actor: Actor): Promise<{ success?: boolean; error?: string }> {
   const admin = createAdminClient()
   const { data: profile } = await admin.from('profiles').select('name, email').eq('id', userId).maybeSingle()
   const { error } = await admin.from('profiles').update({ is_active: active }).eq('id', userId)
   if (error) return { error: error.message }
 
-  await logActivity({ action: active ? 'ativar' : 'desativar', entity: 'membro', entityId: userId, entityName: profile?.name ?? null, actor })
-  await fireOutboundWebhooks(active ? 'member.activated' : 'member.deactivated', {
-    member: { id: userId, name: profile?.name, email: profile?.email },
-    actor,
+  await emitEvent({
+    event: active ? 'member.activated' : 'member.deactivated',
+    actor, member: { id: userId, name: profile?.name, email: profile?.email },
+    activity: { action: active ? 'ativar' : 'desativar', entity: 'membro', entityId: userId, entityName: profile?.name ?? null },
   })
   return { success: true }
 }
 
+/** Idempotente: excluir um membro já excluído retorna sucesso (o estado final desejado — "não existe mais" — já é verdade). */
 export async function deleteMember(userId: string, actor: Actor): Promise<{ success?: boolean; error?: string }> {
   const admin = createAdminClient()
   const { data: profile } = await admin.from('profiles').select('name, email').eq('id', userId).maybeSingle()
+  if (!profile) return { success: true }
+
   const { error } = await admin.auth.admin.deleteUser(userId)
   if (error) return { error: error.message }
 
-  await logActivity({ action: 'excluir', entity: 'membro', entityId: userId, entityName: profile?.name ?? profile?.email ?? null, actor })
-  await fireOutboundWebhooks('member.deleted', { member: { id: userId, name: profile?.name, email: profile?.email }, actor })
+  await emitEvent({
+    event: 'member.deleted',
+    actor, member: { id: userId, name: profile.name, email: profile.email },
+    activity: { action: 'excluir', entity: 'membro', entityId: userId, entityName: profile.name ?? profile.email ?? null },
+  })
   return { success: true }
 }
 
@@ -204,8 +220,11 @@ export async function resendAccess(userId: string, actor: Actor): Promise<{ succ
     } catch (err) {
       return { error: `Email não enviado: ${err instanceof Error ? err.message : String(err)}` }
     }
-    await logActivity({ action: 'enviar_convite', entity: 'membro', entityId: userId, entityName: profile.name, actor })
-    await fireOutboundWebhooks('invite.sent', { member: { id: userId, name: profile.name, email: profile.email }, actor })
+    await emitEvent({
+      event: 'invite.sent',
+      actor, member: { id: userId, name: profile.name, email: profile.email },
+      activity: { action: 'enviar_convite', entity: 'membro', entityId: userId, entityName: profile.name },
+    })
     return { success: true }
   }
 
@@ -214,8 +233,11 @@ export async function resendAccess(userId: string, actor: Actor): Promise<{ succ
   })
   if (error) return { error: error.message }
 
-  await logActivity({ action: 'enviar_login', entity: 'membro', entityId: userId, entityName: profile.name, actor })
-  await fireOutboundWebhooks('password.reset', { member: { id: userId, name: profile.name, email: profile.email }, actor })
+  await emitEvent({
+    event: 'password.reset',
+    actor, member: { id: userId, name: profile.name, email: profile.email },
+    activity: { action: 'enviar_login', entity: 'membro', entityId: userId, entityName: profile.name },
+  })
   return { success: true }
 }
 

@@ -30,6 +30,7 @@ const EVENT_LABELS: Record<WebhookEvent, string> = {
   'member.activated': 'Membro ativado',
   'member.deactivated': 'Membro desativado',
   'access.granted': 'Acesso concedido',
+  'access.updated': 'Validade de acesso alterada',
   'access.revoked': 'Acesso revogado',
   'product.created': 'Produto criado',
   'product.updated': 'Produto atualizado',

@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { logActivity } from '@/lib/log-activity'
 import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
+import { emitEvent } from './events'
 import type { Actor } from './actor'
 
 type AdminClient = ReturnType<typeof createAdminClient>
@@ -13,7 +13,15 @@ async function loadMemberAndProduct(admin: AdminClient, userId: string, productI
   return { member, product }
 }
 
-/** Concessão manual (admin) ou via API — não usado para compras (ver recordPurchaseApproved). */
+/**
+ * Concessão manual (admin) ou via API — não usado para compras (ver
+ * recordPurchaseApproved). Upsert real (não `ignoreDuplicates`): chamar de
+ * novo com o mesmo par user_id/product_id atualiza granted_by/expires_at em
+ * vez de ser ignorado — uma segunda chamada idêntica é inofensiva (mesmo
+ * resultado), e uma chamada com expires_at diferente aplica a mudança em vez
+ * de silenciosamente não fazer nada (era esse o bug: repetir a chamada com
+ * validade diferente não tinha efeito nenhum).
+ */
 export async function grantAccess(
   userId: string,
   productId: string,
@@ -25,19 +33,17 @@ export async function grantAccess(
 
   const { error } = await admin.from('user_products').upsert(
     { user_id: userId, product_id: productId, granted_by: grantedBy, expires_at: opts.expiresAt ?? null },
-    { onConflict: 'user_id,product_id', ignoreDuplicates: true },
+    { onConflict: 'user_id,product_id' },
   )
   if (error) return { error: error.message }
 
   const { member, product } = await loadMemberAndProduct(admin, userId, productId)
-  await logActivity({
-    action: 'conceder_acesso',
-    entity: 'acesso',
-    entityId: userId,
-    entityName: `${member?.name ?? userId} → ${product?.title ?? productId}`,
-    actor,
+  await emitEvent({
+    event: 'access.granted',
+    actor, member, product,
+    metadata: { expires_at: opts.expiresAt ?? null },
+    activity: { action: 'conceder_acesso', entity: 'acesso', entityId: userId, entityName: `${member?.name ?? userId} → ${product?.title ?? productId}` },
   })
-  await fireOutboundWebhooks('access.granted', { member, product, actor }, productId)
   return { success: true }
 }
 
@@ -52,14 +58,11 @@ export async function revokeAccess(
   const { error } = await admin.from('user_products').delete().eq('user_id', userId).eq('product_id', productId)
   if (error) return { error: error.message }
 
-  await logActivity({
-    action: 'revogar_acesso',
-    entity: 'acesso',
-    entityId: userId,
-    entityName: `${member?.name ?? userId} → ${product?.title ?? productId}`,
-    actor,
+  await emitEvent({
+    event: 'access.revoked',
+    actor, member, product,
+    activity: { action: 'revogar_acesso', entity: 'acesso', entityId: userId, entityName: `${member?.name ?? userId} → ${product?.title ?? productId}` },
   })
-  await fireOutboundWebhooks('access.revoked', { member, product, actor }, productId)
   return { success: true }
 }
 
@@ -74,12 +77,11 @@ export async function updateAccessExpiry(
   if (error) return { error: error.message }
 
   const { member, product } = await loadMemberAndProduct(admin, userId, productId)
-  await logActivity({
-    action: 'editar',
-    entity: 'validade_acesso',
-    entityId: userId,
-    entityName: `${member?.name ?? userId} → ${product?.title ?? productId}`,
-    actor,
+  await emitEvent({
+    event: 'access.updated',
+    actor, member, product,
+    metadata: { expires_at: expiresAt },
+    activity: { action: 'editar', entity: 'validade_acesso', entityId: userId, entityName: `${member?.name ?? userId} → ${product?.title ?? productId}` },
   })
   return { success: true }
 }
@@ -116,18 +118,13 @@ export async function recordPurchaseApproved(
   )
 
   const { member, product } = await loadMemberAndProduct(admin, userId, productId)
-  await logActivity({
-    action: 'conceder_acesso',
-    entity: 'acesso',
-    entityId: userId,
-    entityName: `${member?.name ?? userId} → ${product?.title ?? productId}`,
-    actor,
-  })
   const metadata = { value: billing.value, billing_type: billing.billingType, provider: billing.provider }
-  await Promise.all([
-    fireOutboundWebhooks('purchase.approved', { member, product, actor, metadata }, productId),
-    fireOutboundWebhooks('payment.approved', { member, product, actor, metadata }, productId),
-  ])
+  await emitEvent({
+    event: 'purchase.approved',
+    actor, member, product, metadata,
+    activity: { action: 'conceder_acesso', entity: 'acesso', entityId: userId, entityName: `${member?.name ?? userId} → ${product?.title ?? productId}` },
+  })
+  await fireOutboundWebhooks('payment.approved', { member, product, actor, metadata }, productId)
 }
 
 /** Marca acesso comprado como em atraso (Kiwify/Asaas) — não revoga, só sinaliza. */
@@ -156,16 +153,11 @@ export async function recordPurchaseRefunded(userId: string, productId: string, 
     .eq('product_id', productId)
     .in('granted_by', ['purchase', 'pack'])
 
-  await logActivity({
-    action: 'revogar_acesso',
-    entity: 'acesso',
-    entityId: userId,
-    entityName: `${member?.name ?? userId} → ${product?.title ?? productId}`,
-    actor,
-  })
   const metadata = { provider }
-  await Promise.all([
-    fireOutboundWebhooks('purchase.refunded', { member, product, actor, metadata }, productId),
-    fireOutboundWebhooks('payment.refunded', { member, product, actor, metadata }, productId),
-  ])
+  await emitEvent({
+    event: 'purchase.refunded',
+    actor, member, product, metadata,
+    activity: { action: 'revogar_acesso', entity: 'acesso', entityId: userId, entityName: `${member?.name ?? userId} → ${product?.title ?? productId}` },
+  })
+  await fireOutboundWebhooks('payment.refunded', { member, product, actor, metadata }, productId)
 }

@@ -3,7 +3,7 @@ import type { Actor } from './core/actor'
 
 export const ALL_WEBHOOK_EVENTS = [
   'member.created', 'member.updated', 'member.deleted', 'member.activated', 'member.deactivated',
-  'access.granted', 'access.revoked',
+  'access.granted', 'access.revoked', 'access.updated',
   'product.created', 'product.updated', 'product.deleted',
   'purchase.approved', 'purchase.refunded',
   'payment.approved', 'payment.failed', 'payment.overdue', 'payment.refunded',

@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { logActivity } from '@/lib/log-activity'
-import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
+import { emitEvent } from './events'
 import type { Actor } from './actor'
 
 const ATTACHMENTS_BUCKET = 'lesson-attachments'
@@ -80,8 +80,11 @@ export async function createProduct(payload: ProductPayload, actor: Actor): Prom
   if (error) return { error: error.message }
   if (insertPayload.is_featured) await unfeatureOthers(admin, data.id)
 
-  await logActivity({ action: 'criar', entity: 'produto', entityId: data.id, entityName: data.title, actor })
-  await fireOutboundWebhooks('product.created', { product: { id: data.id, title: data.title }, actor }, data.id)
+  await emitEvent({
+    event: 'product.created',
+    actor, product: { id: data.id, title: data.title },
+    activity: { action: 'criar', entity: 'produto', entityId: data.id, entityName: data.title },
+  })
   return { data }
 }
 
@@ -109,31 +112,53 @@ export async function updateProduct(id: string, payload: Partial<ProductPayload>
   if (!data) return { error: 'Produto não encontrado.' }
   if (update.is_featured) await unfeatureOthers(admin, id)
 
-  await logActivity({ action: 'editar', entity: 'produto', entityId: id, entityName: data.title, actor })
-  await fireOutboundWebhooks('product.updated', { product: { id: data.id, title: data.title }, actor }, data.id)
+  await emitEvent({
+    event: 'product.updated',
+    actor, product: { id: data.id, title: data.title },
+    activity: { action: 'editar', entity: 'produto', entityId: id, entityName: data.title },
+  })
   return { data }
 }
 
+/** Idempotente: excluir um produto já excluído retorna sucesso (o estado final desejado já é verdade). */
 export async function deleteProduct(id: string, actor: Actor): Promise<{ success?: boolean; error?: string }> {
   const admin = createAdminClient()
   const { data: product } = await admin.from('products').select('title').eq('id', id).maybeSingle()
+  if (!product) return { success: true }
+
   const { error } = await admin.from('products').delete().eq('id', id)
   if (error) return { error: error.message }
 
-  await logActivity({ action: 'excluir', entity: 'produto', entityId: id, entityName: product?.title ?? null, actor })
-  await fireOutboundWebhooks('product.deleted', { product: { id, title: product?.title }, actor }, id)
+  await emitEvent({
+    event: 'product.deleted',
+    actor, product: { id, title: product.title },
+    activity: { action: 'excluir', entity: 'produto', entityId: id, entityName: product.title ?? null },
+  })
   return { success: true }
 }
 
-export async function toggleProductActive(id: string, currentlyActive: boolean, actor: Actor): Promise<{ success?: boolean; error?: string }> {
+/** Idempotente: define o estado desejado (não alterna) — chamar de novo com o mesmo `active` é um no-op sem novo evento. */
+export async function setProductActive(id: string, active: boolean, actor: Actor): Promise<{ success?: boolean; error?: string }> {
   const admin = createAdminClient()
-  const { data: product } = await admin.from('products').select('title').eq('id', id).single()
-  const { error } = await admin.from('products').update({ is_active: !currentlyActive }).eq('id', id)
+  const { data: product } = await admin.from('products').select('title, is_active').eq('id', id).single()
+  if (!product) return { error: 'Produto não encontrado.' }
+  if (product.is_active === active) return { success: true }
+
+  const { error } = await admin.from('products').update({ is_active: active }).eq('id', id)
   if (error) return { error: error.message }
 
-  await logActivity({ action: currentlyActive ? 'desativar' : 'ativar', entity: 'produto', entityId: id, entityName: product?.title ?? null, actor })
-  await fireOutboundWebhooks('product.updated', { product: { id, title: product?.title }, actor }, id)
+  await emitEvent({
+    event: 'product.updated',
+    actor, product: { id, title: product.title },
+    metadata: { is_active: active },
+    activity: { action: active ? 'ativar' : 'desativar', entity: 'produto', entityId: id, entityName: product.title ?? null },
+  })
   return { success: true }
+}
+
+/** @deprecated use setProductActive — mantido pra não quebrar o menu de ações da UI que ainda chama por "toggle". */
+export async function toggleProductActive(id: string, currentlyActive: boolean, actor: Actor): Promise<{ success?: boolean; error?: string }> {
+  return setProductActive(id, !currentlyActive, actor)
 }
 
 /**
@@ -234,7 +259,10 @@ export async function duplicateProduct(id: string, mode: DuplicateMode, actor: A
     }
   }
 
-  await logActivity({ action: 'duplicar', entity: 'produto', entityId: newProduct.id, entityName: `${original.title} (cópia)`, actor })
-  await fireOutboundWebhooks('product.created', { product: { id: newProduct.id, title: `${original.title} (cópia)` }, actor }, newProduct.id)
+  await emitEvent({
+    event: 'product.created',
+    actor, product: { id: newProduct.id, title: `${original.title} (cópia)` },
+    activity: { action: 'duplicar', entity: 'produto', entityId: newProduct.id, entityName: `${original.title} (cópia)` },
+  })
   return { newId: newProduct.id }
 }
