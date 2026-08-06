@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { checkApiKey } from '@/lib/api-auth'
-import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
+import { getApiActor } from '@/lib/core/actor'
+import { updateMember, deleteMember } from '@/lib/core/members'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!await checkApiKey(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await checkApiKey(req)
+  if (!auth.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
   const admin = createAdminClient()
@@ -15,49 +17,36 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!await checkApiKey(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await checkApiKey(req)
+  if (!auth.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
   const body = await req.json()
-  const admin = createAdminClient()
 
-  const { data: before, error: beforeError } = await admin.from('profiles').select('is_active, email').eq('id', id).maybeSingle()
-  if (beforeError) return NextResponse.json({ error: beforeError.message }, { status: 500 })
-  if (!before) return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 })
-
-  const update: Record<string, unknown> = {}
-  if (typeof body.name === 'string') update.name = body.name.trim()
-  if (typeof body.role === 'string') {
-    if (!['admin', 'equipe', 'membro'].includes(body.role)) {
-      return NextResponse.json({ error: "role deve ser 'admin', 'equipe' ou 'membro'" }, { status: 400 })
-    }
-    update.role = body.role
-  }
-  if (typeof body.is_active === 'boolean') update.is_active = body.is_active
-  if (typeof body.phone === 'string') update.phone = body.phone.trim() || null
-
-  if (Object.keys(update).length === 0) return NextResponse.json({ error: 'Nenhum campo para atualizar' }, { status: 400 })
-
-  const { data, error } = await admin.from('profiles').update(update).eq('id', id).select().single()
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
-  if ('is_active' in update && update.is_active !== (before.is_active !== false)) {
-    await fireOutboundWebhooks(update.is_active ? 'member.enabled' : 'member.disabled', { user_id: id, name: data.name, email: before.email })
-  } else {
-    await fireOutboundWebhooks('member.updated', { user_id: id, name: data.name, email: before.email })
+  if (body.role !== undefined && !['admin', 'equipe', 'membro'].includes(body.role)) {
+    return NextResponse.json({ error: "role deve ser 'admin', 'equipe' ou 'membro'" }, { status: 400 })
   }
 
-  return NextResponse.json({ user: data })
+  const result = await updateMember(
+    id,
+    {
+      name: typeof body.name === 'string' ? body.name : undefined,
+      role: body.role,
+      is_active: typeof body.is_active === 'boolean' ? body.is_active : undefined,
+      phone: typeof body.phone === 'string' ? body.phone : undefined,
+    },
+    getApiActor(auth.keyName),
+  )
+  if (result.error) return NextResponse.json({ error: result.error }, { status: result.error === 'Usuário não encontrado.' ? 404 : 400 })
+  return NextResponse.json({ user: result.data })
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!await checkApiKey(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await checkApiKey(req)
+  if (!auth.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
-  const admin = createAdminClient()
-  const { data: profile } = await admin.from('profiles').select('name, email').eq('id', id).maybeSingle()
-  const { error } = await admin.auth.admin.deleteUser(id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  await fireOutboundWebhooks('member.deleted', { user_id: id, name: profile?.name, email: profile?.email })
+  const result = await deleteMember(id, getApiActor(auth.keyName))
+  if (result.error) return NextResponse.json({ error: result.error }, { status: 500 })
   return NextResponse.json({ deleted: true })
 }

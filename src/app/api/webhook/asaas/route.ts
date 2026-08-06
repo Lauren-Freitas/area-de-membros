@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAsaasCustomer } from '@/lib/asaas'
 import { sendWelcomeEmail, sendAccessGrantedEmail } from '@/lib/resend'
-import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
+import { getWebhookActor } from '@/lib/core/actor'
+import { recordPurchaseApproved, recordPaymentOverdue, recordPurchaseRefunded } from '@/lib/core/access'
+
+const ACTOR = getWebhookActor('Asaas')
 
 type AdminClient = ReturnType<typeof createAdminClient>
 
@@ -89,37 +92,20 @@ async function handleGrant(admin: AdminClient, payment: Record<string, unknown>)
 
   const productIds = await expandProductIds(admin, product)
 
-  const billingSnapshot = {
-    asaas_payment_id: payment.id as string,
-    value: (payment.value as number) ?? null,
-    billing_type: (payment.billingType as string) ?? null,
-    payment_status: 'confirmed' as const,
-    invoice_url: (payment.invoiceUrl as string) ?? null,
-  }
-
-  for (const pid of productIds) {
-    const { error: upsertError } = await admin.from('user_products').upsert(
-      {
-        user_id: userId,
-        product_id: pid,
-        granted_by: product.is_pack ? 'pack' : 'purchase',
-        ...billingSnapshot,
-      },
-      { onConflict: 'user_id,product_id' }
-    )
-    if (upsertError) throw upsertError
-  }
-
   if (isNewUser && inviteLink) {
     await sendWelcomeEmail({ email, name, productTitle: product.title, inviteLink })
   } else {
     await sendAccessGrantedEmail({ email, name, productTitle: product.title })
   }
 
-  await Promise.all(productIds.map((pid) => Promise.all([
-    fireOutboundWebhooks('purchase.approved', { user_id: userId, product_id: pid, email, name, value: billingSnapshot.value, provider: 'asaas' }, pid),
-    fireOutboundWebhooks('payment.approved', { user_id: userId, product_id: pid, email, value: billingSnapshot.value, provider: 'asaas' }, pid),
-  ])))
+  await Promise.all(productIds.map((pid) => recordPurchaseApproved(userId, pid, ACTOR, {
+    provider: 'asaas',
+    grantedBy: product.is_pack ? 'pack' : 'purchase',
+    value: (payment.value as number) ?? null,
+    billingType: (payment.billingType as string) ?? null,
+    invoiceUrl: (payment.invoiceUrl as string) ?? null,
+    asaasPaymentId: payment.id as string,
+  })))
 }
 
 async function handleOverdue(admin: AdminClient, payment: Record<string, unknown>) {
@@ -137,16 +123,7 @@ async function handleOverdue(admin: AdminClient, payment: Record<string, unknown
   if (productError || !product) throw new Error(`Produto não encontrado: ${productId}`)
 
   const productIds = await expandProductIds(admin, product)
-  await admin
-    .from('user_products')
-    .update({ payment_status: 'overdue' })
-    .eq('user_id', userId)
-    .in('product_id', productIds)
-    .in('granted_by', ['purchase', 'pack'])
-
-  await Promise.all(productIds.map((pid) =>
-    fireOutboundWebhooks('payment.overdue', { user_id: userId, product_id: pid, provider: 'asaas' }, pid)
-  ))
+  await Promise.all(productIds.map((pid) => recordPaymentOverdue(userId, pid, ACTOR, 'asaas')))
 }
 
 async function handleRevoke(admin: AdminClient, payment: Record<string, unknown>) {
@@ -164,18 +141,7 @@ async function handleRevoke(admin: AdminClient, payment: Record<string, unknown>
   if (productError || !product) throw new Error(`Produto não encontrado: ${productId}`)
 
   const productIds = await expandProductIds(admin, product)
-
-  await admin
-    .from('user_products')
-    .delete()
-    .eq('user_id', userId)
-    .in('product_id', productIds)
-    .in('granted_by', ['purchase', 'pack'])
-
-  await Promise.all(productIds.map((pid) => Promise.all([
-    fireOutboundWebhooks('purchase.refunded', { user_id: userId, product_id: pid, provider: 'asaas' }, pid),
-    fireOutboundWebhooks('payment.refunded', { user_id: userId, product_id: pid, provider: 'asaas' }, pid),
-  ])))
+  await Promise.all(productIds.map((pid) => recordPurchaseRefunded(userId, pid, ACTOR, 'asaas')))
 }
 
 export async function POST(req: NextRequest) {

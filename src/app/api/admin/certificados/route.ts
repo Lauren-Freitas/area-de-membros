@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { checkApiKey } from '@/lib/api-auth'
 import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
+import { logActivity } from '@/lib/log-activity'
+import { getApiActor } from '@/lib/core/actor'
 
 export async function GET(req: NextRequest) {
-  if (!await checkApiKey(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await checkApiKey(req)
+  if (!auth.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const admin = createAdminClient()
   const { data, error } = await admin
@@ -16,7 +19,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!await checkApiKey(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await checkApiKey(req)
+  if (!auth.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { user_id, product_id } = await req.json()
   if (!user_id || !product_id) return NextResponse.json({ error: 'user_id e product_id são obrigatórios' }, { status: 400 })
@@ -38,7 +42,10 @@ export async function POST(req: NextRequest) {
     .single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  const { data: product } = await admin.from('products').select('title').eq('id', product_id).maybeSingle()
+  const [{ data: product }, { data: member }] = await Promise.all([
+    admin.from('products').select('title').eq('id', product_id).maybeSingle(),
+    admin.from('profiles').select('name, email').eq('id', user_id).maybeSingle(),
+  ])
 
   await admin.from('notifications').insert({
     user_id,
@@ -47,7 +54,13 @@ export async function POST(req: NextRequest) {
     link: '/dashboard',
   })
 
-  await fireOutboundWebhooks('certificate.generated', { user_id, product_id, product_title: product?.title }, product_id)
+  const actor = getApiActor(auth.keyName)
+  await logActivity({ action: 'criar', entity: 'certificado', entityId: certificate.id, entityName: `${member?.name ?? user_id} → ${product?.title ?? product_id}`, actor })
+  await fireOutboundWebhooks('certificate.generated', {
+    member: { id: user_id, name: member?.name, email: member?.email },
+    product: { id: product_id, title: product?.title },
+    actor,
+  }, product_id)
 
   return NextResponse.json({ certificate }, { status: 201 })
 }

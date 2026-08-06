@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendWelcomeEmail, sendAccessGrantedEmail } from '@/lib/resend'
-import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
+import { getWebhookActor } from '@/lib/core/actor'
+import { recordPurchaseApproved, recordPaymentOverdue, recordPurchaseRefunded } from '@/lib/core/access'
+
+const ACTOR = getWebhookActor('Kiwify')
 
 type AdminClient = ReturnType<typeof createAdminClient>
 type Json = Record<string, unknown>
@@ -128,20 +131,6 @@ async function handleGrant(admin: AdminClient, parsed: ParsedKiwifyEvent) {
   }
 
   const productIds = await expandProductIds(admin, product)
-  for (const pid of productIds) {
-    const { error } = await admin.from('user_products').upsert(
-      {
-        user_id: userId,
-        product_id: pid,
-        granted_by: product.is_pack ? 'pack' : 'purchase',
-        value,
-        billing_type: 'kiwify',
-        payment_status: 'confirmed',
-      },
-      { onConflict: 'user_id,product_id' }
-    )
-    if (error) throw error
-  }
 
   if (isNewUser && inviteLink) {
     await sendWelcomeEmail({ email, name: displayName, productTitle: product.title, inviteLink })
@@ -149,10 +138,12 @@ async function handleGrant(admin: AdminClient, parsed: ParsedKiwifyEvent) {
     await sendAccessGrantedEmail({ email, name: displayName, productTitle: product.title })
   }
 
-  await Promise.all(productIds.map((pid) => Promise.all([
-    fireOutboundWebhooks('purchase.approved', { user_id: userId, product_id: pid, email, name: displayName, value, provider: 'kiwify' }, pid),
-    fireOutboundWebhooks('payment.approved', { user_id: userId, product_id: pid, email, value, provider: 'kiwify' }, pid),
-  ])))
+  await Promise.all(productIds.map((pid) => recordPurchaseApproved(userId, pid, ACTOR, {
+    provider: 'kiwify',
+    grantedBy: product.is_pack ? 'pack' : 'purchase',
+    value,
+    billingType: 'kiwify',
+  })))
 }
 
 async function handleOverdue(admin: AdminClient, parsed: ParsedKiwifyEvent) {
@@ -167,16 +158,7 @@ async function handleOverdue(admin: AdminClient, parsed: ParsedKiwifyEvent) {
   if (!product) throw new Error(`Nenhum produto da área de membros vinculado ao ID Kiwify: ${kiwifyProductId}`)
 
   const productIds = await expandProductIds(admin, product)
-  await admin
-    .from('user_products')
-    .update({ payment_status: 'overdue' })
-    .eq('user_id', profile.id)
-    .in('product_id', productIds)
-    .in('granted_by', ['purchase', 'pack'])
-
-  await Promise.all(productIds.map((pid) =>
-    fireOutboundWebhooks('payment.overdue', { user_id: profile.id, product_id: pid, email, provider: 'kiwify' }, pid)
-  ))
+  await Promise.all(productIds.map((pid) => recordPaymentOverdue(profile.id, pid, ACTOR, 'kiwify')))
 }
 
 async function handleRevoke(admin: AdminClient, parsed: ParsedKiwifyEvent) {
@@ -191,17 +173,7 @@ async function handleRevoke(admin: AdminClient, parsed: ParsedKiwifyEvent) {
   if (!product) throw new Error(`Nenhum produto da área de membros vinculado ao ID Kiwify: ${kiwifyProductId}`)
 
   const productIds = await expandProductIds(admin, product)
-  await admin
-    .from('user_products')
-    .delete()
-    .eq('user_id', profile.id)
-    .in('product_id', productIds)
-    .in('granted_by', ['purchase', 'pack'])
-
-  await Promise.all(productIds.map((pid) => Promise.all([
-    fireOutboundWebhooks('purchase.refunded', { user_id: profile.id, product_id: pid, email, provider: 'kiwify' }, pid),
-    fireOutboundWebhooks('payment.refunded', { user_id: profile.id, product_id: pid, email, provider: 'kiwify' }, pid),
-  ])))
+  await Promise.all(productIds.map((pid) => recordPurchaseRefunded(profile.id, pid, ACTOR, 'kiwify')))
 }
 
 export async function POST(req: NextRequest) {

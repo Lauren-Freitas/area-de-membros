@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { checkApiKey } from '@/lib/api-auth'
 
 export async function GET(req: NextRequest) {
-  if (!await checkApiKey(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!(await checkApiKey(req)).ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { searchParams } = req.nextUrl
   const user_id = searchParams.get('user_id')

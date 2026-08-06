@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { checkApiKey } from '@/lib/api-auth'
 import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
+import { logActivity } from '@/lib/log-activity'
+import { getApiActor } from '@/lib/core/actor'
 
 export async function GET(req: NextRequest) {
-  if (!await checkApiKey(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await checkApiKey(req)
+  if (!auth.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const admin = createAdminClient()
   const { data, error } = await admin.from('invites').select('*').order('created_at', { ascending: false })
@@ -13,7 +16,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!await checkApiKey(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await checkApiKey(req)
+  if (!auth.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
   if (body.max_uses !== undefined && body.max_uses !== null && typeof body.max_uses !== 'number') {
@@ -40,6 +44,9 @@ export async function POST(req: NextRequest) {
   }).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  await fireOutboundWebhooks('invite.sent', { code, note, product_ids })
+
+  const actor = getApiActor(auth.keyName)
+  await logActivity({ action: 'criar', entity: 'convite', entityName: note ?? code, actor })
+  await fireOutboundWebhooks('invite.sent', { actor, metadata: { code, note, product_ids } })
   return NextResponse.json({ invite: data }, { status: 201 })
 }

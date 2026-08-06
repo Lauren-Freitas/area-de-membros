@@ -74,7 +74,7 @@ function useMemberActions(member: MemberLite, { onToggled, onDeleted, onNavigate
     flash('Enviando...')
     const result = hasActivated
       ? await resetMemberPassword(member.id)
-      : await resendAdminInvite(member.id, member.email, member.name)
+      : await resendAdminInvite(member.id)
     flash(result.success ? 'Enviado ✓' : (result.error ?? 'Falhou'), result.success ? 'ok' : 'error')
   }
 

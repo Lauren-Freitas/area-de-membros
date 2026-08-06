@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { checkApiKey } from '@/lib/api-auth'
-import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
+import { getApiActor } from '@/lib/core/actor'
+import { createProduct } from '@/lib/core/products'
 
 export async function GET(req: NextRequest) {
-  if (!await checkApiKey(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await checkApiKey(req)
+  if (!auth.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const admin = createAdminClient()
   const { data, error } = await admin.from('products').select('*').order('sort_order')
@@ -13,27 +15,26 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!await checkApiKey(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await checkApiKey(req)
+  if (!auth.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { title, description, content_type, content_url, banner_url, is_pack, sort_order, is_active } = body
+  if (!body.title) return NextResponse.json({ error: 'title é obrigatório' }, { status: 400 })
+  if (!body.content_type) return NextResponse.json({ error: 'content_type é obrigatório' }, { status: 400 })
 
-  if (!title) return NextResponse.json({ error: 'title é obrigatório' }, { status: 400 })
-  if (!content_type) return NextResponse.json({ error: 'content_type é obrigatório' }, { status: 400 })
-
-  const admin = createAdminClient()
-  const { data, error } = await admin.from('products').insert({
-    title,
-    description: description ?? '',
-    content_type,
-    content_url: content_url ?? null,
-    banner_url: banner_url ?? null,
-    is_pack: is_pack ?? false,
-    sort_order: sort_order ?? 0,
-    is_active: is_active ?? true,
-  }).select().single()
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  await fireOutboundWebhooks('product.created', { product_id: data.id, title: data.title }, data.id)
-  return NextResponse.json({ product: data }, { status: 201 })
+  const result = await createProduct(
+    {
+      title: body.title,
+      description: body.description ?? '',
+      content_type: body.content_type,
+      content_url: body.content_url ?? null,
+      banner_url: body.banner_url ?? null,
+      is_pack: body.is_pack ?? false,
+      sort_order: body.sort_order ?? 0,
+      is_active: body.is_active ?? true,
+    },
+    getApiActor(auth.keyName),
+  )
+  if (result.error) return NextResponse.json({ error: result.error }, { status: 400 })
+  return NextResponse.json({ product: result.data }, { status: 201 })
 }

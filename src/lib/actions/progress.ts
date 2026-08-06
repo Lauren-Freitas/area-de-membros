@@ -3,6 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { awardXp, checkBadgesAfterLesson } from '@/lib/xp'
 import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
+import { getWebhookActor } from '@/lib/core/actor'
+
+const SYSTEM_ACTOR = getWebhookActor('Sistema')
 
 export async function toggleLessonComplete(lessonId: string, productId: string, completed: boolean) {
   const supabase = await createClient()
@@ -22,7 +25,12 @@ export async function toggleLessonComplete(lessonId: string, productId: string, 
       awardXp(user.id, 'lesson_complete', { lesson_id: lessonId, product_id: productId }),
       checkBadgesAfterLesson(user.id),
       maybeIssueCertificate(supabase, user.id, productId),
-      fireOutboundWebhooks('lesson.completed', { user_id: user.id, lesson_id: lessonId, product_id: productId }, productId),
+      fireOutboundWebhooks('lesson.completed', {
+        member: { id: user.id },
+        product: { id: productId },
+        actor: SYSTEM_ACTOR,
+        metadata: { lesson_id: lessonId },
+      }, productId),
     ])
   }
 
@@ -86,7 +94,11 @@ async function maybeIssueCertificate(
         link: '/dashboard',
       })
 
-      await fireOutboundWebhooks('certificate.generated', { user_id: userId, product_id: productId, product_title: product?.title }, productId)
+      await fireOutboundWebhooks('certificate.generated', {
+        member: { id: userId },
+        product: { id: productId, title: product?.title },
+        actor: SYSTEM_ACTOR,
+      }, productId)
     }
 
     revalidatePath('/dashboard')

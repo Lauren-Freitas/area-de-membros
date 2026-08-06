@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { checkApiKey } from '@/lib/api-auth'
-import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
+import { getApiActor } from '@/lib/core/actor'
+import { updateProduct, deleteProduct } from '@/lib/core/products'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!await checkApiKey(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await checkApiKey(req)
+  if (!auth.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
   const admin = createAdminClient()
@@ -15,38 +17,36 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!await checkApiKey(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await checkApiKey(req)
+  if (!auth.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
   const body = await req.json()
 
-  const update: Record<string, unknown> = {}
-  if (typeof body.title === 'string') update.title = body.title
-  if (typeof body.description === 'string') update.description = body.description
-  if (typeof body.content_type === 'string') update.content_type = body.content_type
-  if (typeof body.content_url === 'string' || body.content_url === null) update.content_url = body.content_url
-  if (typeof body.banner_url === 'string' || body.banner_url === null) update.banner_url = body.banner_url
-  if (typeof body.is_pack === 'boolean') update.is_pack = body.is_pack
-  if (typeof body.is_active === 'boolean') update.is_active = body.is_active
-  if (typeof body.sort_order === 'number') update.sort_order = body.sort_order
-
-  if (Object.keys(update).length === 0) return NextResponse.json({ error: 'Nenhum campo para atualizar' }, { status: 400 })
-
-  const admin = createAdminClient()
-  const { data, error } = await admin.from('products').update(update).eq('id', id).select().maybeSingle()
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  if (!data) return NextResponse.json({ error: 'Produto não encontrado' }, { status: 404 })
-
-  await fireOutboundWebhooks('product.updated', { product_id: data.id, title: data.title }, data.id)
-  return NextResponse.json({ product: data })
+  const result = await updateProduct(
+    id,
+    {
+      title: body.title,
+      description: body.description,
+      content_type: body.content_type,
+      content_url: body.content_url,
+      banner_url: body.banner_url,
+      is_pack: body.is_pack,
+      is_active: body.is_active,
+      sort_order: body.sort_order,
+    },
+    getApiActor(auth.keyName),
+  )
+  if (result.error) return NextResponse.json({ error: result.error }, { status: result.error === 'Produto não encontrado.' ? 404 : 400 })
+  return NextResponse.json({ product: result.data })
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!await checkApiKey(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await checkApiKey(req)
+  if (!auth.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
-  const admin = createAdminClient()
-  const { error } = await admin.from('products').delete().eq('id', id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  const result = await deleteProduct(id, getApiActor(auth.keyName))
+  if (result.error) return NextResponse.json({ error: result.error }, { status: 500 })
   return NextResponse.json({ deleted: true })
 }

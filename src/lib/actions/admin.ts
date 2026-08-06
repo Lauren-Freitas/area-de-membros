@@ -4,10 +4,13 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { sendWelcomeEmail, sendAccessGrantedEmail, sendCollaboratorInviteEmail } from '@/lib/resend'
 import { logActivity } from '@/lib/log-activity'
 import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
 import sanitizeHtml from 'sanitize-html'
+import { getAdminActor } from '@/lib/core/actor'
+import * as coreMembers from '@/lib/core/members'
+import * as coreAccess from '@/lib/core/access'
+import * as coreProducts from '@/lib/core/products'
 
 function sanitizeLessonHtml(html: string): string {
   return sanitizeHtml(html, {
@@ -62,7 +65,7 @@ export async function saveProduct(
   formData: FormData
 ): Promise<AdminActionState> {
   await requireAdmin()
-  const admin = createAdminClient()
+  const actor = await getAdminActor()
 
   const id = formData.get('id') as string | null
   const title = (formData.get('title') as string)?.trim()
@@ -72,9 +75,6 @@ export async function saveProduct(
   const sort_order = parseInt(formData.get('sort_order') as string) || 0
   const is_active = formData.get('is_active') === 'on'
   const is_featured = formData.get('is_featured') === 'on'
-
-  if (!title) return { error: 'O título é obrigatório.' }
-
   const buy_url = (formData.get('buy_url') as string)?.trim() || null
   const priceRaw = (formData.get('price') as string)?.trim()
   const price = priceRaw ? parseFloat(priceRaw) : null
@@ -85,19 +85,11 @@ export async function saveProduct(
   const payload = { title, description: description || '', banner_url, buy_url, price, billing_cycle, content_type, content_url, kiwify_product_id, is_pack, sort_order, is_active, is_featured }
 
   const isNew = !id || id === 'novo'
-  const { data: saved, error } = isNew
-    ? await admin.from('products').insert(payload).select('id').single()
-    : await admin.from('products').update(payload).eq('id', id).select('id').single()
+  const result = isNew
+    ? await coreProducts.createProduct(payload, actor)
+    : await coreProducts.updateProduct(id, payload, actor)
+  if (result.error) return { error: result.error }
 
-  if (error) return { error: error.message }
-
-  // Só um produto em destaque por vez — desmarca qualquer outro que esteja
-  if (is_featured && saved?.id) {
-    await admin.from('products').update({ is_featured: false }).eq('is_featured', true).neq('id', saved.id)
-  }
-
-  await logActivity({ action: isNew ? 'criar' : 'editar', entity: 'produto', entityName: title })
-  await fireOutboundWebhooks(isNew ? 'product.created' : 'product.updated', { product_id: saved?.id, title }, saved?.id)
   revalidatePath('/admin/produtos')
   revalidatePath('/dashboard')
   redirect('/admin/produtos')
@@ -105,120 +97,32 @@ export async function saveProduct(
 
 export async function deleteProduct(id: string) {
   await requireAdmin()
-  const admin = createAdminClient()
-  await admin.from('products').delete().eq('id', id)
-  await logActivity({ action: 'excluir', entity: 'produto', entityId: id })
+  await coreProducts.deleteProduct(id, await getAdminActor())
   revalidatePath('/admin/produtos')
   revalidatePath('/dashboard')
 }
 
 export async function toggleProductActive(id: string, currentlyActive: boolean): Promise<{ success?: boolean; error?: string }> {
   await requireAdmin()
-  const admin = createAdminClient()
-  const { data: product } = await admin.from('products').select('title').eq('id', id).single()
-  const { error } = await admin.from('products').update({ is_active: !currentlyActive }).eq('id', id)
-  if (error) return { error: error.message }
-  await logActivity({ action: currentlyActive ? 'desativar' : 'ativar', entity: 'produto', entityId: id, entityName: product?.title ?? null })
-  await fireOutboundWebhooks('product.updated', { product_id: id, title: product?.title }, id)
+  const result = await coreProducts.toggleProductActive(id, currentlyActive, await getAdminActor())
   revalidatePath('/admin/produtos')
   revalidatePath('/dashboard')
-  return { success: true }
+  return result
 }
 
-/**
- * Reordenação em massa (drag-and-drop) — orderedIds já vem na ordem final
- * desejada, cada índice vira o novo sort_order. Updates paralelos em vez de
- * upsert: upsert com payload parcial arriscaria falhar NOT NULL de colunas
- * obrigatórias (title, content_type) que não fazem parte desta operação.
- */
 export async function reorderProducts(orderedIds: string[]): Promise<{ success?: boolean; error?: string }> {
   await requireAdmin()
-  const admin = createAdminClient()
-
-  const results = await Promise.all(
-    orderedIds.map((id, index) => admin.from('products').update({ sort_order: index }).eq('id', id))
-  )
-  const failed = results.find(r => r.error)
-  if (failed?.error) return { error: failed.error.message }
-
-  await logActivity({ action: 'editar', entity: 'produto', entityName: 'reordenação' })
+  const result = await coreProducts.reorderProducts(orderedIds, await getAdminActor())
   revalidatePath('/admin/produtos')
   revalidatePath('/dashboard')
-  return { success: true }
+  return result
 }
 
-/**
- * Cópia completa: produto + módulos + aulas (sem anexos — ficam só no
- * original, não duplicamos arquivos de storage aqui). kiwify_product_id
- * nunca é copiado: duas linhas com o mesmo ID quebrariam o lookup do
- * webhook da Kiwify (que espera achar no máximo um produto por ID externo).
- * A cópia nasce inativa e fora de destaque, pra não expor por acidente
- * antes de revisão.
- */
-export async function duplicateProduct(id: string): Promise<{ error?: string; newId?: string }> {
+export async function duplicateProduct(id: string, mode: coreProducts.DuplicateMode = 'full'): Promise<{ error?: string; newId?: string }> {
   await requireAdmin()
-  const admin = createAdminClient()
-
-  const { data: original } = await admin.from('products').select('*').eq('id', id).single()
-  if (!original) return { error: 'Produto não encontrado.' }
-
-  const { data: maxOrderRow } = await admin.from('products').select('sort_order').order('sort_order', { ascending: false }).limit(1).maybeSingle()
-  const nextOrder = (maxOrderRow?.sort_order ?? 0) + 1
-
-  const { data: newProduct, error } = await admin.from('products').insert({
-    title: `${original.title} (cópia)`,
-    description: original.description,
-    banner_url: original.banner_url,
-    buy_url: original.buy_url,
-    price: original.price,
-    billing_cycle: original.billing_cycle,
-    content_type: original.content_type,
-    content_url: original.content_url,
-    kiwify_product_id: null,
-    is_pack: original.is_pack,
-    sort_order: nextOrder,
-    is_active: false,
-    is_featured: false,
-  }).select('id').single()
-
-  if (error || !newProduct) return { error: error?.message ?? 'Erro ao duplicar produto.' }
-
-  const { data: modules } = await admin.from('modules').select('*').eq('product_id', id).order('sort_order')
-  for (const mod of modules ?? []) {
-    const { data: newModule, error: modError } = await admin.from('modules').insert({
-      product_id: newProduct.id,
-      title: mod.title,
-      description: mod.description,
-      release_type: mod.release_type,
-      release_after_days: mod.release_after_days,
-      release_at: mod.release_at,
-      sort_order: mod.sort_order,
-    }).select('id').single()
-    if (modError || !newModule) continue
-
-    const { data: lessons } = await admin.from('lessons').select('*').eq('module_id', mod.id).order('sort_order')
-    if (lessons?.length) {
-      await admin.from('lessons').insert(lessons.map(l => ({
-        module_id: newModule.id,
-        title: l.title,
-        description: l.description,
-        lesson_type: l.lesson_type,
-        content_url: l.content_url,
-        content_html: l.content_html,
-        is_published: l.is_published,
-        release_type: l.release_type,
-        release_after_days: l.release_after_days,
-        release_at: l.release_at,
-        access_duration_days: l.access_duration_days,
-        sort_order: l.sort_order,
-      })))
-    }
-  }
-
-  await logActivity({ action: 'duplicar', entity: 'produto', entityId: newProduct.id, entityName: `${original.title} (cópia)` })
-  await fireOutboundWebhooks('product.created', { product_id: newProduct.id, title: `${original.title} (cópia)` }, newProduct.id)
+  const result = await coreProducts.duplicateProduct(id, mode, await getAdminActor())
   revalidatePath('/admin/produtos')
-  return { newId: newProduct.id }
+  return result
 }
 
 // ─── Usuários ────────────────────────────────────────────────────────────────
@@ -228,13 +132,14 @@ export async function createUser(
   formData: FormData
 ): Promise<AdminActionState> {
   await requireAdmin()
-  const admin = createAdminClient()
+  const actor = await getAdminActor()
 
   const name = (formData.get('name') as string)?.trim()
   const email = (formData.get('email') as string)?.trim().toLowerCase()
   const phone = (formData.get('phone') as string)?.trim() || null
   const role = ((formData.get('role') as string) || 'membro') as 'admin' | 'equipe' | 'membro'
   const productIds = formData.getAll('products') as string[]
+  const is_active = formData.get('is_active') === 'on'
 
   const accessType = (formData.get('access_type') as string) || 'permanent'
   let accessExpiresAt: string | null = null
@@ -250,95 +155,11 @@ export async function createUser(
     }
   }
 
-  if (!name) return { error: 'O nome é obrigatório.' }
-  if (!email) return { error: 'O email é obrigatório.' }
-
-  const { data: existing } = await admin
-    .from('profiles')
-    .select('id')
-    .eq('email', email)
-    .maybeSingle()
-
-  let userId: string
-  let isNewUser = false
-  let inviteLink: string | null = null
-
-  if (existing) {
-    userId = existing.id
-  } else {
-    const { data: created, error: createError } = await admin.auth.admin.createUser({
-      email,
-      email_confirm: true,
-      user_metadata: { name },
-    })
-    if (createError || !created.user) return { error: authErrorMessage(createError, 'Erro ao criar usuário.') }
-    userId = created.user.id
-    isNewUser = true
-
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL!
-    const { data: linkData } = await admin.auth.admin.generateLink({
-      type: 'invite',
-      email,
-      options: {
-        redirectTo: `${appUrl}/auth/callback?next=/criar-senha`,
-        data: { name },
-      },
-    })
-    inviteLink = linkData?.properties?.action_link ?? null
-  }
-
-  if (productIds.length > 0) {
-    const rows = productIds.map((productId) => ({
-      user_id: userId,
-      product_id: productId,
-      granted_by: 'manual' as const,
-      expires_at: accessExpiresAt,
-    }))
-    await admin.from('user_products').upsert(rows, { onConflict: 'user_id,product_id', ignoreDuplicates: true })
-  }
-
-  const productTitle = productIds.length === 1
-    ? (await admin.from('products').select('title').eq('id', productIds[0]).single()).data?.title ?? 'Área de Membros'
-    : productIds.length > 1 ? 'seus produtos' : 'Área de Membros'
-
-  const is_active = formData.get('is_active') === 'on'
-
-  const profileUpdate: Record<string, unknown> = {}
-  if (isNewUser) {
-    // O profile é criado por trigger a partir do auth.users, com role no valor
-    // padrão da coluna ('member', em inglês) — sempre sobrescreve pro valor que
-    // o resto do app espera ('membro'/'admin'/'equipe'), não só quando != membro.
-    profileUpdate.role = role
-    if (!is_active) profileUpdate.is_active = false
-  } else {
-    if (role !== 'membro') profileUpdate.role = role
-    if (!is_active) profileUpdate.is_active = false
-  }
-  if (phone) profileUpdate.phone = phone
-
-  if (Object.keys(profileUpdate).length > 0) {
-    const { error: roleError } = await admin.from('profiles').update(profileUpdate).eq('id', userId)
-    if (roleError) return { error: `Erro ao configurar o perfil: ${roleError.message}` }
-  }
-
-  if (isNewUser && inviteLink) {
-    if (role === 'admin' || role === 'equipe') {
-      await sendCollaboratorInviteEmail({ email, name, inviteLink }).catch(() => null)
-    } else {
-      await sendWelcomeEmail({ email, name, productTitle, inviteLink }).catch(() => null)
-    }
-  } else if (productIds.length > 0) {
-    await sendAccessGrantedEmail({ email, name, productTitle }).catch(() => null)
-  }
-
-  await logActivity({ action: 'criar', entity: 'membro', entityName: `${name} (${email})` })
-
-  if (isNewUser) {
-    await fireOutboundWebhooks('member.created', { user_id: userId, name, email, role })
-  }
-  await Promise.all(productIds.map((productId) =>
-    fireOutboundWebhooks('access.granted', { user_id: userId, product_id: productId, user_name: name, user_email: email }, productId)
-  ))
+  const result = await coreMembers.createMember(
+    { name, email, phone, role, isActive: is_active, productIds, accessExpiresAt },
+    actor,
+  )
+  if (result.error) return { error: result.error }
 
   revalidatePath('/admin/usuarios')
   revalidatePath('/admin/configuracoes')
@@ -348,58 +169,23 @@ export async function createUser(
 
 export async function deleteUser(userId: string): Promise<{ success?: boolean; error?: string }> {
   await requireAdmin()
-  const admin = createAdminClient()
-  const { data: profile } = await admin.from('profiles').select('name, email').eq('id', userId).single()
-  const { error } = await admin.auth.admin.deleteUser(userId)
-  if (error) return { error: error.message }
-  await logActivity({ action: 'excluir', entity: 'membro', entityId: userId, entityName: profile?.name ?? profile?.email ?? null })
-  await fireOutboundWebhooks('member.deleted', { user_id: userId, name: profile?.name, email: profile?.email })
+  const result = await coreMembers.deleteMember(userId, await getAdminActor())
   revalidatePath('/admin/usuarios')
   revalidatePath('/admin/configuracoes')
-  return { success: true }
+  return result
 }
 
-export async function resendAdminInvite(userId: string, email: string, name: string): Promise<{ success?: boolean; error?: string }> {
+export async function resendAdminInvite(userId: string): Promise<{ success?: boolean; error?: string }> {
   await requireAdmin()
-  const admin = createAdminClient()
-
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL!
-  const { data: linkData, error } = await admin.auth.admin.generateLink({
-    type: 'recovery',
-    email,
-    options: {
-      redirectTo: `${appUrl}/auth/callback?next=/criar-senha`,
-    },
-  })
-
-  if (error) return { error: error.message }
-  const inviteLink = linkData?.properties?.action_link
-  if (!inviteLink) return { error: 'Não foi possível gerar o link de convite.' }
-
-  try {
-    await sendCollaboratorInviteEmail({ email, name, inviteLink })
-  } catch (err) {
-    console.error('[resendAdminInvite] Resend error:', err)
-    return { error: `Email não enviado: ${err instanceof Error ? err.message : String(err)}` }
-  }
-  await logActivity({ action: 'enviar_convite', entity: 'membro', entityId: userId, entityName: name })
-  await fireOutboundWebhooks('invite.sent', { user_id: userId, email, name })
-  return { success: true }
+  return coreMembers.resendAccess(userId, await getAdminActor())
 }
 
 export async function toggleUserActive(userId: string, currentlyActive: boolean): Promise<{ success?: boolean; error?: string }> {
   await requireAdmin()
-  const admin = createAdminClient()
-
-  const { data: profile } = await admin.from('profiles').select('name, email').eq('id', userId).single()
-  const { error } = await admin.from('profiles').update({ is_active: !currentlyActive }).eq('id', userId)
-  if (error) return { error: error.message }
-
-  await logActivity({ action: currentlyActive ? 'desativar' : 'ativar', entity: 'membro', entityId: userId, entityName: profile?.name ?? null })
-  await fireOutboundWebhooks(currentlyActive ? 'member.disabled' : 'member.enabled', { user_id: userId, name: profile?.name, email: profile?.email })
+  const result = await coreMembers.setMemberActive(userId, !currentlyActive, await getAdminActor())
   revalidatePath('/admin/usuarios')
   revalidatePath(`/admin/usuarios/${userId}`)
-  return { success: true }
+  return result
 }
 
 export async function updateUser(
@@ -408,7 +194,7 @@ export async function updateUser(
   formData: FormData
 ): Promise<AdminActionState> {
   await requireAdmin()
-  const admin = createAdminClient()
+  const actor = await getAdminActor()
 
   const name = (formData.get('name') as string)?.trim()
   const role = (formData.get('role') as string) as 'admin' | 'equipe' | 'membro'
@@ -417,23 +203,8 @@ export async function updateUser(
 
   if (!name) return { error: 'O nome é obrigatório.' }
 
-  const { data: before } = await admin.from('profiles').select('is_active, email').eq('id', userId).single()
-
-  const { error } = await admin
-    .from('profiles')
-    .update({ name, role, is_active, phone })
-    .eq('id', userId)
-
-  if (error) return { error: error.message }
-
-  await logActivity({ action: 'editar', entity: 'membro', entityId: userId, entityName: name })
-
-  const wasActive = before?.is_active !== false
-  if (wasActive !== is_active) {
-    await fireOutboundWebhooks(is_active ? 'member.enabled' : 'member.disabled', { user_id: userId, name, email: before?.email })
-  } else {
-    await fireOutboundWebhooks('member.updated', { user_id: userId, name, email: before?.email, role })
-  }
+  const result = await coreMembers.updateMember(userId, { name, role, is_active, phone }, actor)
+  if (result.error) return { error: result.error }
 
   revalidatePath('/admin/usuarios')
   revalidatePath(`/admin/usuarios/${userId}`)
@@ -708,8 +479,9 @@ export async function createInvite(
   })
 
   if (error) return { error: error.message }
-  await logActivity({ action: 'criar', entity: 'convite', entityName: note ?? code })
-  await fireOutboundWebhooks('invite.sent', { code, note, product_ids })
+  const actor = await getAdminActor()
+  await logActivity({ action: 'criar', entity: 'convite', entityName: note ?? code, actor })
+  await fireOutboundWebhooks('invite.sent', { actor, metadata: { code, note, product_ids } })
   revalidatePath('/admin/convites')
   redirect('/admin/convites')
 }
@@ -760,43 +532,22 @@ export async function deleteCertificate(id: string) {
 
 export async function grantAccess(userId: string, productId: string) {
   await requireAdmin()
-  const admin = createAdminClient()
-  await admin.from('user_products').insert({ user_id: userId, product_id: productId, granted_by: 'manual' })
-  const [{ data: member }, { data: product }] = await Promise.all([
-    admin.from('profiles').select('name').eq('id', userId).single(),
-    admin.from('products').select('title').eq('id', productId).single(),
-  ])
-  await logActivity({ action: 'conceder_acesso', entity: 'acesso', entityId: userId, entityName: `${member?.name ?? userId} → ${product?.title ?? productId}` })
-  await fireOutboundWebhooks('access.granted', { user_id: userId, product_id: productId, user_name: member?.name, product_title: product?.title }, productId)
+  await coreAccess.grantAccess(userId, productId, await getAdminActor())
   revalidatePath('/admin/usuarios')
   revalidatePath(`/admin/usuarios/${userId}`)
 }
 
 export async function revokeAccess(userId: string, productId: string) {
   await requireAdmin()
-  const admin = createAdminClient()
-  const [{ data: member }, { data: product }] = await Promise.all([
-    admin.from('profiles').select('name').eq('id', userId).single(),
-    admin.from('products').select('title').eq('id', productId).single(),
-  ])
-  await admin.from('user_products').delete().eq('user_id', userId).eq('product_id', productId)
-  await logActivity({ action: 'revogar_acesso', entity: 'acesso', entityId: userId, entityName: `${member?.name ?? userId} → ${product?.title ?? productId}` })
-  await fireOutboundWebhooks('access.revoked', { user_id: userId, product_id: productId, user_name: member?.name, product_title: product?.title }, productId)
+  await coreAccess.revokeAccess(userId, productId, await getAdminActor())
   revalidatePath('/admin/usuarios')
   revalidatePath(`/admin/usuarios/${userId}`)
 }
 
 export async function updateAccessExpiry(userId: string, productId: string, expiresAt: string | null) {
   await requireAdmin()
-  const admin = createAdminClient()
-  const { error } = await admin.from('user_products').update({ expires_at: expiresAt }).eq('user_id', userId).eq('product_id', productId)
-  if (error) return { error: error.message }
-  const [{ data: member }, { data: product }] = await Promise.all([
-    admin.from('profiles').select('name').eq('id', userId).single(),
-    admin.from('products').select('title').eq('id', productId).single(),
-  ])
-  await logActivity({ action: 'editar', entity: 'validade_acesso', entityId: userId, entityName: `${member?.name ?? userId} → ${product?.title ?? productId}` })
+  const result = await coreAccess.updateAccessExpiry(userId, productId, expiresAt, await getAdminActor())
   revalidatePath('/admin/usuarios')
   revalidatePath(`/admin/usuarios/${userId}`)
-  return { success: true }
+  return result
 }

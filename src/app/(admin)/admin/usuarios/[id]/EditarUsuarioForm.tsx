@@ -61,7 +61,7 @@ export function EditarUsuarioForm({ profile, action, userId, products, activity 
     startAccessTransition(async () => {
       const result = hasActivated
         ? await resetMemberPassword(userId)
-        : await resendAdminInvite(userId, profile.email, profile.name)
+        : await resendAdminInvite(userId)
       setAccessState(result)
     })
   }

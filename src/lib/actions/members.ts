@@ -3,8 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
-import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
-import { logActivity } from '@/lib/log-activity'
+import { getAdminActor } from '@/lib/core/actor'
+import * as coreMembers from '@/lib/core/members'
 
 async function requireAdmin() {
   const supabase = await createClient()
@@ -104,9 +104,6 @@ export interface MemberDetail {
 
 /**
  * Busca sob demanda — só quando o drawer abre, nunca faz parte da listagem.
- * De propósito enxuto: o drawer é uma ficha rápida pra agir, não um CRM —
- * histórico/webhooks/observações ficariam numa tela própria se algum dia
- * fizerem falta de verdade, não aqui.
  */
 export async function getMemberDetail(userId: string): Promise<MemberDetail | null> {
   await requireAdmin()
@@ -134,44 +131,51 @@ export async function getMemberDetail(userId: string): Promise<MemberDetail | nu
   }
 }
 
+export interface ActivityEntry {
+  id: string
+  action: string
+  entity: string
+  entityId: string | null
+  entityName: string | null
+  actor: string
+  actorType: string
+  createdAt: string
+}
+
+/** Últimas ações registradas para este membro — inclui o que veio de admin, API ou webhook. */
+export async function getMemberActivity(userId: string, limit = 10): Promise<ActivityEntry[]> {
+  await requireAdmin()
+  const admin = createAdminClient()
+  const { data } = await admin
+    .from('activity_logs')
+    .select('id, action, entity, entity_id, entity_name, user_name, actor_type, actor_label, created_at')
+    .eq('entity_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+
+  return (data ?? []).map(row => ({
+    id: row.id,
+    action: row.action,
+    entity: row.entity,
+    entityId: row.entity_id,
+    entityName: row.entity_name,
+    actor: row.actor_label ?? row.user_name ?? 'Desconhecido',
+    actorType: row.actor_type ?? 'admin',
+    createdAt: row.created_at,
+  }))
+}
+
 /** Gera o link de acesso sem enviar e-mail — poder do "Copiar link de acesso". */
 export async function getMemberAccessLink(userId: string): Promise<{ link?: string; error?: string }> {
   await requireAdmin()
-  const admin = createAdminClient()
-  const { data: profile } = await admin.from('profiles').select('email').eq('id', userId).maybeSingle()
-  if (!profile) return { error: 'Usuário não encontrado' }
-
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL!
-  const { data: linkData, error } = await admin.auth.admin.generateLink({
-    type: 'recovery',
-    email: profile.email,
-    options: { redirectTo: `${appUrl}/auth/callback?next=/criar-senha` },
-  })
-  if (error) return { error: error.message }
-
-  const link = linkData?.properties?.action_link
-  if (!link) return { error: 'Não foi possível gerar o link.' }
-  return { link }
+  return coreMembers.getMemberAccessLink(userId)
 }
 
 /**
- * "Enviar login" — redefinição de senha para quem já ativou a conta.
- * Diferente de resendAdminInvite (admin.ts): usa o e-mail padrão do Supabase,
- * mesmo mecanismo do fluxo de autoatendimento em /esqueceu-senha.
+ * "Enviar acesso" — decide sozinho entre convite e redefinição de senha
+ * conforme o membro já ativou a conta ou não.
  */
 export async function resetMemberPassword(userId: string): Promise<{ success?: boolean; error?: string }> {
   await requireAdmin()
-  const admin = createAdminClient()
-  const { data: profile } = await admin.from('profiles').select('name, email').eq('id', userId).maybeSingle()
-  if (!profile) return { error: 'Usuário não encontrado' }
-
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL!
-  const { error } = await admin.auth.resetPasswordForEmail(profile.email, {
-    redirectTo: `${appUrl}/auth/callback?next=/nova-senha`,
-  })
-  if (error) return { error: error.message }
-
-  await logActivity({ action: 'enviar_login', entity: 'membro', entityId: userId, entityName: profile.name })
-  await fireOutboundWebhooks('password.reset', { user_id: userId, email: profile.email })
-  return { success: true }
+  return coreMembers.resendAccess(userId, await getAdminActor())
 }

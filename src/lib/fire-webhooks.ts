@@ -1,10 +1,11 @@
 import { createAdminClient } from './supabase/admin'
+import type { Actor } from './core/actor'
 
 export const ALL_WEBHOOK_EVENTS = [
-  'member.created', 'member.updated', 'member.deleted', 'member.enabled', 'member.disabled',
+  'member.created', 'member.updated', 'member.deleted', 'member.activated', 'member.deactivated',
   'access.granted', 'access.revoked',
-  'product.created', 'product.updated',
-  'purchase.approved', 'purchase.refused', 'purchase.refunded',
+  'product.created', 'product.updated', 'product.deleted',
+  'purchase.approved', 'purchase.refunded',
   'payment.approved', 'payment.failed', 'payment.overdue', 'payment.refunded',
   'certificate.generated',
   'lesson.completed',
@@ -14,9 +15,34 @@ export const ALL_WEBHOOK_EVENTS = [
 
 export type WebhookEvent = typeof ALL_WEBHOOK_EVENTS[number]
 
+export interface WebhookMember {
+  id: string
+  name?: string | null
+  email?: string | null
+}
+
+export interface WebhookProduct {
+  id: string
+  title?: string | null
+}
+
+export interface WebhookPayloadInput {
+  member?: WebhookMember | null
+  product?: WebhookProduct | null
+  actor: Actor
+  metadata?: Record<string, unknown>
+}
+
+/**
+ * Dispara um evento pra todos os webhooks de saída inscritos nele. Payload
+ * sempre no mesmo formato, não importa quem chamou — isso é o que faz o
+ * mesmo evento significar a mesma coisa pra quem consome (n8n/Make/Zapier),
+ * em vez de variar campo a campo dependendo se veio da UI, da API ou de um
+ * webhook de entrada.
+ */
 export async function fireOutboundWebhooks(
   event: WebhookEvent,
-  payload: Record<string, unknown>,
+  input: WebhookPayloadInput,
   productId?: string | null,
 ) {
   try {
@@ -31,13 +57,17 @@ export async function fireOutboundWebhooks(
     const fullPayload = {
       event,
       timestamp: new Date().toISOString(),
-      ...payload,
+      member: input.member ? { id: input.member.id, name: input.member.name ?? null, email: input.member.email ?? null } : null,
+      product: input.product ? { id: input.product.id, title: input.product.title ?? null } : null,
+      actor: { type: input.actor.type, label: input.actor.label },
+      metadata: input.metadata ?? {},
     }
     const body = JSON.stringify(fullPayload)
+    const resolvedProductId = productId ?? input.product?.id ?? null
 
     await Promise.allSettled(
       hooks
-        .filter(h => !h.product_id || h.product_id === productId)
+        .filter(h => !h.product_id || h.product_id === resolvedProductId)
         .filter(h => !h.events?.length || h.events.includes(event))
         .map(async (h) => {
           let status = 0

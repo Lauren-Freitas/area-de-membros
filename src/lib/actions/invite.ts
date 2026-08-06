@@ -1,6 +1,8 @@
 'use server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
+import { getWebhookActor } from '@/lib/core/actor'
+import { grantAccess } from '@/lib/core/access'
 
 export async function registerWithInvite(
   code: string,
@@ -40,27 +42,17 @@ export async function registerWithInvite(
   if (createError || !created.user) return { error: createError?.message ?? 'Erro ao criar conta.' }
 
   const productIds: string[] = invite.product_ids ?? []
-  if (productIds.length > 0) {
-    await admin.from('user_products').insert(
-      productIds.map((pid: string) => ({
-        user_id: created.user!.id,
-        product_id: pid,
-        granted_by: 'manual',
-      }))
-    )
-  }
+  const actor = getWebhookActor('Autocadastro via convite')
+  const userId = created.user.id
 
   await admin
     .from('invites')
     .update({ used_count: invite.used_count + 1 })
     .eq('id', invite.id)
 
-  const userId = created.user.id
-  await fireOutboundWebhooks('member.created', { user_id: userId, name, email: email.toLowerCase() })
-  await fireOutboundWebhooks('invite.accepted', { code: invite.code, user_id: userId, name, email: email.toLowerCase() })
-  await Promise.all(productIds.map((pid) =>
-    fireOutboundWebhooks('access.granted', { user_id: userId, product_id: pid, user_name: name, user_email: email.toLowerCase() }, pid)
-  ))
+  await fireOutboundWebhooks('member.created', { member: { id: userId, name, email: email.toLowerCase() }, actor })
+  await fireOutboundWebhooks('invite.accepted', { member: { id: userId, name, email: email.toLowerCase() }, actor, metadata: { code: invite.code } })
+  await Promise.all(productIds.map((pid) => grantAccess(userId, pid, actor)))
 
   return { success: true }
 }
