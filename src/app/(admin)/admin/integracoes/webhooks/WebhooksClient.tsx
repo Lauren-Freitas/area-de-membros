@@ -319,8 +319,15 @@ export function WebhooksClient({ webhooks, products }: { webhooks: Webhook[]; pr
           </div>
           <EventCheckboxes defaultSelected={[]} />
           <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-500">
-            <p className="font-semibold mb-1">Payload enviado (exemplo):</p>
-            <pre className="font-mono text-[11px] leading-relaxed">{JSON.stringify({ event: 'purchase.approved', timestamp: new Date().toISOString(), user_id: 'uuid', product_id: 'uuid', user_name: 'João Silva', user_email: 'joao@email.com' }, null, 2)}</pre>
+            <p className="font-semibold mb-1">Payload enviado (exemplo — mesmo formato pra todo evento):</p>
+            <pre className="font-mono text-[11px] leading-relaxed">{JSON.stringify({
+              event: 'purchase.approved',
+              timestamp: new Date().toISOString(),
+              member: { id: 'uuid', name: 'João Silva', email: 'joao@email.com' },
+              product: { id: 'uuid', title: 'Programa de Emagrecimento' },
+              actor: { type: 'webhook', label: 'Asaas' },
+              metadata: { value: 297, billing_type: 'PIX', provider: 'asaas' },
+            }, null, 2)}</pre>
           </div>
           <div className="flex gap-2">
             <button

@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState, useState } from 'react'
+import Link from 'next/link'
 import { createApiKey, deleteApiKey } from '@/lib/actions/integracoes'
 import { DeleteConfirmButton } from '@/components/DeleteConfirmButton'
 
@@ -53,6 +54,14 @@ export function ApiKeysClient({ keys }: { keys: ApiKey[] }) {
           </svg>
         </div>
         <h1 className="text-xl font-bold text-gray-900">API</h1>
+      </div>
+
+      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] px-5 py-4 flex items-start gap-3">
+        <span className="shrink-0 mt-0.5 text-xs font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400">ENTRADA</span>
+        <p className="text-sm text-gray-600 dark:text-gray-300">
+          Esta é a API que sua plataforma <strong>recebe</strong> — n8n, Make, Zapier ou qualquer sistema HTTP chama esses endpoints pra criar membros, liberar acesso, criar produtos etc. Cada chave abaixo autentica quem pode chamar. Referência completa de endpoints e exemplos de código em{' '}
+          <Link href="/admin/integracoes/documentacao" className="underline font-medium" style={{ color: 'var(--brand)' }}>Documentação</Link>.
+        </p>
       </div>
 
       {/* New key created */}
