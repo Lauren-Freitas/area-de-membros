@@ -125,12 +125,23 @@ export async function toggleProductActive(id: string, currentlyActive: boolean):
   return { success: true }
 }
 
-export async function updateProductOrder(id: string, sortOrder: number): Promise<{ success?: boolean; error?: string }> {
+/**
+ * Reordenação em massa (drag-and-drop) — orderedIds já vem na ordem final
+ * desejada, cada índice vira o novo sort_order. Updates paralelos em vez de
+ * upsert: upsert com payload parcial arriscaria falhar NOT NULL de colunas
+ * obrigatórias (title, content_type) que não fazem parte desta operação.
+ */
+export async function reorderProducts(orderedIds: string[]): Promise<{ success?: boolean; error?: string }> {
   await requireAdmin()
   const admin = createAdminClient()
-  const { error } = await admin.from('products').update({ sort_order: sortOrder }).eq('id', id)
-  if (error) return { error: error.message }
-  await logActivity({ action: 'editar', entity: 'produto', entityId: id, entityName: 'ordem' })
+
+  const results = await Promise.all(
+    orderedIds.map((id, index) => admin.from('products').update({ sort_order: index }).eq('id', id))
+  )
+  const failed = results.find(r => r.error)
+  if (failed?.error) return { error: failed.error.message }
+
+  await logActivity({ action: 'editar', entity: 'produto', entityName: 'reordenação' })
   revalidatePath('/admin/produtos')
   revalidatePath('/dashboard')
   return { success: true }

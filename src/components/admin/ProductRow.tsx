@@ -1,41 +1,66 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useTransition } from 'react'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { ProductActionsMenu } from '@/components/admin/ProductActionsMenu'
 import { toggleProductActive } from '@/lib/actions/admin'
+import type { ProductLite } from '@/components/admin/ProductsList'
 
 interface Props {
-  product: {
-    id: string
-    title: string
-    description: string | null
-    is_active: boolean
-    sort_order: number
-  }
+  product: ProductLite
+  isAnyDragging: boolean
+  onToggled: (nowActive: boolean) => void
+  onDeleted: () => void
 }
 
-export function ProductRow({ product: initial }: Props) {
-  const [product, setProduct] = useState(initial)
-  const [deleted, setDeleted] = useState(false)
+export function ProductRow({ product, isAnyDragging, onToggled, onDeleted }: Props) {
   const [isPending, startTransition] = useTransition()
-
-  if (deleted) return null
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: product.id,
+  })
 
   function handleToggleStatus() {
     startTransition(async () => {
       await toggleProductActive(product.id, product.is_active)
-      setProduct(p => ({ ...p, is_active: !p.is_active }))
+      onToggled(!product.is_active)
     })
   }
 
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  }
+
+  const opacityClass = isDragging ? 'opacity-30' : isAnyDragging ? 'opacity-50' : ''
+
   return (
-    <div className="flex items-center py-3.5 gap-4 hover:bg-gray-50 transition">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center py-3.5 gap-3 group transition-opacity duration-150 ${opacityClass} ${
+        !isAnyDragging ? 'hover:bg-gray-50' : ''
+      }`}
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="shrink-0 w-5 h-5 flex items-center justify-center text-gray-300 opacity-0 group-hover:opacity-100 transition cursor-grab active:cursor-grabbing touch-none"
+        aria-label="Arraste para reordenar"
+      >
+        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <circle cx="7" cy="5" r="1.3" /><circle cx="13" cy="5" r="1.3" />
+          <circle cx="7" cy="10" r="1.3" /><circle cx="13" cy="10" r="1.3" />
+          <circle cx="7" cy="15" r="1.3" /><circle cx="13" cy="15" r="1.3" />
+        </svg>
+      </button>
+
       <div className="flex-1 min-w-0">
         <p className="font-medium text-gray-900">{product.title}</p>
         {product.description && (
           <p className="text-xs text-gray-400 truncate max-w-sm mt-0.5">{product.description}</p>
         )}
-        <p className="text-xs text-gray-300 mt-0.5">Posição {product.sort_order + 1}</p>
       </div>
 
       <div className="w-20 text-center shrink-0">
@@ -69,9 +94,8 @@ export function ProductRow({ product: initial }: Props) {
               </svg>
             </button>
           )}
-          onToggled={nowActive => setProduct(p => ({ ...p, is_active: nowActive }))}
-          onReordered={newOrder => setProduct(p => ({ ...p, sort_order: newOrder }))}
-          onDeleted={() => setDeleted(true)}
+          onToggled={onToggled}
+          onDeleted={onDeleted}
         />
       </div>
     </div>
