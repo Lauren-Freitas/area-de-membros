@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, type ReactNode } from 'react'
-import { useRouter } from 'next/navigation'
 import { Menu, MenuItem, MenuDivider } from '@/components/Menu'
 import { ConfirmModal } from '@/components/ConfirmModal'
 import { deleteUser, toggleUserActive, resendAdminInvite } from '@/lib/actions/admin'
-import { getMemberAccessLink, resetMemberPassword } from '@/lib/actions/members'
+import { getMemberAccessLink } from '@/lib/actions/members'
+import { startViewAs } from '@/lib/actions/view-as'
 
 interface MemberLite {
   id: string
@@ -16,15 +16,10 @@ interface MemberLite {
 }
 
 interface ActionCallbacks {
+  /** "Editar" nunca navega — sempre abre/troca o drawer para a view de edição. */
+  onEdit: () => void
   onToggled?: (nowActive: boolean) => void
   onDeleted?: () => void
-  /**
-   * Sobrescreve a navegação de "Editar" — usado pelo drawer pra fechar com
-   * animação antes de sair pra página cheia, em vez de navegar por cima do
-   * painel ainda aberto (nunca um estado híbrido: ou o drawer está aberto
-   * mostrando contexto, ou fechou e foi pra uma tela cheia — nunca os dois).
-   */
-  onNavigate?: (href: string) => void
 }
 
 type Feedback = { label: string; tone: 'ok' | 'error' } | null
@@ -35,6 +30,7 @@ const icons = {
   link: <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />,
   suspend: <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />,
   play: <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />,
+  eye: <><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></>,
 }
 
 function Icon({ d }: { d: ReactNode }) {
@@ -47,23 +43,15 @@ function Icon({ d }: { d: ReactNode }) {
 
 /**
  * Estado e handlers compartilhados pelas duas formas de exibir as ações
- * (dropdown na linha, lista fixa no drawer). "Gerenciar produtos" não é mais
- * uma ação daqui — produtos vivem só na página de edição (/admin/usuarios/:id),
- * que "Editar" já abre; ter os dois destinos seria duplicar a mesma coisa.
+ * (dropdown na linha, lista fixa no drawer). "Editar" nunca navega — abre ou
+ * troca o drawer pra view de edição, que já inclui produtos; não existe um
+ * segundo destino "Gerenciar produtos" pra duplicar a mesma coisa.
  */
-function useMemberActions(member: MemberLite, { onToggled, onDeleted, onNavigate }: ActionCallbacks) {
-  const router = useRouter()
+function useMemberActions(member: MemberLite, { onEdit, onToggled, onDeleted }: ActionCallbacks) {
   const [confirmAction, setConfirmAction] = useState<'suspend' | 'delete' | null>(null)
   const [feedback, setFeedback] = useState<Feedback>(null)
 
   const isActive = member.is_active !== false
-  const hasActivated = !!member.last_login_at
-
-  function goToEdit() {
-    const href = `/admin/usuarios/${member.id}`
-    if (onNavigate) onNavigate(href)
-    else router.push(href)
-  }
 
   function flash(label: string, tone: 'ok' | 'error' = 'ok') {
     setFeedback({ label, tone })
@@ -72,9 +60,7 @@ function useMemberActions(member: MemberLite, { onToggled, onDeleted, onNavigate
 
   async function handleSendAccess() {
     flash('Enviando...')
-    const result = hasActivated
-      ? await resetMemberPassword(member.id)
-      : await resendAdminInvite(member.id)
+    const result = await resendAdminInvite(member.id)
     flash(result.success ? 'Enviado ✓' : (result.error ?? 'Falhou'), result.success ? 'ok' : 'error')
   }
 
@@ -89,6 +75,10 @@ function useMemberActions(member: MemberLite, { onToggled, onDeleted, onNavigate
     }
   }
 
+  async function handleViewAs() {
+    await startViewAs(member.id)
+  }
+
   async function handleSuspendToggle() {
     await toggleUserActive(member.id, isActive)
     onToggled?.(!isActive)
@@ -101,7 +91,7 @@ function useMemberActions(member: MemberLite, { onToggled, onDeleted, onNavigate
 
   const items = (
     <>
-      <MenuItem icon={<Icon d={icons.edit} />} onSelect={goToEdit}>
+      <MenuItem icon={<Icon d={icons.edit} />} onSelect={onEdit}>
         Editar...
       </MenuItem>
       <MenuItem icon={<Icon d={icons.mail} />} keepOpen onSelect={handleSendAccess}>
@@ -109,6 +99,9 @@ function useMemberActions(member: MemberLite, { onToggled, onDeleted, onNavigate
       </MenuItem>
       <MenuItem icon={<Icon d={icons.link} />} keepOpen onSelect={handleCopyLink}>
         Copiar link
+      </MenuItem>
+      <MenuItem icon={<Icon d={icons.eye} />} onSelect={handleViewAs}>
+        Ver como este membro
       </MenuItem>
       {feedback && (
         <p className={`px-3 pb-1.5 -mt-0.5 text-xs ${feedback.tone === 'error' ? 'text-red-500' : 'text-gray-400'}`}>
@@ -167,8 +160,8 @@ interface DropdownProps extends ActionCallbacks {
 }
 
 /** Uso na linha da lista: "⋯" que abre um dropdown. */
-export function MemberActionsMenu({ member, trigger, align = 'right', onToggled, onDeleted, onNavigate }: DropdownProps) {
-  const { items, modals } = useMemberActions(member, { onToggled, onDeleted, onNavigate })
+export function MemberActionsMenu({ member, trigger, align = 'right', onEdit, onToggled, onDeleted }: DropdownProps) {
+  const { items, modals } = useMemberActions(member, { onEdit, onToggled, onDeleted })
   return (
     <>
       <Menu align={align} panelClassName="w-56" trigger={trigger}>{items}</Menu>
@@ -182,8 +175,8 @@ interface InlineProps extends ActionCallbacks {
 }
 
 /** Uso no drawer: mesma lista de ações, sempre visível (sem menu escondido atrás de outro clique). */
-export function MemberActionsInline({ member, onToggled, onDeleted, onNavigate }: InlineProps) {
-  const { items, modals } = useMemberActions(member, { onToggled, onDeleted, onNavigate })
+export function MemberActionsInline({ member, onEdit, onToggled, onDeleted }: InlineProps) {
+  const { items, modals } = useMemberActions(member, { onEdit, onToggled, onDeleted })
   return (
     <>
       <div className="py-1">{items}</div>

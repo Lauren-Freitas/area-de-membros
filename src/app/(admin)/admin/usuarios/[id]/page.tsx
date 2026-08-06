@@ -1,11 +1,17 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { updateUser } from '@/lib/actions/admin'
-import { startViewAs } from '@/lib/actions/view-as'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { describeActivity } from '@/lib/activity-labels'
 import { EditarUsuarioForm } from './EditarUsuarioForm'
 
+/**
+ * Só serve o formulário de edição pra colaboradores (admin/equipe) — membros
+ * são editados só dentro do drawer de "Gerenciar Membros" (não existe mais
+ * uma segunda tela duplicando a mesma coisa). Esta rota continua existindo
+ * pra manter link compartilhável/bookmark funcionando: se o alvo for membro,
+ * só redireciona pro contexto certo.
+ */
 export default async function EditarUsuarioPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
@@ -33,21 +39,14 @@ export default async function EditarUsuarioPage({ params }: { params: Promise<{ 
   if (me?.role === 'equipe' && target.role === 'admin') redirect('/admin/configuracoes')
 
   const isMember = target.role === 'membro' || !target.role
-  const canViewAs = isMember && target.id !== user.id
+  if (isMember) redirect(`/admin/usuarios?open=${id}&view=editar`)
 
-  const [{ data: products }, { data: accesses }, { data: activity }] = await Promise.all([
-    isMember ? admin.from('products').select('id, title').eq('is_active', true).order('sort_order') : Promise.resolve({ data: null }),
-    isMember ? admin.from('user_products').select('product_id, expires_at').eq('user_id', id) : Promise.resolve({ data: null }),
-    admin.from('activity_logs').select('id, action, entity, entity_name, user_name, created_at').eq('entity_id', id).order('created_at', { ascending: false }).limit(10),
-  ])
-
-  const accessMap = new Map((accesses ?? []).map(a => [a.product_id as string, a.expires_at as string | null]))
-  const productAccess = (products ?? []).map(p => ({
-    id: p.id,
-    title: p.title,
-    hasAccess: accessMap.has(p.id),
-    expiresAt: accessMap.get(p.id) ?? null,
-  }))
+  const { data: activity } = await admin
+    .from('activity_logs')
+    .select('id, action, entity, entity_name, user_name, created_at')
+    .eq('entity_id', id)
+    .order('created_at', { ascending: false })
+    .limit(10)
 
   const activityEntries = (activity ?? []).map(a => ({
     id: a.id,
@@ -57,27 +56,12 @@ export default async function EditarUsuarioPage({ params }: { params: Promise<{ 
   }))
 
   return (
-    <div>
-      {canViewAs && (
-        <div className="mb-4 flex justify-end">
-          <form action={startViewAs.bind(null, id)}>
-            <button
-              type="submit"
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition"
-            >
-              <span>👁️</span>
-              Ver como este membro
-            </button>
-          </form>
-        </div>
-      )}
-      <EditarUsuarioForm
-        profile={{ ...target, is_active: target.is_active !== false }}
-        action={updateUser.bind(null, id)}
-        userId={id}
-        products={productAccess}
-        activity={activityEntries}
-      />
-    </div>
+    <EditarUsuarioForm
+      profile={{ ...target, is_active: target.is_active !== false }}
+      action={updateUser.bind(null, id)}
+      userId={id}
+      products={[]}
+      activity={activityEntries}
+    />
   )
 }

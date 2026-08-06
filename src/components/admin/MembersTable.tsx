@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/Button'
 import { MemberActionsMenu } from '@/components/admin/MemberActionsMenu'
 import { MemberDrawer } from '@/components/admin/MemberDrawer'
@@ -89,6 +90,10 @@ interface Props {
 }
 
 export function MembersTable({ initialMembers, initialTotal }: Props) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<MemberFilter>('all')
@@ -99,7 +104,24 @@ export function MembersTable({ initialMembers, initialTotal }: Props) {
   const [loading, setLoading] = useState(false)
   const isFirstRender = useRef(true)
 
-  const [drawerId, setDrawerId] = useState<string | null>(null)
+  /**
+   * Suporta deep link (?open=<id>&view=editar) — usado pelo redirect fino de
+   * /admin/usuarios/:id. Lido só na montagem inicial (lazy initializer, não
+   * um effect) pra nunca reabrir sozinho depois que o usuário fecha o drawer.
+   */
+  const [drawer, setDrawer] = useState<{ id: string; view: 'resumo' | 'editar' } | null>(() => {
+    const id = searchParams.get('open')
+    return id ? { id, view: searchParams.get('view') === 'editar' ? 'editar' : 'resumo' } : null
+  })
+
+  function openDrawer(id: string, view: 'resumo' | 'editar' = 'resumo') {
+    setDrawer({ id, view })
+  }
+
+  function closeDrawer() {
+    setDrawer(null)
+    if (searchParams.get('open')) router.replace(pathname, { scroll: false })
+  }
 
   useEffect(() => {
     const t = setTimeout(() => { setSearch(searchInput); setPage(1) }, 300)
@@ -205,7 +227,7 @@ export function MembersTable({ initialMembers, initialTotal }: Props) {
                 return (
                   <div
                     key={m.id}
-                    onClick={() => setDrawerId(m.id)}
+                    onClick={() => openDrawer(m.id)}
                     className="flex items-center gap-4 px-4 py-3 hover:bg-gray-50 dark:hover:bg-[#12162a] transition cursor-pointer"
                   >
                     <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -244,6 +266,7 @@ export function MembersTable({ initialMembers, initialTotal }: Props) {
                       <MemberActionsMenu
                         member={m}
                         align="right"
+                        onEdit={() => openDrawer(m.id, 'editar')}
                         trigger={({ toggle }) => (
                           <button
                             type="button"
@@ -294,10 +317,11 @@ export function MembersTable({ initialMembers, initialTotal }: Props) {
         </div>
       )}
 
-      {drawerId && (
+      {drawer && (
         <MemberDrawer
-          userId={drawerId}
-          onClose={() => setDrawerId(null)}
+          userId={drawer.id}
+          initialView={drawer.view}
+          onClose={closeDrawer}
           onMutated={fetchPage}
         />
       )}
