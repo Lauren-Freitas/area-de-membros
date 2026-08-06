@@ -2,11 +2,13 @@ import { NextRequest } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { checkApiKey } from '@/lib/api-auth'
 import { apiSuccess, Errors } from '@/lib/api-response'
+import { hasScope } from '@/lib/api-scopes'
 
 /** Somente leitura — populado pelos webhooks de entrada do Asaas/Kiwify ou por concessões manuais com granted_by='purchase'/'pack'. */
 export async function GET(req: NextRequest) {
   const auth = await checkApiKey(req)
   if (!auth.ok) return Errors.unauthorized()
+  if (!hasScope(auth, 'sales:read')) return Errors.forbidden('sales:read')
 
   const { searchParams } = req.nextUrl
   const user_id = searchParams.get('user_id')

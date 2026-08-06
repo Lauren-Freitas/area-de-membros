@@ -125,11 +125,13 @@
     "/members": {
       "get": {
         "summary": "Listar membros",
+        "x-required-scope": "members:read",
         "tags": ["Membros"],
         "responses": { "200": { "description": "Lista de membros e colaboradores.", "content": { "application/json": { "schema": { "type": "object", "properties": { "success": { "type": "boolean" }, "data": { "type": "object", "properties": { "members": { "type": "array", "items": { "$ref": "#/components/schemas/Member" } } } } } } } } }, "401": { "$ref": "#/components/responses/Unauthorized" } }
       },
       "post": {
         "summary": "Criar membro",
+        "x-required-scope": "members:write",
         "description": "Idempotente por e-mail — se já existir um membro com esse e-mail, reaproveita o cadastro em vez de duplicar. Se `products` for enviado, já libera o acesso na mesma chamada.",
         "tags": ["Membros"],
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
@@ -153,9 +155,10 @@
       }
     },
     "/members/{id}": {
-      "get": { "summary": "Detalhe do membro", "tags": ["Membros"], "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }], "responses": { "200": { "description": "Membro encontrado." }, "404": { "$ref": "#/components/responses/NotFound" } } },
+      "get": { "summary": "Detalhe do membro", "x-required-scope": "members:read", "tags": ["Membros"], "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }], "responses": { "200": { "description": "Membro encontrado." }, "404": { "$ref": "#/components/responses/NotFound" } } },
       "patch": {
         "summary": "Atualizar membro",
+        "x-required-scope": "members:write",
         "description": "Parcial — só envie os campos que quer mudar.",
         "tags": ["Membros"],
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }, { "$ref": "#/components/parameters/IdempotencyKey" }],
@@ -166,6 +169,7 @@
       },
       "delete": {
         "summary": "Excluir membro",
+        "x-required-scope": "members:delete",
         "description": "Idempotente — excluir um membro já excluído também retorna sucesso.",
         "tags": ["Membros"],
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }, { "$ref": "#/components/parameters/IdempotencyKey" }],
@@ -175,6 +179,7 @@
     "/members/{id}/resend-access": {
       "post": {
         "summary": "Enviar acesso",
+        "x-required-scope": "members:write",
         "description": "Decide sozinho entre convite de primeiro acesso (nunca ativou a conta) e redefinição de senha (já ativou) — nunca as duas ações separadas.",
         "tags": ["Membros"],
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }, { "$ref": "#/components/parameters/IdempotencyKey" }],
@@ -184,6 +189,7 @@
     "/access-grants": {
       "post": {
         "summary": "Conceder acesso",
+        "x-required-scope": "access:write",
         "description": "Upsert real — chamar de novo com o mesmo par user_id/product_id é sempre seguro (mesma validade = mesmo estado; validade diferente = atualiza).",
         "tags": ["Acessos"],
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
@@ -194,12 +200,14 @@
       },
       "get": {
         "summary": "Listar acessos",
+        "x-required-scope": "access:read",
         "tags": ["Acessos"],
         "parameters": [{ "name": "user_id", "in": "query", "schema": { "type": "string" } }, { "name": "product_id", "in": "query", "schema": { "type": "string" } }],
         "responses": { "200": { "description": "Lista de acessos.", "content": { "application/json": { "schema": { "type": "object", "properties": { "data": { "type": "object", "properties": { "access_grants": { "type": "array", "items": { "$ref": "#/components/schemas/AccessGrant" } } } } } } } } } }
       },
       "patch": {
         "summary": "Alterar validade de um acesso",
+        "x-required-scope": "access:write",
         "tags": ["Acessos"],
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["user_id", "product_id", "expires_at"], "properties": {
@@ -209,6 +217,7 @@
       },
       "delete": {
         "summary": "Revogar acesso",
+        "x-required-scope": "access:write",
         "description": "Idempotente — revogar um acesso que já não existe também retorna sucesso.",
         "tags": ["Acessos"],
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
@@ -219,9 +228,10 @@
       }
     },
     "/products": {
-      "get": { "summary": "Listar produtos", "tags": ["Produtos"], "responses": { "200": { "description": "Lista de produtos.", "content": { "application/json": { "schema": { "type": "object", "properties": { "data": { "type": "object", "properties": { "products": { "type": "array", "items": { "$ref": "#/components/schemas/Product" } } } } } } } } } } },
+      "get": { "summary": "Listar produtos", "x-required-scope": "products:read", "tags": ["Produtos"], "responses": { "200": { "description": "Lista de produtos.", "content": { "application/json": { "schema": { "type": "object", "properties": { "data": { "type": "object", "properties": { "products": { "type": "array", "items": { "$ref": "#/components/schemas/Product" } } } } } } } } } } },
       "post": {
         "summary": "Criar produto",
+        "x-required-scope": "products:write",
         "description": "Sem chave natural de deduplicação — use Idempotency-Key pra reintentos seguros, senão cada chamada cria um produto novo.",
         "tags": ["Produtos"],
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
@@ -232,14 +242,15 @@
       }
     },
     "/products/{id}": {
-      "get": { "summary": "Detalhe do produto", "tags": ["Produtos"], "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }], "responses": { "200": { "description": "Produto encontrado." }, "404": { "$ref": "#/components/responses/NotFound" } } },
-      "patch": { "summary": "Atualizar produto", "description": "Parcial.", "tags": ["Produtos"], "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }, { "$ref": "#/components/parameters/IdempotencyKey" }], "responses": { "200": { "description": "Produto atualizado." }, "404": { "$ref": "#/components/responses/NotFound" } } },
-      "delete": { "summary": "Excluir produto", "description": "Exclui o produto e todo o conteúdo (módulos, aulas). Idempotente.", "tags": ["Produtos"], "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }, { "$ref": "#/components/parameters/IdempotencyKey" }], "responses": { "200": { "description": "Produto excluído." } } }
+      "get": { "summary": "Detalhe do produto", "x-required-scope": "products:read", "tags": ["Produtos"], "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }], "responses": { "200": { "description": "Produto encontrado." }, "404": { "$ref": "#/components/responses/NotFound" } } },
+      "patch": { "summary": "Atualizar produto", "x-required-scope": "products:write", "description": "Parcial.", "tags": ["Produtos"], "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }, { "$ref": "#/components/parameters/IdempotencyKey" }], "responses": { "200": { "description": "Produto atualizado." }, "404": { "$ref": "#/components/responses/NotFound" } } },
+      "delete": { "summary": "Excluir produto", "x-required-scope": "products:delete", "description": "Exclui o produto e todo o conteúdo (módulos, aulas). Idempotente.", "tags": ["Produtos"], "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }, { "$ref": "#/components/parameters/IdempotencyKey" }], "responses": { "200": { "description": "Produto excluído." } } }
     },
     "/certificates": {
-      "get": { "summary": "Listar certificados", "tags": ["Certificados"], "responses": { "200": { "description": "Lista de certificados.", "content": { "application/json": { "schema": { "type": "object", "properties": { "data": { "type": "object", "properties": { "certificates": { "type": "array", "items": { "$ref": "#/components/schemas/Certificate" } } } } } } } } } } },
+      "get": { "summary": "Listar certificados", "x-required-scope": "certificates:read", "tags": ["Certificados"], "responses": { "200": { "description": "Lista de certificados.", "content": { "application/json": { "schema": { "type": "object", "properties": { "data": { "type": "object", "properties": { "certificates": { "type": "array", "items": { "$ref": "#/components/schemas/Certificate" } } } } } } } } } } },
       "post": {
         "summary": "Emitir certificado",
+        "x-required-scope": "certificates:write",
         "description": "Idempotente de propósito — chamar de novo com o mesmo par user_id/product_id retorna o certificado já existente, nunca duplica.",
         "tags": ["Certificados"],
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
@@ -248,9 +259,10 @@
       }
     },
     "/invites": {
-      "get": { "summary": "Listar convites", "tags": ["Convites"], "responses": { "200": { "description": "Lista de convites.", "content": { "application/json": { "schema": { "type": "object", "properties": { "data": { "type": "object", "properties": { "invites": { "type": "array", "items": { "$ref": "#/components/schemas/Invite" } } } } } } } } } } },
+      "get": { "summary": "Listar convites", "x-required-scope": "invites:read", "tags": ["Convites"], "responses": { "200": { "description": "Lista de convites.", "content": { "application/json": { "schema": { "type": "object", "properties": { "data": { "type": "object", "properties": { "invites": { "type": "array", "items": { "$ref": "#/components/schemas/Invite" } } } } } } } } } } },
       "post": {
         "summary": "Criar link de convite",
+        "x-required-scope": "invites:write",
         "description": "Sem chave natural de deduplicação (cada chamada gera um código novo de propósito) — use Idempotency-Key pra reintentos seguros.",
         "tags": ["Convites"],
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
@@ -263,6 +275,7 @@
     "/sales": {
       "get": {
         "summary": "Listar vendas",
+        "x-required-scope": "sales:read",
         "description": "Somente leitura — populado pelos webhooks de entrada do Asaas/Kiwify ou por concessões manuais com granted_by='purchase'/'pack'.",
         "tags": ["Compras & Pagamentos"],
         "parameters": [{ "name": "user_id", "in": "query", "schema": { "type": "string" } }, { "name": "product_id", "in": "query", "schema": { "type": "string" } }, { "name": "payment_status", "in": "query", "schema": { "type": "string" } }],

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import type { ApiScope } from './api-scopes'
 
 /**
  * Envelope de resposta único pra toda a API v1 — nunca mensagem de erro
@@ -9,6 +10,7 @@ import { NextResponse } from 'next/server'
 export type ApiErrorCode =
   | 'VALIDATION_ERROR'
   | 'UNAUTHORIZED'
+  | 'FORBIDDEN'
   | 'MEMBER_NOT_FOUND'
   | 'PRODUCT_NOT_FOUND'
   | 'ACCESS_NOT_FOUND'
@@ -27,6 +29,7 @@ export function apiError(code: ApiErrorCode, message: string, status: number) {
 
 export const Errors = {
   unauthorized: () => apiError('UNAUTHORIZED', 'Chave de API ausente ou inválida.', 401),
+  forbidden: (scope: ApiScope) => apiError('FORBIDDEN', `Esta chave não tem o escopo necessário: ${scope}.`, 403),
   validation: (message: string) => apiError('VALIDATION_ERROR', message, 400),
   memberNotFound: () => apiError('MEMBER_NOT_FOUND', 'Membro não encontrado.', 404),
   productNotFound: () => apiError('PRODUCT_NOT_FOUND', 'Produto não encontrado.', 404),

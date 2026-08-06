@@ -4,6 +4,7 @@ import { useActionState, useState } from 'react'
 import Link from 'next/link'
 import { createApiKey, deleteApiKey } from '@/lib/actions/integracoes'
 import { DeleteConfirmButton } from '@/components/DeleteConfirmButton'
+import { SCOPE_GROUPS, SCOPE_LABELS, type ApiScope } from '@/lib/api-scopes'
 
 interface ApiKey {
   id: string
@@ -26,11 +27,50 @@ function fmt(d: string | null) {
   return new Date(d).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
+function ScopeCheckboxes({ disabled }: { disabled: boolean }) {
+  return (
+    <div className={`space-y-2 ${disabled ? 'opacity-40 pointer-events-none' : ''}`}>
+      {SCOPE_GROUPS.map(group => (
+        <div key={group.title}>
+          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-1">{group.title}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+            {group.scopes.map(scope => (
+              <label key={scope} className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300">
+                <input type="checkbox" name="scopes" value={scope} disabled={disabled} className="rounded border-gray-300" />
+                {SCOPE_LABELS[scope]}
+              </label>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ScopeBadges({ scopes }: { scopes: string[] | null }) {
+  if (scopes === null) {
+    return <span className="text-[11px] px-1.5 py-px rounded bg-gray-100 dark:bg-[#1a2035] text-gray-500 font-medium">Acesso total</span>
+  }
+  if (scopes.length === 0) {
+    return <span className="text-[11px] text-red-500 font-medium">Sem permissões</span>
+  }
+  return (
+    <span className="flex flex-wrap gap-1">
+      {scopes.map(s => (
+        <span key={s} className="text-[11px] px-1.5 py-px rounded bg-gray-100 dark:bg-[#1a2035] text-gray-500 font-medium">
+          {SCOPE_LABELS[s as ApiScope] ?? s}
+        </span>
+      ))}
+    </span>
+  )
+}
+
 export function ApiKeysClient({ keys }: { keys: ApiKey[] }) {
   const [state, action, isPending] = useActionState(createApiKey, null)
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [fullAccess, setFullAccess] = useState(true)
 
   const filtered = keys.filter(k => k.name.toLowerCase().includes(search.toLowerCase()))
 
@@ -123,6 +163,24 @@ export function ApiKeysClient({ keys }: { keys: ApiKey[] }) {
             />
             <p className="text-xs text-gray-400 mt-1">Use um nome descritivo para identificar onde essa chave está sendo usada.</p>
           </div>
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+              <input
+                type="checkbox"
+                name="full_access"
+                checked={fullAccess}
+                onChange={e => setFullAccess(e.target.checked)}
+                className="rounded border-gray-300"
+              />
+              Acesso total (sem restrição)
+            </label>
+            {!fullAccess && (
+              <p className="text-xs text-gray-400 mb-2">
+                Marque só as permissões que essa integração realmente precisa — princípio de menor privilégio.
+              </p>
+            )}
+            <ScopeCheckboxes disabled={fullAccess} />
+          </div>
           <div className="flex gap-2">
             <button
               type="submit"
@@ -192,13 +250,11 @@ export function ApiKeysClient({ keys }: { keys: ApiKey[] }) {
                 {k.creator?.name && <span>Criada por {k.creator.name}</span>}
                 {k.last_ip && <span>· último IP {k.last_ip}</span>}
                 <span className="inline-flex items-center gap-1">
-                  · Escopos: todas as permissões
-                  <span className="text-[10px] font-semibold px-1 py-px rounded bg-gray-100 dark:bg-[#1a2035] text-gray-400 uppercase tracking-wide">em breve</span>
-                </span>
-                <span className="inline-flex items-center gap-1">
                   · Expira: {k.expires_at ? fmt(k.expires_at) : 'nunca'}
                   <span className="text-[10px] font-semibold px-1 py-px rounded bg-gray-100 dark:bg-[#1a2035] text-gray-400 uppercase tracking-wide">em breve</span>
                 </span>
+                <span>·</span>
+                <ScopeBadges scopes={k.scopes} />
               </div>
             </div>
           ))}

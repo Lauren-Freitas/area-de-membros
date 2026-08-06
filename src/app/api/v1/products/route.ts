@@ -5,10 +5,12 @@ import { getApiActor } from '@/lib/core/actor'
 import { createProduct } from '@/lib/core/products'
 import { apiSuccess, Errors } from '@/lib/api-response'
 import { withIdempotency } from '@/lib/api-idempotency'
+import { hasScope } from '@/lib/api-scopes'
 
 export async function GET(req: NextRequest) {
   const auth = await checkApiKey(req)
   if (!auth.ok) return Errors.unauthorized()
+  if (!hasScope(auth, 'products:read')) return Errors.forbidden('products:read')
 
   const admin = createAdminClient()
   const { data, error } = await admin.from('products').select('*').order('sort_order')
@@ -19,6 +21,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const auth = await checkApiKey(req)
   if (!auth.ok) return Errors.unauthorized()
+  if (!hasScope(auth, 'products:write')) return Errors.forbidden('products:write')
   const actor = getApiActor(auth.keyName)
 
   // Produto não tem chave natural de deduplicação (título não é único) —

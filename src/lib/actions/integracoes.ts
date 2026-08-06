@@ -7,6 +7,7 @@ import { revalidatePath } from 'next/cache'
 import { logActivity } from '@/lib/log-activity'
 import { getAdminActor } from '@/lib/core/actor'
 import { ALL_WEBHOOK_EVENTS, type WebhookEvent } from '@/lib/fire-webhooks'
+import { isValidScope } from '@/lib/api-scopes'
 
 /**
  * Server Actions são endpoints próprios (RPC), não protegidos pelo redirect()
@@ -36,10 +37,19 @@ export async function createApiKey(_: unknown, formData: FormData) {
   const name = (formData.get('name') as string ?? '').trim()
   if (!name) return { error: 'Nome obrigatório' }
 
+  // null = acesso total (compatível com chaves criadas antes de escopos existirem).
+  // Restrita só quando o admin desmarca "acesso total" e escolhe permissões específicas.
+  const fullAccess = formData.get('full_access') === 'on'
+  const selectedScopes = (formData.getAll('scopes') as string[]).filter(isValidScope)
+  if (!fullAccess && selectedScopes.length === 0) {
+    return { error: 'Selecione ao menos um escopo, ou marque acesso total.' }
+  }
+  const scopes = fullAccess ? null : selectedScopes
+
   const actor = await getAdminActor()
   const key = `tc_${crypto.randomUUID().replace(/-/g, '')}`
   const admin = createAdminClient()
-  const { error } = await admin.from('api_keys').insert({ name, key, created_by: actor.userId ?? null })
+  const { error } = await admin.from('api_keys').insert({ name, key, created_by: actor.userId ?? null, scopes })
   if (error) return { error: error.message }
 
   await logActivity({ action: 'criar', entity: 'api_key', entityName: name, actor })

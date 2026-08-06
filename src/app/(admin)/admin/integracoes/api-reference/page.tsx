@@ -23,6 +23,7 @@ interface OpenApiOperation {
   summary?: string
   description?: string
   tags?: string[]
+  'x-required-scope'?: string
   requestBody?: { content?: { 'application/json'?: { schema?: JsonSchema; example?: unknown } } }
   responses?: Record<string, { description?: string }>
 }
@@ -101,6 +102,11 @@ function EndpointBlock({ method, fullPath, op }: { method: string; fullPath: str
       <div className="flex items-center gap-2 flex-wrap">
         <span className={`text-xs font-bold px-2 py-0.5 rounded font-mono shrink-0 ${methodColor[method]}`}>{method}</span>
         <code className="text-gray-800 dark:text-gray-200 font-mono text-sm">{fullPath}</code>
+        {op['x-required-scope'] && (
+          <code className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-100 dark:bg-[#1a2035] text-gray-500 dark:text-gray-400" title="Escopo exigido">
+            {op['x-required-scope']}
+          </code>
+        )}
       </div>
       <p className="text-sm text-gray-600 dark:text-gray-300">{op.summary}</p>
 
@@ -173,7 +179,7 @@ export default function ApiReferencePage() {
       <Section title="Autenticação" id="autenticacao">
         <p className="text-sm text-gray-600 dark:text-gray-300">
           Todo endpoint abaixo exige o header <code className="bg-gray-100 dark:bg-[#1a2035] px-1.5 py-0.5 rounded text-xs">x-api-key</code>. Gerencie chaves em{' '}
-          <Link href="/admin/integracoes/api" className="underline font-medium" style={{ color: 'var(--brand)' }}>Integrações → API</Link> — nomear a chave (ex. &quot;n8n&quot;) faz esse nome aparecer como autor de cada ação no histórico de auditoria. Chamadas mutáveis também aceitam <code className="bg-gray-100 dark:bg-[#1a2035] px-1.5 py-0.5 rounded text-xs">Idempotency-Key</code> — repetir a mesma chave replay a resposta já registrada em vez de repetir o efeito colateral.
+          <Link href="/admin/integracoes/api" className="underline font-medium" style={{ color: 'var(--brand)' }}>Integrações → API</Link> — nomear a chave (ex. &quot;n8n&quot;) faz esse nome aparecer como autor de cada ação no histórico de auditoria. Chamadas mutáveis também aceitam <code className="bg-gray-100 dark:bg-[#1a2035] px-1.5 py-0.5 rounded text-xs">Idempotency-Key</code> — repetir a mesma chave replay a resposta já registrada em vez de repetir o efeito colateral. Cada chave pode ser criada com acesso total ou restrita a escopos específicos (ex. <code className="bg-gray-100 dark:bg-[#1a2035] px-1.5 py-0.5 rounded text-xs">members:read</code>) — o escopo exigido por cada endpoint aparece ao lado da rota abaixo; uma chave sem o escopo necessário recebe <code className="bg-gray-100 dark:bg-[#1a2035] px-1.5 py-0.5 rounded text-xs">403 FORBIDDEN</code>.
         </p>
         <CodeBlock>{`x-api-key: sua-chave\nContent-Type: application/json\nIdempotency-Key: chave-unica-opcional`}</CodeBlock>
         <p className="text-sm text-gray-600 dark:text-gray-300">

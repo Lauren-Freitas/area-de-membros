@@ -5,10 +5,12 @@ import { getApiActor } from '@/lib/core/actor'
 import { createMember } from '@/lib/core/members'
 import { apiSuccess, Errors } from '@/lib/api-response'
 import { withIdempotency } from '@/lib/api-idempotency'
+import { hasScope } from '@/lib/api-scopes'
 
 export async function GET(req: NextRequest) {
   const auth = await checkApiKey(req)
   if (!auth.ok) return Errors.unauthorized()
+  if (!hasScope(auth, 'members:read')) return Errors.forbidden('members:read')
 
   const admin = createAdminClient()
   const { data, error } = await admin.from('profiles').select('*').order('created_at', { ascending: false })
@@ -19,6 +21,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const auth = await checkApiKey(req)
   if (!auth.ok) return Errors.unauthorized()
+  if (!hasScope(auth, 'members:write')) return Errors.forbidden('members:write')
   const actor = getApiActor(auth.keyName)
 
   return withIdempotency(req, actor.label, async () => {

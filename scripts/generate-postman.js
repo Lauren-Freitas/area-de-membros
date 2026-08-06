@@ -40,7 +40,7 @@ function toPostmanItem(rawPath, method, op) {
         host: ['{{baseUrl}}'],
         path: segments,
       },
-      description: op.description ?? '',
+      description: [op.description, op['x-required-scope'] ? `Escopo exigido: ${op['x-required-scope']}` : null].filter(Boolean).join('\n\n'),
     },
   }
 

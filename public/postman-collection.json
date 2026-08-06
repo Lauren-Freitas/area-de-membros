@@ -59,7 +59,7 @@
                 "members"
               ]
             },
-            "description": ""
+            "description": "Escopo exigido: members:read"
           }
         },
         {
@@ -83,7 +83,7 @@
                 "members"
               ]
             },
-            "description": "Idempotente por e-mail — se já existir um membro com esse e-mail, reaproveita o cadastro em vez de duplicar. Se `products` for enviado, já libera o acesso na mesma chamada.",
+            "description": "Idempotente por e-mail — se já existir um membro com esse e-mail, reaproveita o cadastro em vez de duplicar. Se `products` for enviado, já libera o acesso na mesma chamada.\n\nEscopo exigido: members:write",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"valor\",\n  \"email\": \"valor\"\n}",
@@ -117,7 +117,7 @@
                 "{id}"
               ]
             },
-            "description": ""
+            "description": "Escopo exigido: members:read"
           }
         },
         {
@@ -142,7 +142,7 @@
                 "{id}"
               ]
             },
-            "description": "Parcial — só envie os campos que quer mudar.",
+            "description": "Parcial — só envie os campos que quer mudar.\n\nEscopo exigido: members:write",
             "body": {
               "mode": "raw",
               "raw": "{}",
@@ -176,7 +176,7 @@
                 "{id}"
               ]
             },
-            "description": "Idempotente — excluir um membro já excluído também retorna sucesso."
+            "description": "Idempotente — excluir um membro já excluído também retorna sucesso.\n\nEscopo exigido: members:delete"
           }
         },
         {
@@ -202,7 +202,7 @@
                 "resend-access"
               ]
             },
-            "description": "Decide sozinho entre convite de primeiro acesso (nunca ativou a conta) e redefinição de senha (já ativou) — nunca as duas ações separadas."
+            "description": "Decide sozinho entre convite de primeiro acesso (nunca ativou a conta) e redefinição de senha (já ativou) — nunca as duas ações separadas.\n\nEscopo exigido: members:write"
           }
         }
       ]
@@ -231,7 +231,7 @@
                 "access-grants"
               ]
             },
-            "description": "Upsert real — chamar de novo com o mesmo par user_id/product_id é sempre seguro (mesma validade = mesmo estado; validade diferente = atualiza).",
+            "description": "Upsert real — chamar de novo com o mesmo par user_id/product_id é sempre seguro (mesma validade = mesmo estado; validade diferente = atualiza).\n\nEscopo exigido: access:write",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"user_id\": \"uuid-aqui\",\n  \"product_id\": \"uuid-aqui\"\n}",
@@ -264,7 +264,7 @@
                 "access-grants"
               ]
             },
-            "description": ""
+            "description": "Escopo exigido: access:read"
           }
         },
         {
@@ -288,7 +288,7 @@
                 "access-grants"
               ]
             },
-            "description": "",
+            "description": "Escopo exigido: access:write",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"user_id\": \"valor\",\n  \"product_id\": \"valor\",\n  \"expires_at\": null\n}",
@@ -321,7 +321,7 @@
                 "access-grants"
               ]
             },
-            "description": "Idempotente — revogar um acesso que já não existe também retorna sucesso.",
+            "description": "Idempotente — revogar um acesso que já não existe também retorna sucesso.\n\nEscopo exigido: access:write",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"user_id\": \"valor\",\n  \"product_id\": \"valor\"\n}",
@@ -359,7 +359,7 @@
                 "products"
               ]
             },
-            "description": ""
+            "description": "Escopo exigido: products:read"
           }
         },
         {
@@ -383,7 +383,7 @@
                 "products"
               ]
             },
-            "description": "Sem chave natural de deduplicação — use Idempotency-Key pra reintentos seguros, senão cada chamada cria um produto novo.",
+            "description": "Sem chave natural de deduplicação — use Idempotency-Key pra reintentos seguros, senão cada chamada cria um produto novo.\n\nEscopo exigido: products:write",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"title\": \"valor\",\n  \"content_type\": \"valor\"\n}",
@@ -417,7 +417,7 @@
                 "{id}"
               ]
             },
-            "description": ""
+            "description": "Escopo exigido: products:read"
           }
         },
         {
@@ -442,7 +442,7 @@
                 "{id}"
               ]
             },
-            "description": "Parcial."
+            "description": "Parcial.\n\nEscopo exigido: products:write"
           }
         },
         {
@@ -467,7 +467,7 @@
                 "{id}"
               ]
             },
-            "description": "Exclui o produto e todo o conteúdo (módulos, aulas). Idempotente."
+            "description": "Exclui o produto e todo o conteúdo (módulos, aulas). Idempotente.\n\nEscopo exigido: products:delete"
           }
         }
       ]
@@ -496,7 +496,7 @@
                 "certificates"
               ]
             },
-            "description": ""
+            "description": "Escopo exigido: certificates:read"
           }
         },
         {
@@ -520,7 +520,7 @@
                 "certificates"
               ]
             },
-            "description": "Idempotente de propósito — chamar de novo com o mesmo par user_id/product_id retorna o certificado já existente, nunca duplica.",
+            "description": "Idempotente de propósito — chamar de novo com o mesmo par user_id/product_id retorna o certificado já existente, nunca duplica.\n\nEscopo exigido: certificates:write",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"user_id\": \"valor\",\n  \"product_id\": \"valor\"\n}",
@@ -558,7 +558,7 @@
                 "invites"
               ]
             },
-            "description": ""
+            "description": "Escopo exigido: invites:read"
           }
         },
         {
@@ -582,7 +582,7 @@
                 "invites"
               ]
             },
-            "description": "Sem chave natural de deduplicação (cada chamada gera um código novo de propósito) — use Idempotency-Key pra reintentos seguros.",
+            "description": "Sem chave natural de deduplicação (cada chamada gera um código novo de propósito) — use Idempotency-Key pra reintentos seguros.\n\nEscopo exigido: invites:write",
             "body": {
               "mode": "raw",
               "raw": "{}",
@@ -620,7 +620,7 @@
                 "sales"
               ]
             },
-            "description": "Somente leitura — populado pelos webhooks de entrada do Asaas/Kiwify ou por concessões manuais com granted_by='purchase'/'pack'."
+            "description": "Somente leitura — populado pelos webhooks de entrada do Asaas/Kiwify ou por concessões manuais com granted_by='purchase'/'pack'.\n\nEscopo exigido: sales:read"
           }
         }
       ]

@@ -5,10 +5,12 @@ import { getApiActor } from '@/lib/core/actor'
 import { updateProduct, deleteProduct } from '@/lib/core/products'
 import { apiSuccess, Errors } from '@/lib/api-response'
 import { withIdempotency } from '@/lib/api-idempotency'
+import { hasScope } from '@/lib/api-scopes'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await checkApiKey(req)
   if (!auth.ok) return Errors.unauthorized()
+  if (!hasScope(auth, 'products:read')) return Errors.forbidden('products:read')
 
   const { id } = await params
   const admin = createAdminClient()
@@ -21,6 +23,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await checkApiKey(req)
   if (!auth.ok) return Errors.unauthorized()
+  if (!hasScope(auth, 'products:write')) return Errors.forbidden('products:write')
   const actor = getApiActor(auth.keyName)
 
   return withIdempotency(req, actor.label, async () => {
@@ -37,6 +40,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await checkApiKey(req)
   if (!auth.ok) return Errors.unauthorized()
+  if (!hasScope(auth, 'products:delete')) return Errors.forbidden('products:delete')
   const actor = getApiActor(auth.keyName)
 
   return withIdempotency(req, actor.label, async () => {

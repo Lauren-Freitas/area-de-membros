@@ -5,10 +5,12 @@ import { getApiActor } from '@/lib/core/actor'
 import { emitEvent } from '@/lib/core/events'
 import { apiSuccess, Errors } from '@/lib/api-response'
 import { withIdempotency } from '@/lib/api-idempotency'
+import { hasScope } from '@/lib/api-scopes'
 
 export async function GET(req: NextRequest) {
   const auth = await checkApiKey(req)
   if (!auth.ok) return Errors.unauthorized()
+  if (!hasScope(auth, 'certificates:read')) return Errors.forbidden('certificates:read')
 
   const admin = createAdminClient()
   const { data, error } = await admin
@@ -23,6 +25,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const auth = await checkApiKey(req)
   if (!auth.ok) return Errors.unauthorized()
+  if (!hasScope(auth, 'certificates:write')) return Errors.forbidden('certificates:write')
   const actor = getApiActor(auth.keyName)
 
   return withIdempotency(req, actor.label, async () => {

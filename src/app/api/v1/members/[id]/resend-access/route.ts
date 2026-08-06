@@ -4,6 +4,7 @@ import { getApiActor } from '@/lib/core/actor'
 import { resendAccess } from '@/lib/core/members'
 import { apiSuccess, Errors } from '@/lib/api-response'
 import { withIdempotency } from '@/lib/api-idempotency'
+import { hasScope } from '@/lib/api-scopes'
 
 /**
  * Envia o acesso ao membro — decide sozinho entre convite de primeiro
@@ -14,6 +15,7 @@ import { withIdempotency } from '@/lib/api-idempotency'
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await checkApiKey(req)
   if (!auth.ok) return Errors.unauthorized()
+  if (!hasScope(auth, 'members:write')) return Errors.forbidden('members:write')
   const actor = getApiActor(auth.keyName)
 
   return withIdempotency(req, actor.label, async () => {

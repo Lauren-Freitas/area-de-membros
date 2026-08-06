@@ -5,10 +5,12 @@ import { getApiActor } from '@/lib/core/actor'
 import { grantAccess, revokeAccess, updateAccessExpiry } from '@/lib/core/access'
 import { apiSuccess, Errors } from '@/lib/api-response'
 import { withIdempotency } from '@/lib/api-idempotency'
+import { hasScope } from '@/lib/api-scopes'
 
 export async function POST(req: NextRequest) {
   const auth = await checkApiKey(req)
   if (!auth.ok) return Errors.unauthorized()
+  if (!hasScope(auth, 'access:write')) return Errors.forbidden('access:write')
   const actor = getApiActor(auth.keyName)
 
   return withIdempotency(req, actor.label, async () => {
@@ -27,6 +29,7 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const auth = await checkApiKey(req)
   if (!auth.ok) return Errors.unauthorized()
+  if (!hasScope(auth, 'access:read')) return Errors.forbidden('access:read')
 
   const { searchParams } = req.nextUrl
   const user_id = searchParams.get('user_id')
@@ -49,6 +52,7 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   const auth = await checkApiKey(req)
   if (!auth.ok) return Errors.unauthorized()
+  if (!hasScope(auth, 'access:write')) return Errors.forbidden('access:write')
   const actor = getApiActor(auth.keyName)
 
   return withIdempotency(req, actor.label, async () => {
@@ -67,6 +71,7 @@ export async function PATCH(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const auth = await checkApiKey(req)
   if (!auth.ok) return Errors.unauthorized()
+  if (!hasScope(auth, 'access:write')) return Errors.forbidden('access:write')
   const actor = getApiActor(auth.keyName)
 
   return withIdempotency(req, actor.label, async () => {
