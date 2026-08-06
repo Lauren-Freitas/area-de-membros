@@ -8,10 +8,10 @@ interface Card {
 }
 
 const COMUNICACAO: Card[] = [
-  { href: '/admin/integracoes/api', emoji: '📡', name: 'API', desc: 'Faça chamadas HTTP para criar membros, conceder acessos e gerenciar produtos.' },
+  { href: '/admin/integracoes/api-reference', emoji: '📡', name: 'API Reference', desc: 'Autenticação, API Keys e todos os endpoints — Membros, Acessos, Produtos e mais.' },
   { href: '/admin/integracoes/webhooks', emoji: '🔔', name: 'Webhooks', desc: 'Receba eventos da plataforma em qualquer endpoint.' },
-  { href: '/admin/integracoes/documentacao', emoji: '📖', name: 'Documentação', desc: 'Endpoints, autenticação, eventos e payloads completos.' },
-  { href: '/admin/integracoes/exemplos', emoji: '⚡', name: 'Exemplos', desc: 'Tutoriais prontos para n8n, Make, Zapier, código e automações.' },
+  { href: '/admin/integracoes/documentacao', emoji: '📖', name: 'Documentação', desc: 'Ponto de partida — introdução, autenticação, API, eventos e recipes.' },
+  { href: '/admin/integracoes/recipes', emoji: '⚡', name: 'Recipes', desc: 'Fluxos completos prontos — n8n, Make, Zapier, código, o que for.' },
 ]
 
 function CardLink({ card }: { card: Card }) {
@@ -32,7 +32,9 @@ export default function IntegracoesPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-xl font-bold text-gray-900 dark:text-white">Integrações</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Conecte sua plataforma a qualquer sistema.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 max-w-xl">
+          Construída seguindo o princípio API First. Qualquer ferramenta capaz de fazer requisições HTTP pode criar membros, conceder acessos, gerenciar produtos e reagir a eventos via Webhooks.
+        </p>
       </div>
 
       <div>
@@ -42,10 +44,12 @@ export default function IntegracoesPage() {
         </div>
       </div>
 
-      {/* Asaas é a única exceção com card próprio: diferente de n8n/Make/Zapier (que são
-          só clientes HTTP genéricos, viram exemplo dentro de "Exemplos"), o Asaas tem uma
-          integração nativa de verdade aqui — recebe webhook de pagamento e já cria o
-          membro/libera o acesso sozinho, sem precisar de n8n no meio. */}
+      {/* Gateways de pagamento são a única exceção com card próprio: diferente de
+          n8n/Make/Zapier (clientes HTTP genéricos, viram receita dentro de "Recipes"),
+          um gateway fala diretamente com a plataforma via webhook de entrada e já cria
+          o membro/libera o acesso sozinho. Asaas é o primeiro; Stripe, Mercado Pago,
+          Hotmart, Kiwify e Kirvano entram depois seguindo a mesma estrutura de página,
+          sem precisar mudar a arquitetura. */}
       <div>
         <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Pagamentos</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -53,7 +57,10 @@ export default function IntegracoesPage() {
             href="/admin/integracoes/asaas"
             className="bg-card rounded-2xl border border-gray-200 dark:border-[#1e2030] p-6 flex flex-col gap-2 hover:shadow-md hover:border-gray-300 dark:hover:border-[#2a2f45] hover:bg-gray-50 dark:hover:bg-[#12162a] transition"
           >
-            <span className="text-xl font-black tracking-tight" style={{ color: '#00b1e4' }}>Asaas</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-black tracking-tight" style={{ color: '#00b1e4' }}>Asaas</span>
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-gray-100 dark:bg-[#1a2035] text-gray-400 uppercase tracking-wide">Gateway</span>
+            </div>
             <p className="text-xs text-gray-400 leading-relaxed">Webhook de pagamento confirmado — libera acesso automaticamente, sem automação externa.</p>
           </Link>
         </div>

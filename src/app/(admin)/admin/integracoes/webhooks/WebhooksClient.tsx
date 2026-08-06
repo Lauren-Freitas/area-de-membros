@@ -57,11 +57,14 @@ function fmtFull(d: string) {
   return new Date(d).toLocaleString('pt-BR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 }
 
-function StatusBadge({ status }: { status: number | null }) {
+function StatusBadge({ status, responseBody }: { status: number | null; responseBody?: string | null }) {
   if (!status) return <span className="text-gray-300 text-xs">—</span>
   const ok = status >= 200 && status < 300
   return (
-    <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${ok ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'}`}>
+    <span
+      title={responseBody ? `Resposta: ${responseBody.slice(0, 500)}` : undefined}
+      className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${responseBody ? 'cursor-help' : ''} ${ok ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'}`}
+    >
       {status}
     </span>
   )
@@ -92,6 +95,20 @@ function WebhookRow({ webhook, products }: { webhook: Webhook; products: Product
   const [loadingDeliveries, setLoadingDeliveries] = useState(false)
   const [testResult, setTestResult] = useState<{ success: boolean; status: number } | { error: string } | null>(null)
   const [isPending, startTransition] = useTransition()
+  const [copiedDeliveryId, setCopiedDeliveryId] = useState<string | null>(null)
+
+  function copyPayload(delivery: WebhookDelivery) {
+    navigator.clipboard.writeText(JSON.stringify(delivery.payload, null, 2))
+    setCopiedDeliveryId(`payload-${delivery.id}`)
+    setTimeout(() => setCopiedDeliveryId(null), 2000)
+  }
+
+  function copyCurl(delivery: WebhookDelivery) {
+    const curl = `curl -X POST ${webhook.url} \\\n  -H "Content-Type: application/json" \\\n  -d '${JSON.stringify(delivery.payload)}'`
+    navigator.clipboard.writeText(curl)
+    setCopiedDeliveryId(`curl-${delivery.id}`)
+    setTimeout(() => setCopiedDeliveryId(null), 2000)
+  }
 
   async function loadDeliveries() {
     setLoadingDeliveries(true)
@@ -193,7 +210,10 @@ function WebhookRow({ webhook, products }: { webhook: Webhook; products: Product
           </form>
 
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Histórico de entregas</p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Histórico de entregas</p>
+              <p className="text-[11px] text-gray-300">Retentativa automática: em breve — hoje, reenvie manualmente</p>
+            </div>
             {loadingDeliveries ? (
               <p className="text-xs text-gray-400 py-3">Carregando...</p>
             ) : !deliveries?.length ? (
@@ -203,11 +223,20 @@ function WebhookRow({ webhook, products }: { webhook: Webhook; products: Product
                 {deliveries.map(d => (
                   <div key={d.id} className="flex items-center py-2 gap-3">
                     <span className="flex-1 text-xs font-mono text-gray-600">{d.event}</span>
+                    <span className="w-14 shrink-0 text-xs text-gray-300" title="Tentativas">1×</span>
                     <span className="w-32 shrink-0 text-xs text-gray-400">{fmtFull(d.attempted_at)}</span>
-                    <span className="w-16 shrink-0"><StatusBadge status={d.response_status} /></span>
-                    <button onClick={() => handleResend(d.id)} disabled={isPending} className="shrink-0 text-xs hover:underline disabled:opacity-60" style={{ color: 'var(--brand)' }}>
-                      Reenviar
-                    </button>
+                    <span className="w-16 shrink-0"><StatusBadge status={d.response_status} responseBody={d.response_body} /></span>
+                    <div className="flex items-center gap-2.5 shrink-0">
+                      <button onClick={() => copyPayload(d)} className="text-xs hover:underline text-gray-400 hover:text-gray-700">
+                        {copiedDeliveryId === `payload-${d.id}` ? '✓ Payload' : 'Copiar payload'}
+                      </button>
+                      <button onClick={() => copyCurl(d)} className="text-xs hover:underline text-gray-400 hover:text-gray-700">
+                        {copiedDeliveryId === `curl-${d.id}` ? '✓ cURL' : 'Copiar curl'}
+                      </button>
+                      <button onClick={() => handleResend(d.id)} disabled={isPending} className="text-xs hover:underline disabled:opacity-60" style={{ color: 'var(--brand)' }}>
+                        Reenviar
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -247,6 +276,41 @@ export function WebhooksClient({ webhooks, products }: { webhooks: Webhook[]; pr
         </div>
         <h1 className="text-xl font-bold text-gray-900">Webhooks</h1>
       </div>
+
+      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] px-5 py-4 flex items-start gap-3">
+        <span className="shrink-0 mt-0.5 text-xs font-bold px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400">SAÍDA</span>
+        <p className="text-sm text-gray-600 dark:text-gray-300">
+          Esta é a API que sua plataforma <strong>envia</strong> — cadastre uma URL abaixo e receba um POST toda vez que um dos eventos escolhidos acontecer, em qualquer endpoint capaz de receber HTTP. Catálogo completo de eventos logo abaixo.
+        </p>
+      </div>
+
+      <details className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5 group">
+        <summary className="font-semibold text-gray-900 dark:text-gray-100 cursor-pointer select-none list-none flex items-center gap-2">
+          <svg className="w-3.5 h-3.5 text-gray-400 transition group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+          Eventos disponíveis
+        </summary>
+        <div className="mt-3 space-y-3">
+          <p className="text-sm text-gray-500 dark:text-gray-400">Todo evento chega no mesmo formato — só o conteúdo de <code className="bg-gray-100 dark:bg-[#1a2035] px-1 rounded text-xs">metadata</code> muda:</p>
+          <pre className="bg-gray-900 text-gray-100 rounded-xl p-3.5 text-[11px] overflow-x-auto leading-relaxed">{JSON.stringify({
+            event: 'purchase.approved',
+            timestamp: new Date().toISOString(),
+            member: { id: 'uuid', name: 'João Silva', email: 'joao@email.com' },
+            product: { id: 'uuid', title: 'Programa de Emagrecimento' },
+            actor: { type: 'webhook', label: 'Asaas' },
+            metadata: { value: 297, billing_type: 'PIX', provider: 'asaas' },
+          }, null, 2)}</pre>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
+            {ALL_WEBHOOK_EVENTS.map(ev => (
+              <div key={ev} className="flex items-baseline gap-2 text-sm">
+                <code className="text-gray-700 dark:text-gray-300 font-mono text-xs shrink-0">{ev}</code>
+                <span className="text-gray-400 text-xs truncate">{EVENT_LABELS[ev]}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </details>
 
       {/* Toolbar */}
       <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-4 flex flex-wrap items-center gap-3">
@@ -369,7 +433,8 @@ export function WebhooksClient({ webhooks, products }: { webhooks: Webhook[]; pr
           <svg className="w-4 h-4 text-blue-400 shrink-0" fill="currentColor" viewBox="0 0 24 24">
             <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 01.67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 11-.671-1.34l.041-.022zM12 9a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
           </svg>
-          Aprenda mais sobre os <a href="https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.webhook/" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700 transition" style={{ color: 'var(--brand)' }}>webhooks no n8n</a>
+          Fluxos completos usando webhooks em{' '}
+          <a href="/admin/integracoes/recipes" className="underline hover:text-gray-700 transition" style={{ color: 'var(--brand)' }}>Recipes</a>
         </div>
       </div>
     </div>

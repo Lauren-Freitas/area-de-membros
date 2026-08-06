@@ -11,6 +11,10 @@ interface ApiKey {
   key: string
   created_at: string
   last_used_at: string | null
+  last_ip: string | null
+  scopes: string[] | null
+  expires_at: string | null
+  creator: { name: string } | null
 }
 
 function maskKey(key: string) {
@@ -59,8 +63,8 @@ export function ApiKeysClient({ keys }: { keys: ApiKey[] }) {
       <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] px-5 py-4 flex items-start gap-3">
         <span className="shrink-0 mt-0.5 text-xs font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400">ENTRADA</span>
         <p className="text-sm text-gray-600 dark:text-gray-300">
-          Esta é a API que sua plataforma <strong>recebe</strong> — n8n, Make, Zapier ou qualquer sistema HTTP chama esses endpoints pra criar membros, liberar acesso, criar produtos etc. Cada chave abaixo autentica quem pode chamar. Referência completa de endpoints e exemplos de código em{' '}
-          <Link href="/admin/integracoes/documentacao" className="underline font-medium" style={{ color: 'var(--brand)' }}>Documentação</Link>.
+          Esta é a API que sua plataforma <strong>recebe</strong> — qualquer sistema capaz de fazer requisições HTTP (n8n, Make, Zapier, um script Python, uma aplicação Node) chama esses endpoints pra criar membros, liberar acesso, gerenciar produtos etc. Cada chave abaixo autentica quem pode chamar. Referência completa de endpoints em{' '}
+          <Link href="/admin/integracoes/api-reference" className="underline font-medium" style={{ color: 'var(--brand)' }}>API Reference</Link>.
         </p>
       </div>
 
@@ -152,35 +156,49 @@ export function ApiKeysClient({ keys }: { keys: ApiKey[] }) {
               Nenhuma chave criada ainda.
             </div>
           ) : filtered.map(k => (
-            <div key={k.id} className="flex items-center py-3.5 hover:bg-gray-50 transition">
-              <span className="flex-1 font-medium text-gray-900 text-sm">{k.name}</span>
-              <div className="flex-1 flex items-center gap-2">
-                <code className="text-xs font-mono text-gray-500">{maskKey(k.key)}</code>
-                <button
-                  onClick={() => copy(k.key, k.id)}
-                  className="text-gray-400 hover:text-gray-700 transition"
-                  title="Copiar chave"
-                >
-                  {copiedId === k.id ? (
-                    <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                  )}
-                </button>
+            <div key={k.id} className="py-3.5 hover:bg-gray-50 transition">
+              <div className="flex items-center">
+                <span className="flex-1 font-medium text-gray-900 text-sm">{k.name}</span>
+                <div className="flex-1 flex items-center gap-2">
+                  <code className="text-xs font-mono text-gray-500">{maskKey(k.key)}</code>
+                  <button
+                    onClick={() => copy(k.key, k.id)}
+                    className="text-gray-400 hover:text-gray-700 transition"
+                    title="Copiar chave"
+                  >
+                    {copiedId === k.id ? (
+                      <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+                <span className="w-32 shrink-0 text-sm text-gray-500">{fmt(k.created_at)}</span>
+                <span className="w-32 shrink-0 text-sm text-gray-400">{fmt(k.last_used_at)}</span>
+                <div className="w-16 shrink-0 flex justify-end">
+                  <DeleteConfirmButton
+                    onDelete={() => deleteApiKey(k.id)}
+                    title="Excluir chave de API"
+                    message="Qualquer integração usando essa chave vai parar de funcionar imediatamente."
+                    className="text-xs text-red-400 hover:text-red-600 transition font-medium"
+                  />
+                </div>
               </div>
-              <span className="w-32 shrink-0 text-sm text-gray-500">{fmt(k.created_at)}</span>
-              <span className="w-32 shrink-0 text-sm text-gray-400">{fmt(k.last_used_at)}</span>
-              <div className="w-16 shrink-0 flex justify-end">
-                <DeleteConfirmButton
-                  onDelete={() => deleteApiKey(k.id)}
-                  title="Excluir chave de API"
-                  message="Qualquer integração usando essa chave vai parar de funcionar imediatamente."
-                  className="text-xs text-red-400 hover:text-red-600 transition font-medium"
-                />
+              <div className="flex items-center gap-3 mt-1.5 text-[11px] text-gray-400 flex-wrap">
+                {k.creator?.name && <span>Criada por {k.creator.name}</span>}
+                {k.last_ip && <span>· último IP {k.last_ip}</span>}
+                <span className="inline-flex items-center gap-1">
+                  · Escopos: todas as permissões
+                  <span className="text-[10px] font-semibold px-1 py-px rounded bg-gray-100 dark:bg-[#1a2035] text-gray-400 uppercase tracking-wide">em breve</span>
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  · Expira: {k.expires_at ? fmt(k.expires_at) : 'nunca'}
+                  <span className="text-[10px] font-semibold px-1 py-px rounded bg-gray-100 dark:bg-[#1a2035] text-gray-400 uppercase tracking-wide">em breve</span>
+                </span>
               </div>
             </div>
           ))}

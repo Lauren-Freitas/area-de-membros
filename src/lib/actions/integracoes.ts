@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { logActivity } from '@/lib/log-activity'
+import { getAdminActor } from '@/lib/core/actor'
 import { ALL_WEBHOOK_EVENTS, type WebhookEvent } from '@/lib/fire-webhooks'
 
 /**
@@ -35,12 +36,13 @@ export async function createApiKey(_: unknown, formData: FormData) {
   const name = (formData.get('name') as string ?? '').trim()
   if (!name) return { error: 'Nome obrigatório' }
 
+  const actor = await getAdminActor()
   const key = `tc_${crypto.randomUUID().replace(/-/g, '')}`
   const admin = createAdminClient()
-  const { error } = await admin.from('api_keys').insert({ name, key })
+  const { error } = await admin.from('api_keys').insert({ name, key, created_by: actor.userId ?? null })
   if (error) return { error: error.message }
 
-  await logActivity({ action: 'criar', entity: 'api_key', entityName: name })
+  await logActivity({ action: 'criar', entity: 'api_key', entityName: name, actor })
   revalidatePath('/admin/integracoes/api')
   return { key, name }
 }
@@ -114,7 +116,9 @@ export async function toggleOutboundWebhook(id: string, currentlyActive: boolean
 export interface WebhookDelivery {
   id: string
   event: string
+  payload: Record<string, unknown>
   response_status: number | null
+  response_body: string | null
   success: boolean
   attempted_at: string
 }
@@ -124,7 +128,7 @@ export async function getWebhookDeliveries(webhookId: string): Promise<WebhookDe
   const admin = createAdminClient()
   const { data } = await admin
     .from('outbound_webhook_deliveries')
-    .select('id, event, response_status, success, attempted_at')
+    .select('id, event, payload, response_status, response_body, success, attempted_at')
     .eq('webhook_id', webhookId)
     .order('attempted_at', { ascending: false })
     .limit(20)
