@@ -1,0 +1,61 @@
+{
+  "name": "Área de Membros — Receber webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "area-de-membros",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "area-de-membros-events"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "1",
+              "leftValue": "={{ $json.body.event }}",
+              "rightValue": "purchase.approved",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-1",
+      "name": "É purchase.approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [260, 0]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "1", "name": "member_name", "type": "string", "value": "={{ $json.body.member.name }}" },
+            { "id": "2", "name": "member_email", "type": "string", "value": "={{ $json.body.member.email }}" },
+            { "id": "3", "name": "product_title", "type": "string", "value": "={{ $json.body.product.title }}" },
+            { "id": "4", "name": "actor", "type": "string", "value": "={{ $json.body.actor.label }}" }
+          ]
+        }
+      },
+      "id": "set-1",
+      "name": "Extrai dados do evento",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [500, 0]
+    }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "É purchase.approved?", "type": "main", "index": 0 }]] },
+    "É purchase.approved?": { "main": [[{ "node": "Extrai dados do evento", "type": "main", "index": 0 }], []] }
+  }
+}

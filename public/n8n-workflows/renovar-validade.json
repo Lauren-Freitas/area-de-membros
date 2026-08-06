@@ -1,0 +1,55 @@
+{
+  "name": "Área de Membros — Renovar validade",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger-1",
+      "name": "Início manual",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "1", "name": "user_id", "type": "string", "value": "uuid-do-membro" },
+            { "id": "2", "name": "product_id", "type": "string", "value": "uuid-do-produto" },
+            { "id": "3", "name": "nova_validade", "type": "string", "value": "={{ $now.plus({ days: 30 }).toISO() }}" }
+          ]
+        }
+      },
+      "id": "set-1",
+      "name": "Calcula nova validade (+30 dias)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "https://membros.thiagocantalovo.com/api/v1/access-grants",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "SUA_CHAVE_AQUI" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ user_id: $json.user_id, product_id: $json.product_id, expires_at: $json.nova_validade }) }}",
+        "options": {}
+      },
+      "id": "http-1",
+      "name": "PATCH /api/v1/access-grants",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 0]
+    }
+  ],
+  "connections": {
+    "Início manual": { "main": [[{ "node": "Calcula nova validade (+30 dias)", "type": "main", "index": 0 }]] },
+    "Calcula nova validade (+30 dias)": { "main": [[{ "node": "PATCH /api/v1/access-grants", "type": "main", "index": 0 }]] }
+  }
+}

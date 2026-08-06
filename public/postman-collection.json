@@ -1,0 +1,629 @@
+{
+  "info": {
+    "name": "Área de Membros API",
+    "description": "API pública da plataforma, construída seguindo o princípio API First. Qualquer ferramenta capaz de fazer requisições HTTP — n8n, Make, Zapier, um script Python, uma aplicação Node — pode criar membros, conceder acessos, gerenciar produtos e reagir a eventos via Webhooks. Toda resposta usa o mesmo envelope: `{\"success\": true, \"data\": {...}}` ou `{\"success\": false, \"error\": {\"code\", \"message\"}}`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "x-api-key",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}",
+        "type": "string"
+      },
+      {
+        "key": "in",
+        "value": "header",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://membros.thiagocantalovo.com/api/v1"
+    },
+    {
+      "key": "apiKey",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Membros",
+      "item": [
+        {
+          "name": "Listar membros",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/members",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "members"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Criar membro",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/members",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "members"
+              ]
+            },
+            "description": "Idempotente por e-mail — se já existir um membro com esse e-mail, reaproveita o cadastro em vez de duplicar. Se `products` for enviado, já libera o acesso na mesma chamada.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"valor\",\n  \"email\": \"valor\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Detalhe do membro",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/members/{id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "members",
+                "{id}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Atualizar membro",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/members/{id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "members",
+                "{id}"
+              ]
+            },
+            "description": "Parcial — só envie os campos que quer mudar.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Excluir membro",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/members/{id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "members",
+                "{id}"
+              ]
+            },
+            "description": "Idempotente — excluir um membro já excluído também retorna sucesso."
+          }
+        },
+        {
+          "name": "Enviar acesso",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/members/{id}/resend-access",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "members",
+                "{id}",
+                "resend-access"
+              ]
+            },
+            "description": "Decide sozinho entre convite de primeiro acesso (nunca ativou a conta) e redefinição de senha (já ativou) — nunca as duas ações separadas."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Acessos",
+      "item": [
+        {
+          "name": "Conceder acesso",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/access-grants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "access-grants"
+              ]
+            },
+            "description": "Upsert real — chamar de novo com o mesmo par user_id/product_id é sempre seguro (mesma validade = mesmo estado; validade diferente = atualiza).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"uuid-aqui\",\n  \"product_id\": \"uuid-aqui\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Listar acessos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/access-grants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "access-grants"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Alterar validade de um acesso",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/access-grants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "access-grants"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"valor\",\n  \"product_id\": \"valor\",\n  \"expires_at\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Revogar acesso",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/access-grants",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "access-grants"
+              ]
+            },
+            "description": "Idempotente — revogar um acesso que já não existe também retorna sucesso.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"valor\",\n  \"product_id\": \"valor\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Produtos",
+      "item": [
+        {
+          "name": "Listar produtos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Criar produto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products"
+              ]
+            },
+            "description": "Sem chave natural de deduplicação — use Idempotency-Key pra reintentos seguros, senão cada chamada cria um produto novo.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"valor\",\n  \"content_type\": \"valor\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Detalhe do produto",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{id}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Atualizar produto",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{id}"
+              ]
+            },
+            "description": "Parcial."
+          }
+        },
+        {
+          "name": "Excluir produto",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{id}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{id}"
+              ]
+            },
+            "description": "Exclui o produto e todo o conteúdo (módulos, aulas). Idempotente."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Certificados",
+      "item": [
+        {
+          "name": "Listar certificados",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/certificates",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "certificates"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Emitir certificado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/certificates",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "certificates"
+              ]
+            },
+            "description": "Idempotente de propósito — chamar de novo com o mesmo par user_id/product_id retorna o certificado já existente, nunca duplica.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"valor\",\n  \"product_id\": \"valor\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Convites",
+      "item": [
+        {
+          "name": "Listar convites",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/invites",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invites"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Criar link de convite",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/invites",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "invites"
+              ]
+            },
+            "description": "Sem chave natural de deduplicação (cada chamada gera um código novo de propósito) — use Idempotency-Key pra reintentos seguros.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Compras & Pagamentos",
+      "item": [
+        {
+          "name": "Listar vendas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sales",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "sales"
+              ]
+            },
+            "description": "Somente leitura — populado pelos webhooks de entrada do Asaas/Kiwify ou por concessões manuais com granted_by='purchase'/'pack'."
+          }
+        }
+      ]
+    }
+  ]
+}

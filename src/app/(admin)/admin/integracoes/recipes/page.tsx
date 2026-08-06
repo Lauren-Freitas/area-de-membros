@@ -13,6 +13,7 @@ interface Recipe {
   steps: Step[]
   curl?: string
   note?: string
+  workflow?: string
 }
 
 const RECIPES: Recipe[] = [
@@ -22,14 +23,15 @@ const RECIPES: Recipe[] = [
     steps: [
       { label: 'Notion', sub: 'cadastro da venda' },
       { label: 'n8n', sub: 'decide os produtos' },
-      { label: 'API', sub: 'POST /api/admin/usuarios' },
+      { label: 'API', sub: 'POST /api/v1/members' },
       { label: 'Área de Membros', sub: 'cria + libera + convida' },
       { label: 'Paciente', sub: 'recebe acesso' },
     ],
-    curl: `curl -X POST ${baseUrl}/api/admin/usuarios \\
+    curl: `curl -X POST ${baseUrl}/api/v1/members \\
   -H "x-api-key: sua-chave" \\
   -H "Content-Type: application/json" \\
   -d '{"name":"João Silva","email":"joao@email.com","products":["uuid-do-produto"]}'`,
+    workflow: 'criar-membro.json',
   },
   {
     title: 'Compra aprovada',
@@ -42,6 +44,7 @@ const RECIPES: Recipe[] = [
       { label: 'Notion / WhatsApp', sub: 'você decide o que fazer' },
     ],
     note: 'Configure o endpoint em Integrações → Webhooks, evento purchase.approved. Payload completo em Webhooks.',
+    workflow: 'receber-webhook.json',
   },
   {
     title: 'Cancelamento',
@@ -49,37 +52,39 @@ const RECIPES: Recipe[] = [
     steps: [
       { label: 'Asaas / Notion', sub: 'cancelamento identificado' },
       { label: 'n8n', sub: 'aciona a revogação' },
-      { label: 'API', sub: 'DELETE /api/admin/acesso' },
+      { label: 'API', sub: 'DELETE /api/v1/access-grants' },
       { label: 'Acesso revogado', sub: 'imediato' },
       { label: 'E-mail / Slack', sub: 'notificação' },
     ],
-    curl: `curl -X DELETE ${baseUrl}/api/admin/acesso \\
+    curl: `curl -X DELETE ${baseUrl}/api/v1/access-grants \\
   -H "x-api-key: sua-chave" \\
   -H "Content-Type: application/json" \\
   -d '{"user_id":"uuid-do-membro","product_id":"uuid-do-produto"}'`,
+    workflow: 'revogar-acesso.json',
   },
   {
     title: 'Liberar produto',
-    desc: 'Conceder acesso a um produto específico pra um membro já existente.',
+    desc: 'Conceder acesso a um produto específico pra um membro já existente. Idempotente — chamar de novo com o mesmo par é sempre seguro.',
     steps: [
       { label: 'Decisão externa', sub: 'Notion, planilha, humano' },
-      { label: 'API', sub: 'POST /api/admin/acesso' },
+      { label: 'API', sub: 'POST /api/v1/access-grants' },
       { label: 'Acesso liberado', sub: 'imediato' },
     ],
-    curl: `curl -X POST ${baseUrl}/api/admin/acesso \\
+    curl: `curl -X POST ${baseUrl}/api/v1/access-grants \\
   -H "x-api-key: sua-chave" \\
   -H "Content-Type: application/json" \\
   -d '{"user_id":"uuid-do-membro","product_id":"uuid-do-produto"}'`,
+    workflow: 'conceder-acesso.json',
   },
   {
     title: 'Atualizar validade de acesso',
     desc: 'Mudar quando um acesso já concedido expira, sem revogar e conceder de novo.',
     steps: [
       { label: 'Nova data decidida', sub: 'externamente' },
-      { label: 'API', sub: 'PATCH /api/admin/acesso' },
+      { label: 'API', sub: 'PATCH /api/v1/access-grants' },
       { label: 'Validade atualizada', sub: 'imediato' },
     ],
-    curl: `curl -X PATCH ${baseUrl}/api/admin/acesso \\
+    curl: `curl -X PATCH ${baseUrl}/api/v1/access-grants \\
   -H "x-api-key: sua-chave" \\
   -H "Content-Type: application/json" \\
   -d '{"user_id":"uuid-do-membro","product_id":"uuid-do-produto","expires_at":"2026-12-31T00:00:00.000Z"}'`,
@@ -90,59 +95,59 @@ const RECIPES: Recipe[] = [
     steps: [
       { label: 'Cobrança recorrente paga', sub: 'Asaas' },
       { label: 'n8n', sub: 'calcula nova data (+30 dias)' },
-      { label: 'API', sub: 'PATCH /api/admin/acesso' },
+      { label: 'API', sub: 'PATCH /api/v1/access-grants' },
       { label: 'Assinatura renovada', sub: 'sem interrupção' },
     ],
-    curl: `curl -X PATCH ${baseUrl}/api/admin/acesso \\
+    curl: `curl -X PATCH ${baseUrl}/api/v1/access-grants \\
   -H "x-api-key: sua-chave" \\
   -H "Content-Type: application/json" \\
   -d '{"user_id":"uuid-do-membro","product_id":"uuid-do-produto","expires_at":"{{data atual + 30 dias}}"}'`,
-    note: 'A data de expiração é calculada por quem chama (ex. um nó Function no n8n) — a API só grava o valor que ela recebe.',
+    note: 'A data de expiração é calculada por quem chama (ex. um nó Set no n8n) — a API só grava o valor que recebe.',
+    workflow: 'renovar-validade.json',
   },
   {
     title: 'Adicionar bônus',
     desc: 'Liberar um produto extra sem tocar nos acessos que o membro já tem.',
     steps: [
       { label: 'Condição atendida', sub: 'ex: indicou 3 amigos' },
-      { label: 'API', sub: 'POST /api/admin/acesso (produto bônus)' },
+      { label: 'API', sub: 'POST /api/v1/access-grants (produto bônus)' },
       { label: 'Bônus liberado', sub: 'acessos existentes intactos' },
     ],
-    curl: `curl -X POST ${baseUrl}/api/admin/acesso \\
+    curl: `curl -X POST ${baseUrl}/api/v1/access-grants \\
   -H "x-api-key: sua-chave" \\
   -H "Content-Type: application/json" \\
   -d '{"user_id":"uuid-do-membro","product_id":"uuid-do-produto-bonus"}'`,
   },
   {
     title: 'Trocar produto',
-    desc: 'Upgrade/downgrade — revoga o acesso atual e concede o novo em sequência.',
+    desc: 'Upgrade/downgrade — concede o novo e revoga o antigo em sequência.',
     steps: [
       { label: 'Troca decidida', sub: 'ex: upgrade de plano' },
-      { label: 'API', sub: 'DELETE acesso antigo' },
       { label: 'API', sub: 'POST acesso novo' },
+      { label: 'API', sub: 'DELETE acesso antigo' },
       { label: 'Produto trocado', sub: 'sem período sem acesso' },
     ],
-    curl: `curl -X DELETE ${baseUrl}/api/admin/acesso \\
+    curl: `curl -X POST ${baseUrl}/api/v1/access-grants \\
   -H "x-api-key: sua-chave" -H "Content-Type: application/json" \\
-  -d '{"user_id":"uuid-do-membro","product_id":"uuid-produto-antigo"}'
+  -d '{"user_id":"uuid-do-membro","product_id":"uuid-produto-novo"}'
 
-curl -X POST ${baseUrl}/api/admin/acesso \\
+curl -X DELETE ${baseUrl}/api/v1/access-grants \\
   -H "x-api-key: sua-chave" -H "Content-Type: application/json" \\
-  -d '{"user_id":"uuid-do-membro","product_id":"uuid-produto-novo"}'`,
-    note: 'Chame POST antes de DELETE se preferir garantir que o membro nunca fique um segundo sem nenhum acesso ativo.',
+  -d '{"user_id":"uuid-do-membro","product_id":"uuid-produto-antigo"}'`,
+    note: 'Conceda o novo antes de revogar o antigo, pra garantir que o membro nunca fique um segundo sem nenhum acesso ativo.',
   },
   {
     title: 'Enviar certificado',
-    desc: 'Emitir certificado de conclusão manualmente (fora do fluxo automático de aula concluída).',
+    desc: 'Emitir certificado de conclusão manualmente (fora do fluxo automático de aula concluída). Idempotente — chamar de novo com o mesmo par não gera um segundo certificado.',
     steps: [
       { label: 'Conclusão confirmada', sub: 'externamente' },
-      { label: 'API', sub: 'POST /api/admin/certificados' },
+      { label: 'API', sub: 'POST /api/v1/certificates' },
       { label: 'Certificado emitido', sub: '+ notificação ao membro' },
     ],
-    curl: `curl -X POST ${baseUrl}/api/admin/certificados \\
+    curl: `curl -X POST ${baseUrl}/api/v1/certificates \\
   -H "x-api-key: sua-chave" \\
   -H "Content-Type: application/json" \\
   -d '{"user_id":"uuid-do-membro","product_id":"uuid-do-produto"}'`,
-    note: 'Idempotente — chamar de novo com o mesmo par não gera um segundo certificado.',
   },
 ]
 
@@ -169,9 +174,20 @@ function FlowRow({ steps }: { steps: Step[] }) {
 function RecipeCard({ recipe }: { recipe: Recipe }) {
   return (
     <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6 space-y-3.5">
-      <div>
-        <h2 className="font-semibold text-gray-900 dark:text-gray-100">{recipe.title}</h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{recipe.desc}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="font-semibold text-gray-900 dark:text-gray-100">{recipe.title}</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{recipe.desc}</p>
+        </div>
+        {recipe.workflow && (
+          <a
+            href={`/n8n-workflows/${recipe.workflow}`}
+            download
+            className="shrink-0 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-[#2a2f45] text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 hover:border-gray-300 transition whitespace-nowrap"
+          >
+            ⬇ Workflow n8n
+          </a>
+        )}
       </div>
       <div className="overflow-x-auto pb-1">
         <FlowRow steps={recipe.steps} />
@@ -199,11 +215,17 @@ export default function RecipesPage() {
         </div>
       </div>
 
-      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
+      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6 space-y-3">
         <p className="text-sm text-gray-600 dark:text-gray-300">
           A tela de <strong>Gerenciar Membros</strong> existe pra consultar, corrigir e resolver exceções — o dia a dia normalmente é automatizado por uma das receitas abaixo. Cada uma mostra o fluxo e uma chamada de exemplo em cURL; o mesmo endpoint funciona a partir de n8n, Make, Zapier ou qualquer linguagem — outros exemplos de código (JavaScript, PHP, Python) estão na{' '}
           <Link href="/admin/integracoes/api-reference" className="underline font-medium" style={{ color: 'var(--brand)' }}>API Reference</Link>.
         </p>
+        <div className="flex flex-wrap gap-2 pt-1">
+          <a href="/postman-collection.json" download className="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 dark:border-[#2a2f45] text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#12162a] transition">
+            ⬇ Coleção Postman completa
+          </a>
+          <span className="text-xs text-gray-400 self-center">Workflows n8n prontos pra importar estão em cada receita abaixo (ícone ⬇).</span>
+        </div>
       </div>
 
       {RECIPES.map(recipe => <RecipeCard key={recipe.title} recipe={recipe} />)}

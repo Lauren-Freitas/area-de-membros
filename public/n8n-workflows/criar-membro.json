@@ -1,0 +1,55 @@
+{
+  "name": "Área de Membros — Criar membro",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger-1",
+      "name": "Início manual",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "1", "name": "name", "type": "string", "value": "João Silva" },
+            { "id": "2", "name": "email", "type": "string", "value": "joao@email.com" },
+            { "id": "3", "name": "product_id", "type": "string", "value": "uuid-do-produto" }
+          ]
+        }
+      },
+      "id": "set-1",
+      "name": "Dados do membro",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://membros.thiagocantalovo.com/api/v1/members",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "SUA_CHAVE_AQUI" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ name: $json.name, email: $json.email, products: [$json.product_id] }) }}",
+        "options": {}
+      },
+      "id": "http-1",
+      "name": "POST /api/v1/members",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 0]
+    }
+  ],
+  "connections": {
+    "Início manual": { "main": [[{ "node": "Dados do membro", "type": "main", "index": 0 }]] },
+    "Dados do membro": { "main": [[{ "node": "POST /api/v1/members", "type": "main", "index": 0 }]] }
+  }
+}

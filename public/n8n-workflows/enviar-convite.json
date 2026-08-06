@@ -1,0 +1,49 @@
+{
+  "name": "Área de Membros — Enviar acesso (convite ou login)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger-1",
+      "name": "Início manual",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "1", "name": "member_id", "type": "string", "value": "uuid-do-membro" }
+          ]
+        }
+      },
+      "id": "set-1",
+      "name": "ID do membro",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://membros.thiagocantalovo.com/api/v1/members/{{ $json.member_id }}/resend-access",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "SUA_CHAVE_AQUI" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "http-1",
+      "name": "POST .../resend-access",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 0]
+    }
+  ],
+  "connections": {
+    "Início manual": { "main": [[{ "node": "ID do membro", "type": "main", "index": 0 }]] },
+    "ID do membro": { "main": [[{ "node": "POST .../resend-access", "type": "main", "index": 0 }]] }
+  }
+}
