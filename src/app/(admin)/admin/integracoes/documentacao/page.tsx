@@ -123,9 +123,16 @@ export default function DocumentacaoPage() {
         </Link>
         <div>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">Documentação</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Referência da API pública e dos eventos de webhook — pra n8n, Make, Zapier ou qualquer sistema HTTP.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Referência da API pública e dos eventos de webhook.</p>
         </div>
       </div>
+
+      <Section title="Primeiros passos">
+        <p className="text-sm text-gray-600 dark:text-gray-300">
+          Esta plataforma não integra com nenhuma ferramenta específica — ela fala HTTP. n8n, Make, Zapier, um script Python, o que for: todos chamam a mesma <strong>API</strong> e podem escutar os mesmos <strong>Webhooks</strong> descritos abaixo. Se preferir ver isso em código pronto pra copiar, pule direto pra{' '}
+          <Link href="/admin/integracoes/exemplos" className="underline font-medium" style={{ color: 'var(--brand)' }}>Exemplos</Link>.
+        </p>
+      </Section>
 
       <Section title="Autenticação">
         <p className="text-sm text-gray-600 dark:text-gray-300">
@@ -175,76 +182,9 @@ export default function DocumentacaoPage() {
         </div>
       </Section>
 
-      <Section title="Exemplos de código">
-        <p className="text-sm text-gray-600 dark:text-gray-300">Todos liberando acesso a um produto — troque a URL/body pra qualquer outro endpoint da referência acima.</p>
-
-        <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">n8n — nó HTTP Request</p>
-          <ul className="text-sm text-gray-600 dark:text-gray-300 list-disc list-inside space-y-1">
-            <li>Method: <code className="bg-gray-100 dark:bg-[#1a2035] px-1 rounded text-xs">POST</code></li>
-            <li>URL: <code className="bg-gray-100 dark:bg-[#1a2035] px-1 rounded text-xs">{baseUrl}/api/admin/acesso</code></li>
-            <li>Headers: <code className="bg-gray-100 dark:bg-[#1a2035] px-1 rounded text-xs">x-api-key</code> = sua chave</li>
-            <li>Body (JSON): <code className="bg-gray-100 dark:bg-[#1a2035] px-1 rounded text-xs">{'{ "user_id": "{{$json.userId}}", "product_id": "uuid-do-produto" }'}</code></li>
-          </ul>
-        </div>
-
-        <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Make (Integromat) — módulo HTTP</p>
-          <p className="text-sm text-gray-600 dark:text-gray-300">Mesma coisa: módulo &quot;HTTP → Make a request&quot;, método POST, header <code className="bg-gray-100 dark:bg-[#1a2035] px-1 rounded text-xs">x-api-key</code>, body type JSON com o mesmo payload acima.</p>
-        </div>
-
-        <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Zapier — Webhooks by Zapier (Custom Request)</p>
-          <p className="text-sm text-gray-600 dark:text-gray-300">Action &quot;Custom Request&quot;, method POST, mesma URL/header/body. Zapier também consegue <em>receber</em> eventos — aponte um Zap &quot;Catch Hook&quot; pra URL cadastrada em Webhooks.</p>
-        </div>
-
-        <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">curl</p>
-          <CodeBlock>{`curl -X POST ${baseUrl}/api/admin/acesso \\
-  -H "x-api-key: sua-chave" \\
-  -H "Content-Type: application/json" \\
-  -d '{"user_id": "uuid-do-membro", "product_id": "uuid-do-produto"}'`}</CodeBlock>
-        </div>
-
-        <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">JavaScript</p>
-          <CodeBlock>{`await fetch("${baseUrl}/api/admin/acesso", {
-  method: "POST",
-  headers: {
-    "x-api-key": "sua-chave",
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({ user_id: "uuid-do-membro", product_id: "uuid-do-produto" }),
-})`}</CodeBlock>
-        </div>
-
-        <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">PHP</p>
-          <CodeBlock>{`$ch = curl_init("${baseUrl}/api/admin/acesso");
-curl_setopt_array($ch, [
-  CURLOPT_POST => true,
-  CURLOPT_RETURNTRANSFER => true,
-  CURLOPT_HTTPHEADER => ["x-api-key: sua-chave", "Content-Type: application/json"],
-  CURLOPT_POSTFIELDS => json_encode(["user_id" => "uuid-do-membro", "product_id" => "uuid-do-produto"]),
-]);
-$response = curl_exec($ch);`}</CodeBlock>
-        </div>
-
-        <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Python</p>
-          <CodeBlock>{`import requests
-
-requests.post(
-    "${baseUrl}/api/admin/acesso",
-    headers={"x-api-key": "sua-chave"},
-    json={"user_id": "uuid-do-membro", "product_id": "uuid-do-produto"},
-)`}</CodeBlock>
-        </div>
-      </Section>
-
       <p className="text-sm text-gray-500">
-        Quer entender como isso se encaixa num fluxo de automação real (Notion, n8n, Asaas)? Veja{' '}
-        <Link href="/admin/integracoes/automacoes" className="underline font-medium" style={{ color: 'var(--brand)' }}>Automações</Link>.
+        Exemplos prontos pra copiar (n8n, Make, Zapier, curl, JavaScript, PHP, Python) e os fluxos de automação mais comuns estão em{' '}
+        <Link href="/admin/integracoes/exemplos" className="underline font-medium" style={{ color: 'var(--brand)' }}>Exemplos</Link>.
       </p>
     </div>
   )
