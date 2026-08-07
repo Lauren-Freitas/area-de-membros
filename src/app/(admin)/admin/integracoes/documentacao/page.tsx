@@ -8,7 +8,7 @@ interface IndexItem {
 }
 
 const ITEMS: IndexItem[] = [
-  { href: '/admin/integracoes/api-reference#autenticacao', title: 'Autenticação', desc: 'Header x-api-key, chaves mestra e nomeadas, formato de erro.' },
+  { href: '/admin/integracoes/api-reference#autenticacao', title: 'Autenticação', desc: 'Header x-api-key, chaves mestra e nomeadas, escopos de permissão, formato de erro.' },
   { href: '/admin/integracoes/api-reference', title: 'API', desc: 'Todos os endpoints — Membros, Acessos, Produtos, Compras, Certificados, Convites, Login.' },
   { href: '/admin/integracoes/webhooks', title: 'Eventos', desc: 'Catálogo de eventos de webhook, payload padronizado, como testar.' },
   { href: '/admin/integracoes/recipes', title: 'Recipes', desc: 'Fluxos completos prontos — do gatilho de negócio até a chamada de API.' },

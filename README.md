@@ -185,7 +185,7 @@ Deploy automático na **Vercel** a cada push na branch `main`. Produção em `me
 
 ## Documentação da API
 
-A referência completa dos endpoints REST está em **[API.md](./API.md)**, incluindo exemplos de integração com n8n, Make e Zapier.
+Visão geral e essenciais (autenticação, envelope de resposta, idempotência, escopos) em **[API.md](./API.md)**. Referência completa de cada endpoint é gerada a partir do spec único (`public/openapi.json`) e vive no painel, em **API Reference** e **Recipes** (`/admin/integracoes`). Resumo técnico completo da Developer Platform (arquitetura, limitações conhecidas, backlog) em **[DEVELOPER-PLATFORM.md](./DEVELOPER-PLATFORM.md)**.
 
 ---
 
