@@ -2,7 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ConfiguracoesForm } from './ConfiguracoesForm'
 import { ThemeSection } from './ThemeSection'
-import { EquipeExcluirButton } from '@/components/admin/EquipeExcluirButton'
+import { DeleteConfirmButton } from '@/components/DeleteConfirmButton'
+import { deleteUser } from '@/lib/actions/admin'
 import Link from 'next/link'
 
 function initials(name: string) {
@@ -108,7 +109,14 @@ export default async function ConfiguracoesPage() {
                         Editar
                       </Link>
                       {!isMe && (
-                        <EquipeExcluirButton userId={member.id} name={member.name ?? '(sem nome)'} />
+                        <DeleteConfirmButton
+                          onDelete={() => deleteUser(member.id)}
+                          title="Excluir colaborador"
+                          message={`Isso removerá ${member.name ?? '(sem nome)'} permanentemente.`}
+                          confirmLabel="Confirmar exclusão"
+                          dangerWord="excluir"
+                          className="shrink-0 text-xs font-medium px-2.5 py-1 rounded-full border border-red-200 dark:border-red-800 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition"
+                        />
                       )}
                     </div>
                   )}

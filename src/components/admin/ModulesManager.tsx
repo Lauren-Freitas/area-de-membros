@@ -15,9 +15,8 @@ import {
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import Link from 'next/link'
-import { reorderModulesAndLessons } from '@/lib/actions/admin'
-import { DeleteModuleButton } from '@/components/admin/DeleteModuleButton'
-import { DeleteLessonButton } from '@/components/admin/DeleteLessonButton'
+import { reorderModulesAndLessons, deleteModule, deleteLesson } from '@/lib/actions/admin'
+import { DeleteConfirmButton } from '@/components/DeleteConfirmButton'
 import { Module, Lesson } from '@/types'
 
 type ModuleWithLessons = Module & { lessons: Lesson[] }
@@ -220,7 +219,12 @@ function SortableModule({ mod, productId }: { mod: ModuleWithLessons; productId:
         >
           Editar
         </Link>
-        <DeleteModuleButton moduleId={mod.id} productId={productId} moduleTitle={mod.title} />
+        <DeleteConfirmButton
+          onDelete={() => deleteModule(mod.id, productId)}
+          title="Excluir módulo"
+          message={`O módulo "${mod.title}" e todas as suas aulas serão excluídos permanentemente.`}
+          confirmLabel="Excluir módulo"
+        />
       </div>
 
       <SortableContext items={lessons.map(l => lessonKey(l.id))} strategy={verticalListSortingStrategy}>
@@ -259,7 +263,12 @@ function SortableLesson({ lesson, moduleId, productId }: { lesson: Lesson; modul
       >
         Editar
       </Link>
-      <DeleteLessonButton lessonId={lesson.id} moduleId={moduleId} productId={productId} lessonTitle={lesson.title} />
+      <DeleteConfirmButton
+        onDelete={() => deleteLesson(lesson.id, moduleId, productId)}
+        title="Excluir aula"
+        message={`A aula "${lesson.title}" será excluída permanentemente.`}
+        confirmLabel="Excluir aula"
+      />
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { ConfirmModal } from '@/components/ConfirmModal'
 
 interface Props {
+  /** Pode devolver `{ error }` — nesse caso o erro aparece junto ao botão em vez de fechar silenciosamente. */
   onDelete: () => Promise<unknown> | void
   title: string
   message: string
@@ -11,6 +12,10 @@ interface Props {
   dangerWord?: string
   className?: string
   children?: React.ReactNode
+}
+
+function hasErrorMessage(result: unknown): result is { error: string } {
+  return typeof result === 'object' && result !== null && 'error' in result && typeof (result as { error: unknown }).error === 'string'
 }
 
 export function DeleteConfirmButton({
@@ -23,17 +28,23 @@ export function DeleteConfirmButton({
   children = 'Excluir',
 }: Props) {
   const [open, setOpen] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   function handleConfirm() {
-    startTransition(async () => { await onDelete() })
+    setError(null)
+    startTransition(async () => {
+      const result = await onDelete()
+      if (hasErrorMessage(result)) setError(result.error)
+    })
   }
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} disabled={isPending} className={className}>
+      <button type="button" onClick={() => { setError(null); setOpen(true) }} disabled={isPending} className={className}>
         {isPending ? 'Excluindo...' : children}
       </button>
+      {error && <span className="ml-2 text-xs text-red-500">{error}</span>}
       <ConfirmModal
         isOpen={open}
         onClose={() => setOpen(false)}
