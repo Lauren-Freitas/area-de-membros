@@ -8,6 +8,14 @@ const CYCLE_LABELS: Record<string, string> = {
   QUARTERLY: 'Trimestral', SEMIANNUALLY: 'Semestral', YEARLY: 'Anual',
 }
 
+// Normaliza qualquer ciclo de cobrança pra um equivalente mensal, pra "Receita
+// recorrente/mês" ser a receita recorrente real — antes só somava ciclo
+// MONTHLY e ignorava silenciosamente semanal/trimestral/semestral/anual.
+const MONTHLY_FACTOR: Record<string, number> = {
+  WEEKLY: 52 / 12, BIWEEKLY: 26 / 12, MONTHLY: 1, BIMONTHLY: 6 / 12,
+  QUARTERLY: 4 / 12, SEMIANNUALLY: 2 / 12, YEARLY: 1 / 12,
+}
+
 export default async function AssinaturaPage() {
   const supabase = await createClient()
   const adminClient = createAdminClient()
@@ -34,9 +42,10 @@ export default async function AssinaturaPage() {
     profile: Array.isArray(a.profiles) ? a.profiles[0] : a.profiles,
     product: Array.isArray(a.products) ? a.products[0] : a.products,
   }))
-  const recurringRevenueMonthly = activeSubscribers
-    .filter(a => a.product?.billing_cycle === 'MONTHLY')
-    .reduce((sum, a) => sum + (a.value ?? 0), 0)
+  const recurringRevenueMonthly = activeSubscribers.reduce((sum, a) => {
+    const factor = a.product?.billing_cycle ? MONTHLY_FACTOR[a.product.billing_cycle] ?? 0 : 0
+    return sum + (a.value ?? 0) * factor
+  }, 0)
 
   const allMembers = [
     ...(membroProfiles ?? []),
@@ -71,7 +80,7 @@ export default async function AssinaturaPage() {
           <p className="text-3xl font-bold" style={{ color: 'var(--brand)' }}>
             {recurringRevenueMonthly.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
           </p>
-          <p className="text-xs text-gray-400 mt-1">Só ciclo mensal</p>
+          <p className="text-xs text-gray-400 mt-1">Todos os ciclos, normalizados por mês</p>
         </div>
       </div>
 

@@ -532,9 +532,11 @@ export async function deleteCertificate(id: string) {
 
 export async function grantAccess(userId: string, productId: string) {
   await requireAdmin()
-  await coreAccess.grantAccess(userId, productId, await getAdminActor())
+  const result = await coreAccess.grantAccess(userId, productId, await getAdminActor())
   revalidatePath('/admin/usuarios')
   revalidatePath(`/admin/usuarios/${userId}`)
+  revalidatePath(`/admin/produtos/${productId}`)
+  return result
 }
 
 export async function revokeAccess(userId: string, productId: string) {
@@ -542,6 +544,7 @@ export async function revokeAccess(userId: string, productId: string) {
   await coreAccess.revokeAccess(userId, productId, await getAdminActor())
   revalidatePath('/admin/usuarios')
   revalidatePath(`/admin/usuarios/${userId}`)
+  revalidatePath(`/admin/produtos/${productId}`)
 }
 
 export async function updateAccessExpiry(userId: string, productId: string, expiresAt: string | null) {
@@ -550,4 +553,43 @@ export async function updateAccessExpiry(userId: string, productId: string, expi
   revalidatePath('/admin/usuarios')
   revalidatePath(`/admin/usuarios/${userId}`)
   return result
+}
+
+// ── Chamados (suporte) ──────────────────────────────────────────────────────
+
+export async function respondTicket(
+  ticketId: string,
+  response: string,
+  newStatus: 'open' | 'resolved' | 'closed',
+): Promise<{ success?: boolean; error?: string }> {
+  await requireAdmin()
+  const trimmed = response.trim()
+  if (!trimmed) return { error: 'A resposta não pode ficar vazia.' }
+
+  const admin = createAdminClient()
+  const { data: ticket } = await admin.from('support_tickets').select('subject, user_id').eq('id', ticketId).maybeSingle()
+  if (!ticket) return { error: 'Chamado não encontrado.' }
+
+  const { error } = await admin
+    .from('support_tickets')
+    .update({ admin_response: trimmed, responded_at: new Date().toISOString(), status: newStatus })
+    .eq('id', ticketId)
+  if (error) return { error: error.message }
+
+  await logActivity({ action: 'responder', entity: 'chamado', entityId: ticketId, entityName: ticket.subject ?? null })
+  revalidatePath('/admin/chamados')
+  return { success: true }
+}
+
+export async function updateTicketStatus(
+  ticketId: string,
+  newStatus: 'open' | 'resolved' | 'closed',
+): Promise<{ success?: boolean; error?: string }> {
+  await requireAdmin()
+  const admin = createAdminClient()
+  const { error } = await admin.from('support_tickets').update({ status: newStatus }).eq('id', ticketId)
+  if (error) return { error: error.message }
+
+  revalidatePath('/admin/chamados')
+  return { success: true }
 }

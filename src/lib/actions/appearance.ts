@@ -9,12 +9,15 @@ const BUCKET = 'branding'
 const ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'svg', 'webp', 'ico']
 const MAX_SIZE_BYTES = 5 * 1024 * 1024
 
+// Apesar do nome, checava admin OU equipe — inconsistente com a página
+// (Aparência é adminOnly na nav) e com o próprio nome da função. Corrigido
+// pra exigir admin de verdade, igual à checagem que a página já faz.
 async function requireAdmin() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return false
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  return profile?.role === 'admin' || profile?.role === 'equipe'
+  return profile?.role === 'admin'
 }
 
 export async function uploadBrandingAsset(

@@ -1,14 +1,25 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
+import { ACTION_STYLE, ENTITY_LABEL, relativeTime } from '@/lib/activity-labels'
 
 export const dynamic = 'force-dynamic'
 
+// Página server-rendered a cada request (dynamic='force-dynamic') — "agora" precisa
+// vir de fora do corpo do componente pra não disparar a regra de pureza do React
+// Compiler, que trata Date.now() direto no render como valor instável.
+function dateWindows() {
+  const now = Date.now()
+  return {
+    sevenDaysAgo: new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    thirtyDaysAgo: new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    oneDayAgo: new Date(now - 24 * 60 * 60 * 1000).toISOString(),
+    firstOfMonth: (() => { const d = new Date(now); return new Date(d.getFullYear(), d.getMonth(), 1).toISOString() })(),
+  }
+}
+
 export default async function AdminPage() {
   const adminClient = createAdminClient()
-
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-  const firstOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
+  const { sevenDaysAgo, thirtyDaysAgo, oneDayAgo, firstOfMonth } = dateWindows()
 
   const [
     { data: membroProfiles },
@@ -23,6 +34,10 @@ export default async function AdminPage() {
     { data: lessonProgressRows },
     { data: lessonCommentsRows },
     { data: productCommentsRows },
+    { count: overduePayments },
+    { count: failedWebhookDeliveries },
+    { count: failedInboundEvents },
+    { data: activityFeed },
   ] = await Promise.all([
     adminClient.from('profiles').select('id, name, email, created_at').eq('role', 'membro').order('created_at', { ascending: false }),
     adminClient.from('profiles').select('id, name, email, created_at').is('role', null).order('created_at', { ascending: false }),
@@ -40,6 +55,10 @@ export default async function AdminPage() {
     adminClient.from('lesson_progress').select('lessons(modules(products(title)))'),
     adminClient.from('lesson_comments').select('id, content, created_at, profiles(name), lessons(title)').order('created_at', { ascending: false }).limit(5),
     adminClient.from('product_comments').select('id, content, created_at, profiles(name), products(title)').order('created_at', { ascending: false }).limit(5),
+    adminClient.from('user_products').select('*', { count: 'exact', head: true }).eq('payment_status', 'overdue'),
+    adminClient.from('outbound_webhook_deliveries').select('*', { count: 'exact', head: true }).eq('success', false).gte('attempted_at', oneDayAgo),
+    adminClient.from('webhook_logs').select('*', { count: 'exact', head: true }).in('status', ['failed', 'ignored']).gte('created_at', sevenDaysAgo),
+    adminClient.from('activity_logs').select('id, user_name, action, entity, entity_name, created_at').order('created_at', { ascending: false }).limit(6),
   ])
 
   const allMembers = [
@@ -159,6 +178,21 @@ export default async function AdminPage() {
     },
   ]
 
+  const alerts = [
+    (overduePayments ?? 0) > 0 && {
+      label: `${overduePayments} pagamento${overduePayments !== 1 ? 's' : ''} em atraso`,
+      href: '/admin/cobranca/acessos',
+    },
+    (failedWebhookDeliveries ?? 0) > 0 && {
+      label: `${failedWebhookDeliveries} webhook${failedWebhookDeliveries !== 1 ? 's' : ''} de saída falhou nas últimas 24h`,
+      href: '/admin/integracoes/webhooks',
+    },
+    (failedInboundEvents ?? 0) > 0 && {
+      label: `${failedInboundEvents} evento${failedInboundEvents !== 1 ? 's' : ''} de pagamento recebido com falha nos últimos 7 dias`,
+      href: null,
+    },
+  ].filter(Boolean) as { label: string; href: string | null }[]
+
   const quickActions = [
     { label: 'Criar produto', href: '/admin/produtos/novo' },
     { label: 'Adicionar membro', href: '/admin/usuarios/novo' },
@@ -199,6 +233,31 @@ export default async function AdminPage() {
           </Link>
         ))}
       </div>
+
+      {/* Atenção — só aparece quando há algo real pra ver */}
+      {alerts.length > 0 && (
+        <div className="rounded-2xl border border-amber-200 dark:border-amber-800/40 bg-amber-50 dark:bg-amber-900/10 p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <svg className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+            <h2 className="font-semibold text-amber-900 dark:text-amber-300">Atenção</h2>
+          </div>
+          <ul className="space-y-1.5">
+            {alerts.map(a => (
+              <li key={a.label}>
+                {a.href ? (
+                  <Link href={a.href} className="text-sm text-amber-800 dark:text-amber-200 hover:underline">
+                    {a.label}
+                  </Link>
+                ) : (
+                  <span className="text-sm text-amber-800 dark:text-amber-200">{a.label}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Conteúdo mais acessado */}
       {topEngaged && (
@@ -294,6 +353,40 @@ export default async function AdminPage() {
           )}
         </div>
       </div>
+
+      {/* Atividade recente — feed unificado a partir de activity_logs */}
+      {activityFeed && activityFeed.length > 0 && (
+        <div className="bg-card rounded-2xl border border-gray-100 p-6">
+          <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+            <h2 className="font-semibold text-gray-900">Atividade recente</h2>
+            <Link href="/admin/atividades" className="text-xs font-medium hover:underline" style={{ color: 'var(--brand)' }}>
+              Ver tudo
+            </Link>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {activityFeed.map(log => {
+              const actionStyle = ACTION_STYLE[log.action] ?? { label: log.action, bg: '#f3f4f6', text: '#374151' }
+              const entityLabel = ENTITY_LABEL[log.entity] ?? log.entity
+              return (
+                <div key={log.id} className="flex items-center gap-3 py-3 last:pb-0">
+                  <span className="text-sm font-medium text-gray-900 shrink-0">{log.user_name}</span>
+                  <span
+                    className="text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0"
+                    style={{ backgroundColor: actionStyle.bg, color: actionStyle.text }}
+                  >
+                    {actionStyle.label}
+                  </span>
+                  <span className="text-xs text-gray-500 shrink-0">{entityLabel}</span>
+                  {log.entity_name && (
+                    <span className="text-xs text-gray-700 truncate flex-1">{log.entity_name}</span>
+                  )}
+                  <span className="text-xs text-gray-400 shrink-0 ml-auto">{relativeTime(log.created_at)}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Quick actions */}
       <div className="bg-card rounded-2xl border border-gray-100 p-6">

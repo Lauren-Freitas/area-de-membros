@@ -13,9 +13,15 @@ export default async function VendasPage() {
 
   const adminClient = createAdminClient()
 
+  // Só transações comerciais de verdade — acesso concedido manualmente
+  // (granted_by='manual') não é uma venda e não deve aparecer aqui (era um
+  // bug real: essa página não filtrava por granted_by, então acesso manual
+  // aparecia misturado como se fosse venda). Ver "Acessos" pro histórico
+  // completo de concessões, incluindo as manuais.
   const { data } = await adminClient
     .from('user_products')
     .select('id, granted_at, product_id, value, payment_status, invoice_url, profiles(name, email), products(title)')
+    .in('granted_by', ['purchase', 'pack'])
     .order('granted_at', { ascending: false })
 
   const vendas = (data ?? []).map(v => ({

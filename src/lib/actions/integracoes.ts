@@ -13,7 +13,9 @@ import { isValidScope } from '@/lib/api-scopes'
  * Server Actions são endpoints próprios (RPC), não protegidos pelo redirect()
  * da página/layout que os renderiza — cada uma precisa checar autorização por
  * conta própria, senão fica invocável por qualquer um que descubra sua
- * referência (ex: no bundle JS público da página).
+ * referência (ex: no bundle JS público da página). Apesar do nome, checava
+ * admin OU equipe — inconsistente com Integrações sendo adminOnly na nav (e
+ * agora também no layout da seção). Corrigido pra exigir admin de verdade.
  */
 async function requireAdmin() {
   const supabase = await createClient()
@@ -21,7 +23,7 @@ async function requireAdmin() {
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin' && profile?.role !== 'equipe') redirect('/dashboard')
+  if (profile?.role !== 'admin') redirect('/dashboard')
 }
 
 function parseEvents(formData: FormData): WebhookEvent[] | null {
