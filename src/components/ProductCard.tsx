@@ -57,7 +57,7 @@ export function ProductCard({ product, unlocked, expiresAt, progress, certificat
             <svg className="w-6 h-6 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
             </svg>
-            <p className="text-white text-xs font-semibold">{isExpired ? 'Acesso expirado' : 'Conteúdo Premium'}</p>
+            <p className="text-white text-xs font-semibold">{isExpired ? 'Acesso expirado' : 'Conteúdo exclusivo'}</p>
             <span
               className="inline-flex items-center text-[11px] font-semibold px-3 py-1 rounded-full transition group-hover:opacity-90"
               style={{ backgroundColor: 'var(--brand)', color: '#fff' }}
@@ -112,9 +112,16 @@ export function ProductCard({ product, unlocked, expiresAt, progress, certificat
     return <Link href={`/produto/${product.id}`} className="block">{card}</Link>
   }
 
-  return (
-    <a href={buyTarget} target="_blank" rel="noopener noreferrer" className="block">
-      {card}
-    </a>
-  )
+  // Expirado: já teve acesso e sabe o que é — vai direto pra renovação externa.
+  // Nunca teve acesso: mostra a prévia dentro do app antes de sair pro externo
+  // (a página de produto detecta a ausência de acesso e renderiza só a prévia).
+  if (isExpired) {
+    return (
+      <a href={buyTarget} target="_blank" rel="noopener noreferrer" className="block">
+        {card}
+      </a>
+    )
+  }
+
+  return <Link href={`/produto/${product.id}`} className="block">{card}</Link>
 }

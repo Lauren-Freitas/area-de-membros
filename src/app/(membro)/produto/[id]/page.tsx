@@ -16,16 +16,28 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: product }, { data: access }, { data: modules }, { data: progressRows }, { data: certificate }, { data: profile }] = await Promise.all([
+  const [{ data: product }, { data: access }] = await Promise.all([
     supabase.from('products').select('*').eq('id', id).eq('is_active', true).single(),
-    supabase.from('user_products').select('id, is_completed, granted_at').eq('user_id', user.id).eq('product_id', id).single(),
+    supabase.from('user_products').select('id, is_completed, granted_at').eq('user_id', user.id).eq('product_id', id).maybeSingle(),
+  ])
+
+  if (!product) redirect('/dashboard')
+
+  // Sem acesso: prévia in-app (banner, descrição, motivo do bloqueio, CTA de compra) em vez de
+  // sair direto pro WhatsApp/checkout externo sem mostrar nada da plataforma primeiro.
+  if (!access) {
+    const { data: previewModules } = await supabase.from('modules').select('id, lessons(id, is_published)').eq('product_id', id)
+    const isCourse = (previewModules ?? []).length > 0
+    const lessonCount = (previewModules ?? []).reduce((acc, m) => acc + (m.lessons?.filter((l: { is_published: boolean }) => l.is_published).length ?? 0), 0)
+    return <ProductPreview product={product as Product} isCourse={isCourse} lessonCount={lessonCount} />
+  }
+
+  const [{ data: modules }, { data: progressRows }, { data: certificate }, { data: profile }] = await Promise.all([
     supabase.from('modules').select('*, lessons(*)').eq('product_id', id).order('sort_order'),
     supabase.from('lesson_progress').select('lesson_id').eq('user_id', user.id),
     supabase.from('certificates').select('id').eq('user_id', user.id).eq('product_id', id).maybeSingle(),
     supabase.from('profiles').select('role, name, avatar_url').eq('id', user.id).single(),
   ])
-
-  if (!product || !access) redirect('/dashboard')
 
   // Dados extras para produtos sem módulos (carregados condicionalmente)
   const totalLessonsCheck = (modules ?? []).reduce((acc: number, m: { lessons?: { is_published: boolean }[] }) => acc + (m.lessons?.filter((l: { is_published: boolean }) => l.is_published).length ?? 0), 0)
@@ -281,6 +293,74 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
           description={p.description ?? null}
         />
       )}
+    </div>
+  )
+}
+
+function ProductPreview({ product, isCourse, lessonCount }: { product: Product; isCourse: boolean; lessonCount: number }) {
+  const typeLabel = isCourse ? 'Curso' : product.content_type === 'video' ? 'Vídeo' : 'Arquivo'
+  const buyTarget = product.buy_url
+    ?? `https://wa.me/5561991900589?text=${encodeURIComponent(`Olá! Tenho interesse em: ${product.title}`)}`
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      <Link
+        href="/dashboard"
+        className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition mb-6"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        Voltar para meus conteúdos
+      </Link>
+
+      <div className="rounded-2xl overflow-hidden border border-gray-100 dark:border-[#1e2030] bg-card">
+        <div
+          className="relative aspect-video overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, var(--brand-bg) 0%, var(--brand-border) 100%)' }}
+        >
+          {product.banner_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={product.banner_url} alt={product.title} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <svg className="w-16 h-16 opacity-40" style={{ color: 'var(--brand)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                {product.content_type === 'video' ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-2.72a.75.75 0 011.28.53v7.38a.75.75 0 01-1.28.53l-4.72-2.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-7.5A2.25 2.25 0 0013.5 6.75h-9A2.25 2.25 0 002.25 9v7.5a2.25 2.25 0 002.25 2.25z" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                )}
+              </svg>
+            </div>
+          )}
+          <div className="absolute inset-0 bg-black/35 flex items-center justify-center">
+            <svg className="w-10 h-10 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+            </svg>
+          </div>
+        </div>
+
+        <div className="p-6 sm:p-8 text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--brand)' }}>
+            {typeLabel}{isCourse && lessonCount > 0 ? ` · ${lessonCount} ${lessonCount === 1 ? 'aula' : 'aulas'}` : ''}
+          </p>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{product.title}</h1>
+          {product.description && (
+            <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">{product.description}</p>
+          )}
+
+          <div className="inline-flex flex-col items-center gap-3 px-6 py-5 rounded-xl bg-gray-50 dark:bg-[#12162a] max-w-sm">
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Conteúdo exclusivo</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Você ainda não tem acesso a este conteúdo.</p>
+            <Button href={buyTarget}>
+              Conhecer este conteúdo
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

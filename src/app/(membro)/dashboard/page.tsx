@@ -8,6 +8,7 @@ import { ProductCard } from '@/components/ProductCard'
 import { BannerList } from '@/components/BannerList'
 import { OfertaCard } from '@/components/OfertaCard'
 import { WelcomeModal } from '@/components/WelcomeModal'
+import { getLevelInfo } from '@/lib/xp'
 import { Product, Banner } from '@/types'
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
@@ -29,7 +30,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     if (me?.role === 'admin' || me?.role === 'equipe') targetUserId = viewAsMemberId
   }
 
-  const [{ data: products }, { data: accesses }, { data: bannersData }, { data: certsData }, { data: cohortMembership }, { data: offersData }, { data: siteConfigData }, { data: profileData }] = await Promise.all([
+  const [{ data: products }, { data: accesses }, { data: bannersData }, { data: certsData }, { data: cohortMembership }, { data: offersData }, { data: siteConfigData }, { data: profileData }, { data: xpData }] = await Promise.all([
     adminClient.from('products').select('*').eq('is_active', true).order('sort_order'),
     adminClient.from('user_products').select('product_id, expires_at, payment_status').eq('user_id', targetUserId),
     adminClient.from('banners').select('*').eq('is_active', true).or(`expires_at.is.null,expires_at.gt.${now}`).order('sort_order'),
@@ -38,6 +39,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     adminClient.from('offers').select('id, title, description, original_price, promo_price, coupon_code, ends_at, product_id, products(title, buy_url)').eq('is_active', true).or(`ends_at.is.null,ends_at.gt.${now}`).order('sort_order'),
     adminClient.from('site_config').select('key, value').in('key', ['welcome_message']),
     adminClient.from('profiles').select('name, last_login_at, welcome_seen_at, last_lesson_id, last_lesson_viewed_at').eq('id', targetUserId).single(),
+    adminClient.from('user_xp_totals').select('total_xp').eq('user_id', targetUserId).maybeSingle(),
   ])
 
   const banners = (bannersData ?? []) as Banner[]
@@ -50,6 +52,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const welcomeMessage = siteConfig['welcome_message']
     || 'Todo o conteúdo abaixo foi preparado para ajudar você na sua evolução. Bom estudo!'
   const firstName = (profileData?.name ?? '').trim().split(' ')[0] || 'aluno'
+  const totalXp = (xpData as { total_xp?: number } | null)?.total_xp ?? 0
+  const { cur: currentLevel, pct: levelPct } = getLevelInfo(totalXp)
 
   const showWelcome = targetUserId === user.id && !profileData?.welcome_seen_at
 
@@ -199,33 +203,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         )}
       </div>
 
-      {/* Conteúdo em destaque */}
-      {featuredProduct && (
-        <section>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Em destaque</h2>
-          <div className="rounded-2xl overflow-hidden border border-gray-100 dark:border-[#1e2030] bg-card sm:flex">
-            {featuredProduct.banner_url && (
-              <div className="sm:w-2/5 aspect-video sm:aspect-auto overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={featuredProduct.banner_url} alt={featuredProduct.title} className="w-full h-full object-cover" />
-              </div>
-            )}
-            <div className="flex-1 p-6 flex flex-col justify-center">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1.5">{featuredProduct.title}</h3>
-              {featuredProduct.description && (
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">{featuredProduct.description}</p>
-              )}
-              <Button href={`/produto/${featuredProduct.id}`} className="self-start">
-                {(progressByProduct[featuredProduct.id]?.completed ?? 0) > 0 ? 'Continuar' : 'Começar agora'}
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                </svg>
-              </Button>
-            </div>
-          </div>
-        </section>
-      )}
-
       {/* Continue de onde parou */}
       {continueLesson && (
         <section>
@@ -257,6 +234,33 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               </svg>
             </span>
           </Link>
+        </section>
+      )}
+
+      {/* Conteúdo em destaque */}
+      {featuredProduct && (
+        <section>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Em destaque</h2>
+          <div className="rounded-2xl overflow-hidden border border-gray-100 dark:border-[#1e2030] bg-card sm:flex">
+            {featuredProduct.banner_url && (
+              <div className="sm:w-2/5 aspect-video sm:aspect-auto overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={featuredProduct.banner_url} alt={featuredProduct.title} className="w-full h-full object-cover" />
+              </div>
+            )}
+            <div className="flex-1 p-6 flex flex-col justify-center">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1.5">{featuredProduct.title}</h3>
+              {featuredProduct.description && (
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">{featuredProduct.description}</p>
+              )}
+              <Button href={`/produto/${featuredProduct.id}`} className="self-start">
+                {(progressByProduct[featuredProduct.id]?.completed ?? 0) > 0 ? 'Continuar' : 'Começar agora'}
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </Button>
+            </div>
+          </div>
         </section>
       )}
 
@@ -350,6 +354,34 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             ))}
           </div>
         </section>
+      )}
+
+      {/* Meu progresso — compacto, secundário ao conteúdo, linka pro perfil completo */}
+      {totalXp > 0 && (
+        <Link
+          href="/perfil"
+          className="flex items-center gap-4 px-5 py-4 bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] hover:shadow-md transition group"
+        >
+          <div
+            className="w-11 h-11 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+            style={{ backgroundColor: 'var(--brand)' }}
+          >
+            Nv.{currentLevel.level}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">{currentLevel.label}</p>
+            <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden mt-1.5 max-w-xs">
+              <div
+                className="h-full rounded-full"
+                style={{ width: `${levelPct}%`, background: 'linear-gradient(90deg, var(--brand), #f5c842)' }}
+              />
+            </div>
+          </div>
+          <div className="text-right shrink-0">
+            <p className="text-sm font-bold" style={{ color: 'var(--brand)' }}>{totalXp} XP</p>
+            <p className="text-[11px] text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition">Ver perfil</p>
+          </div>
+        </Link>
       )}
 
       {/* Ofertas relâmpago */}

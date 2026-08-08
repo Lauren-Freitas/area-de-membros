@@ -1,7 +1,8 @@
 'use client'
 
-import { useActionState, useEffect, useRef, useState } from 'react'
+import { useActionState, useRef, useState } from 'react'
 import { submitTicket } from '@/lib/actions/member'
+import { Badge, type BadgeTone } from '@/components/Badge'
 
 interface Ticket {
   id: string
@@ -9,6 +10,8 @@ interface Ticket {
   message: string
   status: string
   created_at: string
+  admin_response: string | null
+  responded_at: string | null
 }
 
 interface Props {
@@ -16,11 +19,11 @@ interface Props {
   tickets: Ticket[]
 }
 
-function statusLabel(status: string) {
-  if (status === 'open') return { label: 'Aberto', bg: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' }
-  if (status === 'resolved') return { label: 'Resolvido', bg: 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400' }
-  if (status === 'closed') return { label: 'Fechado', bg: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400' }
-  return { label: status, bg: 'bg-gray-100 text-gray-600' }
+function statusLabel(status: string): { label: string; tone: BadgeTone } {
+  if (status === 'open') return { label: 'Aberto', tone: 'info' }
+  if (status === 'resolved') return { label: 'Resolvido', tone: 'success' }
+  if (status === 'closed') return { label: 'Fechado', tone: 'neutral' }
+  return { label: status, tone: 'neutral' }
 }
 
 export function AtendimentoForm({ products, tickets }: Props) {
@@ -29,6 +32,7 @@ export function AtendimentoForm({ products, tickets }: Props) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [fileError, setFileError] = useState<string | null>(null)
   const [formKey, setFormKey] = useState(0)
+  const [handledState, setHandledState] = useState(state)
 
   function resetForm() {
     setFormKey(k => k + 1)
@@ -36,10 +40,13 @@ export function AtendimentoForm({ products, tickets }: Props) {
     setFileError(null)
   }
 
-  useEffect(() => {
+  // Reseta o form quando o resultado da action muda pra sucesso — checado
+  // durante o render (não em efeito) pra evitar o cascading-render que
+  // setState dentro de useEffect causa.
+  if (state !== handledState) {
+    setHandledState(state)
     if (state?.success) resetForm()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state?.success])
+  }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     setFileError(null)
@@ -217,28 +224,44 @@ export function AtendimentoForm({ products, tickets }: Props) {
           <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Meus chamados</h2>
           <div className="space-y-3">
             {tickets.map(ticket => {
-              const { label, bg } = statusLabel(ticket.status)
+              const { label, tone } = statusLabel(ticket.status)
               return (
                 <div
                   key={ticket.id}
-                  className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 dark:border-[#1e2030] bg-gray-50 dark:bg-[#0a0d1a]"
+                  className="p-4 rounded-xl border border-gray-100 dark:border-[#1e2030] bg-gray-50 dark:bg-[#0a0d1a]"
                 >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      {ticket.subject && (
-                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{ticket.subject}</p>
-                      )}
-                      <span className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${bg}`}>
-                        {label}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{ticket.message}</p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {new Date(ticket.created_at).toLocaleDateString('pt-BR', {
-                        day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
-                      })}
-                    </p>
+                  <div className="flex items-center gap-2 mb-1">
+                    {ticket.subject && (
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{ticket.subject}</p>
+                    )}
+                    <Badge tone={tone}>{label}</Badge>
                   </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{ticket.message}</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {new Date(ticket.created_at).toLocaleDateString('pt-BR', {
+                      day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+                    })}
+                  </p>
+
+                  {ticket.admin_response && (
+                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-[#1e2030] flex items-start gap-2.5">
+                      <div
+                        className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0 mt-0.5"
+                        style={{ backgroundColor: 'var(--brand)' }}
+                      >
+                        TC
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-0.5">
+                          Resposta da equipe
+                          {ticket.responded_at && (
+                            <span className="font-normal text-gray-400"> · {new Date(ticket.responded_at).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}</span>
+                          )}
+                        </p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300">{ticket.admin_response}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )
             })}

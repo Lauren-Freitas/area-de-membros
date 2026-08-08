@@ -11,7 +11,7 @@ export default async function AtendimentoPage() {
     supabase.from('user_products').select('products(id, title)').eq('user_id', user.id),
     supabase
       .from('support_tickets')
-      .select('id, subject, message, status, created_at')
+      .select('id, subject, message, status, created_at, admin_response, responded_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(20),
