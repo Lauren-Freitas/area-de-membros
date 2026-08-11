@@ -189,7 +189,7 @@ export default async function AdminPage() {
     },
     (failedInboundEvents ?? 0) > 0 && {
       label: `${failedInboundEvents} evento${failedInboundEvents !== 1 ? 's' : ''} de pagamento recebido com falha nos últimos 7 dias`,
-      href: null,
+      href: '/admin/cobranca/webhooks-entrada?status=failed',
     },
   ].filter(Boolean) as { label: string; href: string | null }[]
 
