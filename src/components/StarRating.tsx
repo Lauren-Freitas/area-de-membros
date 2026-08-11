@@ -1,15 +1,20 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { rateLesson } from '@/lib/actions/ratings'
 
 interface Props {
-  lessonId: string
-  productId: string
   initialRating: number | null
+  onRate: (value: number) => Promise<unknown>
+  size?: 'sm' | 'md'
+  /** Rótulo "Avaliar:" antes das estrelas — opcional, alguns contextos já têm um título próprio acima. */
+  showLabel?: boolean
 }
 
-export function LessonRating({ lessonId, productId, initialRating }: Props) {
+const SIZE_CLASS = { sm: 'w-5 h-5', md: 'w-6 h-6' }
+const GAP_CLASS = { sm: 'gap-1.5', md: 'gap-1' }
+
+/** Avaliação por estrelas — usada tanto em aula quanto em produto (ver CommentThread pro mesmo padrão de casca genérica + ação injetada). */
+export function StarRating({ initialRating, onRate, size = 'md', showLabel = false }: Props) {
   const [rating, setRating] = useState(initialRating ?? 0)
   const [hovered, setHovered] = useState(0)
   const [isPending, startTransition] = useTransition()
@@ -18,18 +23,19 @@ export function LessonRating({ lessonId, productId, initialRating }: Props) {
     const next = rating === value ? 0 : value
     setRating(next)
     startTransition(async () => {
-      if (next > 0) await rateLesson(lessonId, productId, next)
+      if (next > 0) await onRate(next)
     })
   }
 
   const display = hovered || rating
 
   return (
-    <div className="flex items-center gap-1.5">
-      <span className="text-xs text-gray-400 mr-0.5">Avaliar:</span>
+    <div className={`flex items-center ${GAP_CLASS[size]}`}>
+      {showLabel && <span className="text-xs text-gray-400 mr-0.5">Avaliar:</span>}
       {[1, 2, 3, 4, 5].map(v => (
         <button
           key={v}
+          type="button"
           onClick={() => handleRate(v)}
           onMouseEnter={() => setHovered(v)}
           onMouseLeave={() => setHovered(0)}
@@ -38,7 +44,7 @@ export function LessonRating({ lessonId, productId, initialRating }: Props) {
           aria-label={`${v} estrela${v > 1 ? 's' : ''}`}
         >
           <svg
-            className="w-5 h-5 transition-colors"
+            className={`${SIZE_CLASS[size]} transition-colors`}
             viewBox="0 0 24 24"
             fill={display >= v ? 'currentColor' : 'none'}
             stroke="currentColor"

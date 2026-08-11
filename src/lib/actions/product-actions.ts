@@ -86,7 +86,7 @@ export async function addProductComment(productId: string, content: string) {
   return { success: true }
 }
 
-export async function deleteProductComment(commentId: string, productId: string) {
+export async function deleteProductComment(productId: string, commentId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Não autenticado' }

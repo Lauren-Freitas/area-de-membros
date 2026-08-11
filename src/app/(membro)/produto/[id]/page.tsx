@@ -3,9 +3,10 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Product, Module, Lesson } from '@/types'
 import { Button } from '@/components/Button'
-import { ProductCompleteButton } from '@/components/ProductCompleteButton'
-import { ProductRating } from '@/components/ProductRating'
-import { ProductComments } from '@/components/ProductComments'
+import { CompleteButton } from '@/components/CompleteButton'
+import { StarRating } from '@/components/StarRating'
+import { rateProduct, markProductComplete, unmarkProductComplete, addProductComment, deleteProductComment } from '@/lib/actions/product-actions'
+import { CommentThread } from '@/components/CommentThread'
 import { LessonVideoPlayer } from '@/components/LessonVideoPlayer'
 import { computeReleaseState } from '@/lib/release'
 
@@ -422,28 +423,31 @@ function SimpleProductView({
       {/* Comentários + Ações */}
       <div className="grid grid-cols-1 sm:grid-cols-[1fr_220px] gap-4 items-start">
         <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
-          <ProductComments
-            productId={productId}
+          <CommentThread
             currentUserId={userId}
             isAdmin={isAdmin}
             initialComments={comments}
             userInitials={userInitials}
             userAvatarUrl={userAvatarUrl}
+            onSubmit={addProductComment.bind(null, productId)}
+            onDelete={deleteProductComment.bind(null, productId)}
           />
         </div>
 
         <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5 flex flex-col gap-5">
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Avaliação</p>
-            <ProductRating productId={productId} initialRating={myRating} />
+            <StarRating initialRating={myRating} onRate={rateProduct.bind(null, productId)} />
           </div>
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Progresso</p>
-            <ProductCompleteButton
-            productId={productId}
-            completed={isCompleted}
-            completionEventKey={`product-complete:${productId}`}
-          />
+            <CompleteButton
+              completed={isCompleted}
+              onComplete={markProductComplete.bind(null, productId)}
+              onIncomplete={unmarkProductComplete.bind(null, productId)}
+              completionEventKey={`product-complete:${productId}`}
+              fullWidth
+            />
           </div>
         </div>
       </div>

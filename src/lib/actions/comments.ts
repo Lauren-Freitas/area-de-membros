@@ -22,7 +22,7 @@ export async function postComment(lessonId: string, productId: string, content: 
   revalidatePath(`/produto/${productId}/aula/${lessonId}`)
 }
 
-export async function deleteComment(commentId: string, lessonId: string, productId: string) {
+export async function deleteComment(lessonId: string, productId: string, commentId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return

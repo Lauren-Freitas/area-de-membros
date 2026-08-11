@@ -6,11 +6,14 @@ import Link from 'next/link'
 import sanitizeHtml from 'sanitize-html'
 import { Lesson, LessonAttachment } from '@/types'
 import { Button } from '@/components/Button'
-import { LessonCompleteButton } from '@/components/LessonCompleteButton'
-import { LessonComments } from '@/components/LessonComments'
+import { CompleteButton } from '@/components/CompleteButton'
+import { CommentThread } from '@/components/CommentThread'
 import { LessonSidebar } from '@/components/LessonSidebar'
 import { LessonVideoPlayer } from '@/components/LessonVideoPlayer'
-import { LessonRating } from '@/components/LessonRating'
+import { StarRating } from '@/components/StarRating'
+import { rateLesson } from '@/lib/actions/ratings'
+import { postComment, deleteComment } from '@/lib/actions/comments'
+import { toggleLessonComplete } from '@/lib/actions/progress'
 import { LessonComment } from '@/types'
 import { computeReleaseState } from '@/lib/release'
 
@@ -196,28 +199,34 @@ export default async function AulaPage({
 
           {/* Comentários */}
           <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
-            <LessonComments
-              lessonId={aulaId}
-              productId={id}
+            <CommentThread
               currentUserId={user.id}
               isAdmin={isAdmin}
               initialComments={comments}
               userInitials={userInitials}
               userAvatarUrl={userAvatarUrl}
+              onSubmit={postComment.bind(null, aulaId, id)}
+              onDelete={deleteComment.bind(null, aulaId, id)}
             />
           </div>
 
           {/* Avaliação */}
           <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5">
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Avaliação</p>
-            <LessonRating lessonId={aulaId} productId={id} initialRating={myRating} />
+            <StarRating size="sm" showLabel initialRating={myRating} onRate={rateLesson.bind(null, aulaId, id)} />
           </div>
 
           {/* Progresso + navegação pra próxima aula */}
           <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5 flex flex-col gap-4">
             <div>
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Progresso</p>
-              <LessonCompleteButton lessonId={aulaId} productId={id} completed={isCompleted} />
+              <CompleteButton
+                completed={isCompleted}
+                onComplete={toggleLessonComplete.bind(null, aulaId, id, false)}
+                onIncomplete={toggleLessonComplete.bind(null, aulaId, id, true)}
+                pendingLabel="Marcar como concluída"
+                doneLabel="Concluída"
+              />
             </div>
 
             {(prevLesson || nextLesson) && (

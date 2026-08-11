@@ -91,7 +91,7 @@ export default async function EditModuloPage({
                     Editar
                   </Link>
                   <DeleteConfirmButton
-                    onDelete={() => deleteLesson(lesson.id, modId, id)}
+                    onDelete={deleteLesson.bind(null, lesson.id, modId, id)}
                     title="Excluir aula"
                     message={`A aula "${lesson.title}" será excluída permanentemente.`}
                     confirmLabel="Excluir aula"

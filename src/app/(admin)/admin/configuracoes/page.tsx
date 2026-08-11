@@ -110,7 +110,7 @@ export default async function ConfiguracoesPage() {
                       </Link>
                       {!isMe && (
                         <DeleteConfirmButton
-                          onDelete={() => deleteUser(member.id)}
+                          onDelete={deleteUser.bind(null, member.id)}
                           title="Excluir colaborador"
                           message={`Isso removerá ${member.name ?? '(sem nome)'} permanentemente.`}
                           confirmLabel="Confirmar exclusão"
