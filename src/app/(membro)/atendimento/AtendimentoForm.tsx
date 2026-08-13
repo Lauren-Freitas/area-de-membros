@@ -3,6 +3,9 @@
 import { useActionState, useRef, useState } from 'react'
 import { submitTicket } from '@/lib/actions/member'
 import { Badge, type BadgeTone } from '@/components/Badge'
+import { Input } from '@/components/Input'
+import { Textarea } from '@/components/Textarea'
+import { Select } from '@/components/Select'
 
 interface Ticket {
   id: string
@@ -95,26 +98,20 @@ export function AtendimentoForm({ products, tickets }: Props) {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                   Conteúdo relacionado
                 </label>
-                <select
-                  name="product_id"
-                  className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:border-transparent transition"
-                  style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
-                >
+                <Select name="product_id">
                   <option value="">Nenhum (geral)</option>
                   {products.map(p => (
                     <option key={p.id} value={p.id}>{p.title}</option>
                   ))}
-                </select>
+                </Select>
               </div>
             )}
             <div className={products.length > 0 ? '' : 'sm:col-span-2'}>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Assunto</label>
-              <input
+              <Input
                 name="subject"
                 type="text"
                 maxLength={150}
-                className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition"
-                style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
                 placeholder="Resumo do seu chamado"
               />
             </div>
@@ -124,13 +121,11 @@ export function AtendimentoForm({ products, tickets }: Props) {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Mensagem <span className="text-red-500">*</span>
             </label>
-            <textarea
+            <Textarea
               name="message"
               required
               rows={5}
               maxLength={2000}
-              className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:border-transparent transition"
-              style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
               placeholder="Descreva sua dúvida ou problema com o máximo de detalhes possível..."
             />
           </div>

@@ -1,5 +1,9 @@
 'use client'
+import Link from 'next/link'
 import { saveCohort } from '@/lib/actions/cohorts'
+import { Input } from '@/components/Input'
+import { Textarea } from '@/components/Textarea'
+import { Select } from '@/components/Select'
 
 interface Product { id: string; title: string }
 interface Cohort {
@@ -16,57 +20,52 @@ export function CohortForm({ cohort, products }: { cohort?: Cohort; products: Pr
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">Nome da turma *</label>
-        <input
+        <Input
           name="name"
           required
           defaultValue={cohort?.name}
           placeholder="Ex: Turma Janeiro 2026"
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">Descrição</label>
-        <textarea
+        <Textarea
           name="description"
           rows={2}
           defaultValue={cohort?.description ?? ''}
           placeholder="Informações sobre esta turma..."
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300 resize-none"
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">Produto associado</label>
-        <select
+        <Select
           name="product_id"
           defaultValue={cohort?.product_id ?? ''}
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300 bg-white"
         >
           <option value="">Nenhum</option>
           {products.map(p => (
             <option key={p.id} value={p.id}>{p.title}</option>
           ))}
-        </select>
+        </Select>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Início</label>
-          <input
+          <Input
             type="datetime-local"
             name="starts_at"
             defaultValue={toDateInput(cohort?.starts_at ?? null)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Encerramento</label>
-          <input
+          <Input
             type="datetime-local"
             name="ends_at"
             defaultValue={toDateInput(cohort?.ends_at ?? null)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
           />
         </div>
       </div>
@@ -79,7 +78,7 @@ export function CohortForm({ cohort, products }: { cohort?: Cohort; products: Pr
         >
           {cohort ? 'Salvar alterações' : 'Criar turma'}
         </button>
-        <a href="/admin/turmas" className="px-5 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition">Cancelar</a>
+        <Link href="/admin/turmas" className="px-5 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition">Cancelar</Link>
       </div>
     </form>
   )

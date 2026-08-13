@@ -4,6 +4,9 @@ import { useActionState, useState, useRef } from 'react'
 import { updateMemberProfile, updateMemberPassword } from '@/lib/actions/member'
 import { AvatarCropper } from '@/components/AvatarCropper'
 import { AvatarPhotoModal } from '@/components/AvatarPhotoModal'
+import { Input } from '@/components/Input'
+import { Textarea } from '@/components/Textarea'
+import { Select } from '@/components/Select'
 
 const COUNTRIES = [
   { ddi: '+55',  flag: '🇧🇷', name: 'Brasil' },
@@ -205,40 +208,34 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 Nome completo <span className="text-red-500">*</span>
               </label>
-              <input
+              <Input
                 name="name"
                 defaultValue={initialData.name}
                 required
-                className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition"
-                style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
                 placeholder="Seu nome completo"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Telefone</label>
               <div className="flex gap-2">
-                <select
+                <Select
                   name="phone_ddi"
                   value={selectedDdi}
                   onChange={e => setSelectedDdi(e.target.value)}
-                  className="shrink-0 px-2 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:border-transparent transition"
-                  style={{
-                    '--tw-ring-color': 'var(--brand)',
-                    width: selectedDdi.length <= 2 ? '4.5rem' : selectedDdi.length <= 3 ? '5rem' : '5.75rem',
-                  } as React.CSSProperties}
+                  className="shrink-0 px-2"
+                  style={{ width: selectedDdi.length <= 2 ? '4.5rem' : selectedDdi.length <= 3 ? '5rem' : '5.75rem' }}
                 >
                   {COUNTRIES.map(c => (
                     <option key={c.ddi + c.name} value={c.ddi}>
                       {c.flag} {c.ddi}
                     </option>
                   ))}
-                </select>
-                <input
+                </Select>
+                <Input
                   name="phone_number"
                   type="tel"
                   defaultValue={parsedPhone.number}
-                  className="flex-1 px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition"
-                  style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
+                  className="flex-1"
                   placeholder="(11) 99999-9999"
                 />
               </div>
@@ -260,13 +257,11 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
           {/* Bio */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Biografia</label>
-            <textarea
+            <Textarea
               name="bio"
               defaultValue={initialData.bio}
               rows={3}
               maxLength={500}
-              className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:border-transparent transition"
-              style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
               placeholder="Conte um pouco sobre você..."
             />
           </div>
@@ -274,16 +269,14 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
           {/* Fuso horário */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Fuso horário</label>
-            <select
+            <Select
               name="timezone"
               defaultValue={initialData.timezone}
-              className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:border-transparent transition"
-              style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
             >
               {TIMEZONES.map(tz => (
                 <option key={tz.value} value={tz.value}>{tz.label}</option>
               ))}
-            </select>
+            </Select>
           </div>
 
           <div className="flex items-center gap-3 pt-1">
@@ -327,13 +320,11 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Senha atual</label>
-            <input
+            <Input
               name="current_password"
               type="password"
               autoComplete="current-password"
               required
-              className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition"
-              style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
               placeholder="••••••••"
             />
           </div>
@@ -341,27 +332,23 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Nova senha</label>
-              <input
+              <Input
                 name="new_password"
                 type="password"
                 autoComplete="new-password"
                 required
                 minLength={8}
-                className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition"
-                style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
                 placeholder="Mínimo 8 caracteres"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Confirmar nova senha</label>
-              <input
+              <Input
                 name="confirm_password"
                 type="password"
                 autoComplete="new-password"
                 required
                 minLength={8}
-                className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition"
-                style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
                 placeholder="Repita a nova senha"
               />
             </div>

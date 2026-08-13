@@ -5,6 +5,9 @@ import { saveProduct } from '@/lib/actions/admin'
 import { generatePaymentLink } from '@/lib/actions/asaas'
 import { Switch } from '@/components/admin/Switch'
 import { Button } from '@/components/Button'
+import { Input } from '@/components/Input'
+import { Textarea } from '@/components/Textarea'
+import { Select } from '@/components/Select'
 import { Product } from '@/types'
 
 const BILLING_CYCLES: { value: string; label: string }[] = [
@@ -81,11 +84,10 @@ export function ProductForm({ product }: { product?: Product }) {
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Título <span className="text-red-500">*</span>
         </label>
-        <input
+        <Input
           name="title"
           defaultValue={product?.title}
           required
-          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
           placeholder="Ex: Cardápio Semanal Personalizado"
         />
       </div>
@@ -93,11 +95,10 @@ export function ProductForm({ product }: { product?: Product }) {
       {/* Descrição */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
-        <textarea
+        <Textarea
           name="description"
           defaultValue={product?.description}
           rows={3}
-          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent resize-none"
           placeholder="Descreva brevemente o conteúdo..."
         />
       </div>
@@ -108,38 +109,35 @@ export function ProductForm({ product }: { product?: Product }) {
           URL da imagem de capa
           <span className="text-gray-400 font-normal ml-1 text-xs">(opcional)</span>
         </label>
-        <input
+        <Input
           name="banner_url"
           defaultValue={product?.banner_url ?? ''}
-          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
           placeholder="https://..."
         />
       </div>
 
       {/* Conteúdo simples (usado quando o produto não tem módulos/aulas) */}
       <div className="flex flex-wrap gap-4 p-4 rounded-lg bg-gray-50 border border-gray-100">
-        <div>
+        <div className="w-48">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Tipo de conteúdo
             <span className="text-gray-400 font-normal ml-1 text-xs">(só é usado se o produto não tiver módulos/aulas)</span>
           </label>
-          <select
+          <Select
             name="content_type"
             value={contentType}
             onChange={e => setContentType(e.target.value as 'file' | 'video')}
-            className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
           >
             <option value="file">Arquivo</option>
             <option value="video">Vídeo</option>
-          </select>
+          </Select>
         </div>
         {contentType === 'video' && (
           <div className="flex-1 min-w-[200px]">
             <label className="block text-sm font-medium text-gray-700 mb-1">URL do vídeo</label>
-            <input
+            <Input
               name="content_url"
               defaultValue={product?.content_url ?? ''}
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
               placeholder="https://youtube.com/watch?v=... ou https://vimeo.com/..."
             />
           </div>
@@ -153,32 +151,30 @@ export function ProductForm({ product }: { product?: Product }) {
 
       {/* Preço + Ciclo de cobrança */}
       <div className="flex flex-wrap gap-4">
-        <div>
+        <div className="w-40">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Preço (R$)
             <span className="text-gray-400 font-normal ml-1 text-xs">(usado ao gerar o link no Asaas)</span>
           </label>
-          <input
+          <Input
             name="price"
             type="number"
             step="0.01"
             min="0"
             defaultValue={product?.price ?? ''}
-            className="w-40 px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
             placeholder="297.00"
           />
         </div>
-        <div>
+        <div className="w-48">
           <label className="block text-sm font-medium text-gray-700 mb-1">Ciclo de cobrança</label>
-          <select
+          <Select
             name="billing_cycle"
             defaultValue={product?.billing_cycle ?? ''}
-            className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
           >
             {BILLING_CYCLES.map(c => (
               <option key={c.value} value={c.value}>{c.label}</option>
             ))}
-          </select>
+          </Select>
         </div>
       </div>
 
@@ -188,11 +184,10 @@ export function ProductForm({ product }: { product?: Product }) {
           Link de compra
           <span className="text-gray-400 font-normal ml-1 text-xs">(aparece na vitrine para quem ainda não tem acesso)</span>
         </label>
-        <input
+        <Input
           name="buy_url"
           ref={buyUrlInputRef}
           defaultValue={product?.buy_url ?? ''}
-          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
           placeholder="https://www.asaas.com/c/... ou link do WhatsApp"
         />
         {isEditing && <GeneratePaymentLinkButton productId={product.id} buyUrlInputRef={buyUrlInputRef} />}
@@ -204,24 +199,22 @@ export function ProductForm({ product }: { product?: Product }) {
           ID do produto na Kiwify
           <span className="text-gray-400 font-normal ml-1 text-xs">(opcional — necessário só se vender esse produto pela Kiwify)</span>
         </label>
-        <input
+        <Input
           name="kiwify_product_id"
           defaultValue={product?.kiwify_product_id ?? ''}
-          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
           placeholder="Copie em Kiwify → Produtos → abra o produto → ID na URL"
         />
       </div>
 
       {/* Ordem + Pack (pack só no modo edição) */}
       <div className="flex flex-wrap items-center gap-6">
-        <div>
+        <div className="w-32">
           <label className="block text-sm font-medium text-gray-700 mb-1">Ordem de exibição</label>
-          <input
+          <Input
             name="sort_order"
             type="number"
             min="0"
             defaultValue={product?.sort_order ?? 0}
-            className="w-32 px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
           />
         </div>
 

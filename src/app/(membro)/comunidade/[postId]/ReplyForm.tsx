@@ -1,6 +1,7 @@
 'use client'
 import { useRef, useState, useTransition } from 'react'
 import { createReply } from '@/lib/actions/community'
+import { Textarea } from '@/components/Textarea'
 
 export function ReplyForm({ postId }: { postId: string }) {
   const [body, setBody] = useState('')
@@ -20,14 +21,13 @@ export function ReplyForm({ postId }: { postId: string }) {
   return (
     <form onSubmit={handleSubmit} className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5 space-y-3">
       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Sua resposta</label>
-      <textarea
+      <Textarea
         ref={ref}
         value={body}
         onChange={e => setBody(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleSubmit(e as unknown as React.FormEvent) }}
         rows={3}
         placeholder="Escreva sua resposta... (⌘+Enter para enviar)"
-        className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300 resize-none"
       />
       <div className="flex items-center justify-between">
         <span className="text-xs text-gray-400">{body.length}/1000</span>

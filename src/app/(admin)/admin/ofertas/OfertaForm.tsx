@@ -3,6 +3,9 @@ import { useState } from 'react'
 import { saveOffer } from '@/lib/actions/offers'
 import { Switch } from '@/components/admin/Switch'
 import { Button } from '@/components/Button'
+import { Input } from '@/components/Input'
+import { Textarea } from '@/components/Textarea'
+import { Select } from '@/components/Select'
 
 interface Product { id: string; title: string }
 interface Offer {
@@ -20,72 +23,67 @@ export function OfertaForm({ offer, products }: { offer?: Offer; products: Produ
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">Título da oferta *</label>
-        <input
+        <Input
           name="title"
           required
           defaultValue={offer?.title}
           placeholder="Ex: Oferta relâmpago — 50% off!"
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">Descrição</label>
-        <textarea
+        <Textarea
           name="description"
           rows={2}
           defaultValue={offer?.description ?? ''}
           placeholder="Detalhe a oferta para o membro..."
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300 resize-none"
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">Produto relacionado</label>
-        <select
+        <Select
           name="product_id"
           defaultValue={offer?.product_id ?? ''}
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300 bg-white"
         >
           <option value="">Nenhum (oferta geral)</option>
           {products.map(p => (
             <option key={p.id} value={p.id}>{p.title}</option>
           ))}
-        </select>
+        </Select>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Preço original (R$)</label>
-          <input
+          <Input
             type="number"
             name="original_price"
             step="0.01"
             defaultValue={offer?.original_price ?? ''}
             placeholder="197,00"
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Preço promocional (R$)</label>
-          <input
+          <Input
             type="number"
             name="promo_price"
             step="0.01"
             defaultValue={offer?.promo_price ?? ''}
             placeholder="97,00"
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
           />
         </div>
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">Cupom de desconto</label>
-        <input
+        <Input
           name="coupon_code"
           defaultValue={offer?.coupon_code ?? ''}
           placeholder="EX: PROMO50"
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-yellow-300"
+          className="font-mono"
         />
         <p className="text-xs text-gray-400 mt-1">Opcional — o membro pode copiar e usar no checkout.</p>
       </div>
@@ -93,20 +91,18 @@ export function OfertaForm({ offer, products }: { offer?: Offer; products: Produ
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Encerra em</label>
-          <input
+          <Input
             type="datetime-local"
             name="ends_at"
             defaultValue={offer?.ends_at ? offer.ends_at.slice(0, 16) : ''}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Ordem</label>
-          <input
+          <Input
             type="number"
             name="sort_order"
             defaultValue={offer?.sort_order ?? 0}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
           />
         </div>
       </div>

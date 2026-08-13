@@ -7,6 +7,8 @@ import { Lesson, LessonAttachment } from '@/types'
 import { RichTextEditor } from '@/components/admin/RichTextEditor'
 import { AttachmentsManager } from '@/components/admin/AttachmentsManager'
 import { Switch } from '@/components/admin/Switch'
+import { Input } from '@/components/Input'
+import { Textarea } from '@/components/Textarea'
 
 interface Props { productId: string; moduleId: string; lesson?: Lesson; attachments?: LessonAttachment[] }
 
@@ -27,22 +29,20 @@ export function AulaForm({ productId, moduleId, lesson, attachments }: Props) {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Título <span className="text-red-500">*</span></label>
-        <input
+        <Input
           name="title"
           defaultValue={lesson?.title}
           required
-          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent"
           placeholder="Ex: Aula 1 — Introdução"
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Descrição <span className="text-gray-400 font-normal text-xs">(opcional)</span></label>
-        <textarea
+        <Textarea
           name="description"
           defaultValue={lesson?.description ?? ''}
           rows={2}
-          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent resize-none"
         />
       </div>
 
@@ -51,10 +51,9 @@ export function AulaForm({ productId, moduleId, lesson, attachments }: Props) {
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Vídeo <span className="text-gray-400 font-normal text-xs">(opcional — YouTube ou Vimeo)</span>
         </label>
-        <input
+        <Input
           name="content_url"
           defaultValue={lesson?.content_url ?? ''}
-          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent"
           placeholder="https://youtube.com/watch?v=..."
         />
       </div>

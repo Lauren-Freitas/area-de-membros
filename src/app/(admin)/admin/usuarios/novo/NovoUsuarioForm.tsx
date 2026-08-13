@@ -3,10 +3,10 @@
 import { useActionState, useState } from 'react'
 import { createUser } from '@/lib/actions/admin'
 import { Button } from '@/components/Button'
+import { Input } from '@/components/Input'
+import { Select } from '@/components/Select'
 
 interface Product { id: string; title: string }
-
-const inputClass = 'w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition'
 
 export function NovoUsuarioForm({ products, isEquipe = false }: { products: Product[]; isEquipe?: boolean }) {
   const [state, action, isPending] = useActionState(createUser, undefined)
@@ -45,37 +45,31 @@ export function NovoUsuarioForm({ products, isEquipe = false }: { products: Prod
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nome completo</label>
-                <input
+                <Input
                   name="name"
                   type="text"
                   required
-                  className={inputClass}
-                  style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
                   placeholder="Ex: João Silva"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de conta</label>
-                <select
+                <Select
                   name="role"
                   value={selectedRole}
                   onChange={e => setSelectedRole(e.target.value)}
-                  className={inputClass}
-                  style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
                 >
                   <option value="admin">Admin</option>
                   <option value="equipe">Equipe</option>
-                </select>
+                </Select>
               </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
+              <Input
                 name="email"
                 type="email"
                 required
-                className={inputClass}
-                style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
                 placeholder="Ex: joao@email.com"
               />
             </div>
@@ -108,23 +102,19 @@ export function NovoUsuarioForm({ products, isEquipe = false }: { products: Prod
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Nome completo</label>
-              <input
+              <Input
                 name="name"
                 type="text"
                 required
-                className={inputClass}
-                style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
                 placeholder="Ex: João Silva"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
+              <Input
                 name="email"
                 type="email"
                 required
-                className={inputClass}
-                style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
                 placeholder="Ex: joao@email.com"
               />
             </div>
@@ -133,11 +123,9 @@ export function NovoUsuarioForm({ products, isEquipe = false }: { products: Prod
                 Telefone
                 <span className="text-gray-400 font-normal ml-1 text-xs">(opcional)</span>
               </label>
-              <input
+              <Input
                 name="phone"
                 type="tel"
-                className={inputClass}
-                style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
                 placeholder="5561999999999"
               />
             </div>

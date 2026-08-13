@@ -3,6 +3,8 @@
 import { useActionState, useState } from 'react'
 import { saveModule } from '@/lib/actions/admin'
 import { Button } from '@/components/Button'
+import { Input } from '@/components/Input'
+import { Textarea } from '@/components/Textarea'
 import { Module } from '@/types'
 
 interface Props { productId: string; module?: Module }
@@ -22,22 +24,20 @@ export function ModuloForm({ productId, module }: Props) {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Título <span className="text-red-500">*</span></label>
-        <input
+        <Input
           name="title"
           defaultValue={module?.title}
           required
-          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent"
           placeholder="Ex: Módulo 1 — Fundamentos"
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Descrição <span className="text-gray-400 font-normal text-xs">(opcional)</span></label>
-        <textarea
+        <Textarea
           name="description"
           defaultValue={module?.description ?? ''}
           rows={2}
-          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:border-transparent resize-none"
           placeholder="Descreva brevemente o que o aluno vai aprender..."
         />
       </div>

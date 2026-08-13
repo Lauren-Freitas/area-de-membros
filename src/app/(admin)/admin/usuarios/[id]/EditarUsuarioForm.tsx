@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { Button } from '@/components/Button'
 import { ConfirmModal } from '@/components/ConfirmModal'
 import { ProductAccessList } from '@/components/admin/ProductAccessList'
+import { Input } from '@/components/Input'
+import { Select } from '@/components/Select'
 import type { AdminActionState } from '@/lib/actions/admin'
 import { resendAdminInvite } from '@/lib/actions/admin'
 import { resetMemberPassword, type MemberProductAccess } from '@/lib/actions/members'
@@ -114,19 +116,17 @@ export function EditarUsuarioForm({ profile, action, userId, products, activity 
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 Nome <span className="text-red-500">*</span>
               </label>
-              <input
+              <Input
                 name="name"
                 defaultValue={profile.name}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300"
                 required
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Tipo de conta</label>
-              <select
+              <Select
                 name="role"
                 defaultValue={profile.role}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300"
               >
                 {isAdmin ? (
                   <>
@@ -136,7 +136,7 @@ export function EditarUsuarioForm({ profile, action, userId, products, activity 
                 ) : (
                   <option value="membro">Membro</option>
                 )}
-              </select>
+              </Select>
             </div>
           </div>
 
@@ -154,12 +154,11 @@ export function EditarUsuarioForm({ profile, action, userId, products, activity 
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Telefone</label>
-              <input
+              <Input
                 name="phone"
                 type="tel"
                 defaultValue={profile.phone ?? ''}
                 placeholder="5561999999999"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300"
               />
             </div>
           </div>

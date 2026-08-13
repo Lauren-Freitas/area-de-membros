@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createPost } from '@/lib/actions/community'
+import { Input } from '@/components/Input'
+import { Textarea } from '@/components/Textarea'
 
 export default async function NovaPublicacaoPage() {
   const supabase = await createClient()
@@ -21,22 +23,20 @@ export default async function NovaPublicacaoPage() {
       <form action={createPost} className="space-y-4 bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Título *</label>
-          <input
+          <Input
             name="title"
             required
             maxLength={120}
             placeholder="Ex: Como adaptar a dieta nos fins de semana?"
-            className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300"
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Mensagem *</label>
-          <textarea
+          <Textarea
             name="body"
             required
             rows={6}
             placeholder="Conte mais sobre sua dúvida ou experiência..."
-            className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-yellow-300 resize-none"
           />
         </div>
         <div className="flex items-center gap-3 pt-1">

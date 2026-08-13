@@ -3,8 +3,8 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { APPEARANCE_DEFAULTS } from '@/lib/appearance-defaults'
 import { uploadBrandingAsset, removeBrandingAsset } from '@/lib/actions/appearance'
-
-const inputClass = 'w-full px-3 py-2 border border-gray-200 dark:border-[#374151] rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-[#111827] focus:outline-none focus:ring-2 focus:ring-yellow-300'
+import { Input } from '@/components/Input'
+import { Textarea } from '@/components/Textarea'
 
 function Section({ title, description, children }: {
   title: string
@@ -274,8 +274,7 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Nome da plataforma</label>
-            <input
-              className={inputClass}
+            <Input
               value={values.platform_name ?? ''}
               onChange={e => set('platform_name', e.target.value)}
               placeholder="Ex: Thiago Cantalovo"
@@ -283,10 +282,9 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Mensagem de boas-vindas</label>
-            <textarea
+            <Textarea
               rows={2}
               placeholder="Mensagem exibida no topo do dashboard"
-              className={`${inputClass} resize-none`}
               value={values.welcome_message ?? ''}
               onChange={e => set('welcome_message', e.target.value)}
             />
@@ -305,9 +303,9 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
             <label className="block text-sm font-medium text-gray-700 mb-1.5">WhatsApp de suporte</label>
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-400 shrink-0 font-medium">+</span>
-              <input
+              <Input
                 placeholder="5561991900589"
-                className={`flex-1 ${inputClass}`}
+                className="flex-1"
                 value={values.support_whatsapp ?? ''}
                 onChange={e => set('support_whatsapp', e.target.value)}
               />
@@ -316,9 +314,8 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">E-mail de suporte</label>
-            <input
+            <Input
               type="email"
-              className={inputClass}
               value={values.support_email ?? ''}
               onChange={e => set('support_email', e.target.value)}
             />

@@ -4,6 +4,7 @@ import { useActionState, useState, useRef } from 'react'
 import { updateProfile, updateAdminPassword } from '@/lib/actions/admin'
 import { AvatarCropper } from '@/components/AvatarCropper'
 import { AvatarPhotoModal } from '@/components/AvatarPhotoModal'
+import { Input } from '@/components/Input'
 
 // ── Main form ─────────────────────────────────────────────────────────────────
 interface Props { name: string; email: string; avatarUrl: string | null }
@@ -39,8 +40,6 @@ export function ConfiguracoesForm({ name, email, avatarUrl }: Props) {
     setPhotoModalOpen(false)
     if (fileRef.current) fileRef.current.value = ''
   }
-
-  const inputClass = 'w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-yellow-300 focus:border-transparent'
 
   return (
     <div className="space-y-6">
@@ -108,11 +107,11 @@ export function ConfiguracoesForm({ name, email, avatarUrl }: Props) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
-            <input name="name" type="text" defaultValue={name} required className={inputClass} />
+            <Input name="name" type="text" defaultValue={name} required />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input name="email" type="email" defaultValue={email} required className={inputClass} />
+            <Input name="email" type="email" defaultValue={email} required />
           </div>
           <button
             type="submit"
@@ -140,16 +139,16 @@ export function ConfiguracoesForm({ name, email, avatarUrl }: Props) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Senha atual</label>
-            <input name="current_password" type="password" autoComplete="current-password" required className={inputClass} placeholder="••••••••" />
+            <Input name="current_password" type="password" autoComplete="current-password" required placeholder="••••••••" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Nova senha</label>
-              <input name="new_password" type="password" autoComplete="new-password" required minLength={8} className={inputClass} placeholder="Mínimo 8 caracteres" />
+              <Input name="new_password" type="password" autoComplete="new-password" required minLength={8} placeholder="Mínimo 8 caracteres" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Confirmar nova senha</label>
-              <input name="confirm_password" type="password" autoComplete="new-password" required minLength={8} className={inputClass} placeholder="Repita a nova senha" />
+              <Input name="confirm_password" type="password" autoComplete="new-password" required minLength={8} placeholder="Repita a nova senha" />
             </div>
           </div>
           <div className="flex items-center gap-3">
