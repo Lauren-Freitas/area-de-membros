@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import { getLevelInfo } from '@/lib/xp'
 
 interface RankingRow {
   user_id: string
@@ -31,8 +33,13 @@ export default async function RankingPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: rankingData } = await adminClient.rpc('get_member_ranking')
+  const [{ data: rankingData }, xpResult] = await Promise.all([
+    adminClient.rpc('get_member_ranking'),
+    adminClient.from('user_xp_totals').select('total_xp').eq('user_id', user.id).maybeSingle(),
+  ])
   const ranking: RankingRow[] = rankingData ?? []
+  const totalXp = (xpResult.data as { total_xp?: number } | null)?.total_xp ?? 0
+  const { cur } = getLevelInfo(totalXp)
 
   const top3 = ranking.slice(0, 3)
   const myPosition = ranking.findIndex(r => r.user_id === user.id)
@@ -48,23 +55,33 @@ export default async function RankingPage() {
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
           Os membros mais engajados. Pontos: conclusão de aula (+50), avaliação (+25), comentário (+25).
         </p>
+        <p className="text-xs text-gray-400 mt-1">
+          Isso é diferente do seu <Link href="/perfil" className="underline hover:no-underline">XP e nível</Link> — o XP mede seu progresso pessoal, o ranking compara você com outros membros.
+        </p>
       </div>
 
       {/* Minha pontuação */}
       {myRow && (
-        <div className="flex items-center gap-4 px-5 py-4 rounded-2xl border" style={{ backgroundColor: 'var(--brand-bg)', borderColor: 'var(--brand-border)' }}>
+        <Link
+          href="/perfil"
+          className="flex items-center gap-4 px-5 py-4 rounded-2xl border hover:shadow-md transition"
+          style={{ backgroundColor: 'var(--brand-bg)', borderColor: 'var(--brand-border)' }}
+        >
           <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0" style={{ backgroundColor: '#ede0c8', border: '2px solid var(--brand)', color: 'var(--brand-text)' }}>
             {initials(myRow.name)}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold" style={{ color: 'var(--brand-text)' }}>Sua posição: {myPosition + 1}º</p>
-            <p className="text-xs text-gray-500 mt-0.5">{myRow.lessons_completed} aula{myRow.lessons_completed !== 1 ? 's' : ''} concluída{myRow.lessons_completed !== 1 ? 's' : ''}</p>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {myRow.lessons_completed} aula{myRow.lessons_completed !== 1 ? 's' : ''} concluída{myRow.lessons_completed !== 1 ? 's' : ''}
+              {' · '}Nível {cur.level} — {cur.label}
+            </p>
           </div>
           <div className="text-right shrink-0">
             <p className="text-xl font-bold" style={{ color: 'var(--brand)' }}>{formatPoints(myRow.total_points)}</p>
             <p className="text-xs text-gray-400">pontos</p>
           </div>
-        </div>
+        </Link>
       )}
 
       {ranking.length === 0 ? (

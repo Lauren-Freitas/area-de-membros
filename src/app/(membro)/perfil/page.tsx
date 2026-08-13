@@ -12,12 +12,16 @@ export default async function PerfilPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: profile }, xpResult, { data: badgesData }, { count: lessonsCompleted }] = await Promise.all([
+  const [{ data: profile }, xpResult, { data: badgesData }, { count: lessonsCompleted }, { data: rankingData }] = await Promise.all([
     supabase.from('profiles').select('name, avatar_url, bio').eq('id', user.id).single(),
     adminClient.from('user_xp_totals').select('total_xp').eq('user_id', user.id).maybeSingle(),
     adminClient.from('user_badges').select('badge_key, awarded_at').eq('user_id', user.id),
     supabase.from('lesson_progress').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+    adminClient.rpc('get_member_ranking'),
   ])
+
+  const ranking: { user_id: string }[] = rankingData ?? []
+  const myPosition = ranking.findIndex(r => r.user_id === user.id)
 
   const totalXp = (xpResult.data as { total_xp?: number } | null)?.total_xp ?? 0
   const { cur, next, xpInLevel, xpNeeded, pct } = getLevelInfo(totalXp)
@@ -133,6 +137,9 @@ export default async function PerfilPage() {
         ) : (
           <p className="text-xs font-semibold" style={{ color: 'var(--brand)' }}>Nível máximo atingido! 🏆</p>
         )}
+        <p className="text-[11px] text-gray-400 mt-3 pt-3 border-t border-gray-100 dark:border-[#1e2030]">
+          XP mede seu progresso pessoal (aulas, avaliações, comentários). Já o ranking compara sua pontuação com a de outros membros — são medidas diferentes.
+        </p>
 
         {/* Escada de níveis */}
         <div className="mt-4 grid grid-cols-5 gap-1">
@@ -195,7 +202,14 @@ export default async function PerfilPage() {
         <div className="flex items-center gap-3">
           <span className="text-2xl">🏆</span>
           <div>
-            <p className="text-sm font-semibold text-gray-900 dark:text-white">Ver ranking geral</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">
+              Ver ranking geral
+              {myPosition >= 0 && (
+                <span className="ml-2 text-xs font-bold" style={{ color: 'var(--brand)' }}>
+                  Você é {myPosition + 1}º
+                </span>
+              )}
+            </p>
             <p className="text-xs text-gray-400">Compare sua pontuação com outros membros</p>
           </div>
         </div>
