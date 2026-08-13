@@ -1,9 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Geist } from 'next/font/google'
 import './globals.css'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { cache } from 'react'
-import { deriveBrandTokens, withLightness } from '@/lib/color'
+import { getSiteConfig, buildBrandCss } from '@/lib/branding'
 import { BrandProvider } from '@/components/BrandProvider'
 
 const geist = Geist({
@@ -12,16 +10,6 @@ const geist = Geist({
 })
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://membros.thiagocantalovo.com'
-
-const getSiteConfig = cache(async (): Promise<Record<string, string>> => {
-  try {
-    const adminClient = createAdminClient()
-    const { data: rows } = await adminClient.from('site_config').select('key, value')
-    return Object.fromEntries((rows ?? []).map(r => [r.key, r.value]))
-  } catch {
-    return {}
-  }
-})
 
 export async function generateMetadata(): Promise<Metadata> {
   const cfg = await getSiteConfig()
@@ -61,35 +49,7 @@ export async function generateViewport(): Promise<Viewport> {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const cfg = await getSiteConfig()
   const logoUrl = cfg.logo_url || null
-
-  let customCss = ''
-  try {
-    const primary = cfg.primary_color || '#b48840'
-    const brandLight = cfg.brand_light || '#d2b17b'
-    const tokens = deriveBrandTokens(primary)
-
-    // Modo escuro usa a cor de destaque (mais clara) como --brand principal, senão o
-    // acento fica ilegível em cima de fundo quase preto.
-    const light: string[] = [
-      `--brand:${primary}`,
-      `--brand-light:${brandLight}`,
-      `--brand-bg:${tokens.light.bg}`,
-      `--brand-border:${tokens.light.border}`,
-      `--brand-text:${tokens.light.text}`,
-    ]
-    const dark: string[] = [
-      `--brand:${brandLight}`,
-      `--brand-light:${withLightness(primary, 85, 0.75)}`,
-      `--brand-bg:${tokens.dark.bg}`,
-      `--brand-border:${tokens.dark.border}`,
-      `--brand-text:${tokens.dark.text}`,
-    ]
-    if (cfg.bg_light) light.push(`--background:${cfg.bg_light}`)
-    if (cfg.bg_dark) dark.push(`--background:${cfg.bg_dark}`)
-    if (cfg.card_bg_light) light.push(`--card:${cfg.card_bg_light}`)
-    if (cfg.card_bg_dark) dark.push(`--card:${cfg.card_bg_dark}`)
-    customCss = `:root{${light.join(';')}}.dark{${dark.join(';')}}`
-  } catch {}
+  const customCss = buildBrandCss(cfg)
 
   return (
     <html lang="pt-BR" className={`${geist.variable} h-full`} suppressHydrationWarning>

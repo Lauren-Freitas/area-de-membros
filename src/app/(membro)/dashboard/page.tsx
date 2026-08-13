@@ -9,6 +9,7 @@ import { BannerList } from '@/components/BannerList'
 import { OfertaCard } from '@/components/OfertaCard'
 import { WelcomeModal } from '@/components/WelcomeModal'
 import { getLevelInfo } from '@/lib/xp'
+import { getSiteConfig } from '@/lib/branding'
 import { Product, Banner } from '@/types'
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
@@ -30,14 +31,14 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     if (me?.role === 'admin' || me?.role === 'equipe') targetUserId = viewAsMemberId
   }
 
-  const [{ data: products }, { data: accesses }, { data: bannersData }, { data: certsData }, { data: cohortMembership }, { data: offersData }, { data: siteConfigData }, { data: profileData }, { data: xpData }] = await Promise.all([
+  const [{ data: products }, { data: accesses }, { data: bannersData }, { data: certsData }, { data: cohortMembership }, { data: offersData }, siteConfig, { data: profileData }, { data: xpData }] = await Promise.all([
     adminClient.from('products').select('*').eq('is_active', true).order('sort_order'),
     adminClient.from('user_products').select('product_id, expires_at, payment_status').eq('user_id', targetUserId),
     adminClient.from('banners').select('*').eq('is_active', true).or(`expires_at.is.null,expires_at.gt.${now}`).order('sort_order'),
     adminClient.from('certificates').select('id, product_id').eq('user_id', targetUserId),
     adminClient.from('cohort_members').select('cohorts(id, name, description, starts_at, ends_at, products(title))').eq('user_id', targetUserId).limit(1).maybeSingle(),
     adminClient.from('offers').select('id, title, description, original_price, promo_price, coupon_code, ends_at, product_id, products(title, buy_url)').eq('is_active', true).or(`ends_at.is.null,ends_at.gt.${now}`).order('sort_order'),
-    adminClient.from('site_config').select('key, value').in('key', ['welcome_message']),
+    getSiteConfig(),
     adminClient.from('profiles').select('name, last_login_at, welcome_seen_at, last_lesson_id, last_lesson_viewed_at').eq('id', targetUserId).single(),
     adminClient.from('user_xp_totals').select('total_xp').eq('user_id', targetUserId).maybeSingle(),
   ])
@@ -48,7 +49,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     ? (Array.isArray(cohortMembership.cohorts) ? cohortMembership.cohorts[0] : cohortMembership.cohorts)
     : null
 
-  const siteConfig = Object.fromEntries((siteConfigData ?? []).map(r => [r.key, r.value]))
   const welcomeMessage = siteConfig['welcome_message']
     || 'Todo o conteúdo abaixo foi preparado para ajudar você na sua evolução. Bom estudo!'
   const firstName = (profileData?.name ?? '').trim().split(' ')[0] || 'aluno'

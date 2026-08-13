@@ -1,16 +1,10 @@
 import type { MetadataRoute } from 'next'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { getSiteConfig } from '@/lib/branding'
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
-  let platformName = 'Thiago Cantalovo'
-  let themeColor = '#b48840'
-  try {
-    const admin = createAdminClient()
-    const { data: rows } = await admin.from('site_config').select('key, value')
-    const cfg = Object.fromEntries((rows ?? []).map(r => [r.key, r.value]))
-    platformName = cfg.platform_name || platformName
-    themeColor = cfg.primary_color || themeColor
-  } catch {}
+  const cfg = await getSiteConfig()
+  const platformName = cfg.platform_name || 'Thiago Cantalovo'
+  const themeColor = cfg.primary_color || '#b48840'
 
   return {
     name: `Área de Membros — ${platformName}`,

@@ -5,6 +5,7 @@ import { APPEARANCE_DEFAULTS } from '@/lib/appearance-defaults'
 import { uploadBrandingAsset, removeBrandingAsset } from '@/lib/actions/appearance'
 import { Input } from '@/components/Input'
 import { Textarea } from '@/components/Textarea'
+import { ResponsiveGrid } from '@/components/ResponsiveGrid'
 
 function Section({ title, description, children }: {
   title: string
@@ -29,7 +30,7 @@ function ColorPicker({ label, hint, value, onChange }: {
   onChange: (v: string) => void
 }) {
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 min-w-0">
       <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</span>
       <div className="flex items-center gap-3">
         {/* native color input — sem truques, sempre funciona */}
@@ -37,7 +38,7 @@ function ColorPicker({ label, hint, value, onChange }: {
           type="color"
           value={value.match(/^#[0-9a-fA-F]{6}$/) ? value : '#000000'}
           onChange={e => onChange(e.target.value)}
-          className="w-10 h-10 rounded-full cursor-pointer border-2 border-gray-200 p-0.5 bg-transparent"
+          className="w-10 h-10 rounded-full cursor-pointer border-2 border-gray-200 p-0.5 bg-transparent shrink-0"
           title={label}
         />
         {/* hex text input */}
@@ -50,10 +51,11 @@ function ColorPicker({ label, hint, value, onChange }: {
           }}
           maxLength={7}
           spellCheck={false}
-          className="w-24 px-2 py-1.5 border border-gray-200 dark:border-[#374151] rounded text-xs font-mono text-gray-700 dark:text-gray-200 bg-white dark:bg-[#111827] focus:outline-none focus:ring-2 focus:ring-yellow-300"
+          className="w-24 shrink-0 px-2 py-1.5 border border-gray-200 dark:border-[#374151] rounded text-xs font-mono text-gray-700 dark:text-gray-200 bg-white dark:bg-[#111827] focus:outline-none focus:ring-2"
+          style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
         />
-        <span className="text-xs text-gray-400">{hint}</span>
       </div>
+      <span className="text-xs text-gray-400">{hint}</span>
     </div>
   )
 }
@@ -195,13 +197,13 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
     <div className="max-w-4xl">
 
       {/* Page header */}
-      <div className="flex items-start justify-between gap-6 pb-6 border-b border-gray-100">
+      <div className="flex flex-wrap items-start justify-between gap-6 pb-6 border-b border-gray-100">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Aparência</h1>
           <p className="text-sm text-gray-500 mt-0.5">Personalize a identidade visual da sua plataforma.</p>
         </div>
-        <div className="flex flex-col items-end gap-2 shrink-0">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
             <button
               type="button"
               onClick={handleRestore}
@@ -215,7 +217,7 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
               onClick={handleSave}
               disabled={pending}
               className="px-4 py-2 text-sm font-semibold text-white rounded-lg transition hover:opacity-90 disabled:opacity-60"
-              style={{ backgroundColor: '#b48840' }}
+              style={{ backgroundColor: 'var(--brand)' }}
             >
               {pending ? 'Salvando…' : 'Salvar alterações'}
             </button>
@@ -256,14 +258,14 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
         title="Paleta de cores"
         description="Use a cor da sua marca em botões, bordas, ícones e elementos de destaque da plataforma."
       >
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
+        <ResponsiveGrid minItemWidth="200px">
           <ColorPicker label="Cor primária"    hint="Botões e destaques"  value={values.primary_color  ?? '#b48840'} onChange={v => set('primary_color',  v)} />
           <ColorPicker label="Cor de destaque" hint="Acento secundário"   value={values.brand_light    ?? '#d2b17b'} onChange={v => set('brand_light',    v)} />
           <ColorPicker label="Fundo — Claro"   hint="Fundo da página ☀️" value={values.bg_light       ?? '#e4e4e4'} onChange={v => set('bg_light',       v)} />
           <ColorPicker label="Fundo — Escuro"  hint="Fundo da página 🌙" value={values.bg_dark        ?? '#00060f'} onChange={v => set('bg_dark',        v)} />
           <ColorPicker label="Cards — Claro"   hint="Cards e painéis ☀️" value={values.card_bg_light  ?? '#ffffff'} onChange={v => set('card_bg_light',  v)} />
           <ColorPicker label="Cards — Escuro"  hint="Cards e painéis 🌙" value={values.card_bg_dark   ?? '#0d1020'} onChange={v => set('card_bg_dark',   v)} />
-        </div>
+        </ResponsiveGrid>
       </Section>
 
       {/* Textos */}
