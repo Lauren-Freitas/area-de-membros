@@ -78,15 +78,19 @@ async function handleGrant(admin: AdminClient, payment: Record<string, unknown>)
 
     await admin.from('profiles').update({ asaas_customer_id: customer.id }).eq('id', userId)
 
+    // type 'invite' só é válido pra provisionar um usuário que ainda não existe
+    // (cria + convida num passo só). Como o usuário já foi criado por createUser
+    // acima, o tipo certo pra gerar o link de "criar senha" é 'recovery' — com
+    // 'invite' aqui, o Supabase sempre rejeita com 422 email_exists.
     const appUrl = process.env.NEXT_PUBLIC_APP_URL!
-    const { data: linkData } = await admin.auth.admin.generateLink({
-      type: 'invite',
+    const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
+      type: 'recovery',
       email,
       options: {
         redirectTo: `${appUrl}/auth/callback?next=/criar-senha`,
-        data: { name },
       },
     })
+    if (linkError) console.error('[webhook/asaas] falha ao gerar link de convite:', linkError.message)
     inviteLink = linkData?.properties?.action_link ?? null
   }
 

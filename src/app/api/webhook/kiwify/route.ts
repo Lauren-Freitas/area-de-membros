@@ -118,15 +118,19 @@ async function handleGrant(admin: AdminClient, parsed: ParsedKiwifyEvent) {
     userId = created.user.id
     isNewUser = true
 
+    // type 'invite' só é válido pra provisionar um usuário que ainda não existe
+    // (cria + convida num passo só). Como o usuário já foi criado por createUser
+    // acima, o tipo certo pra gerar o link de "criar senha" é 'recovery' — com
+    // 'invite' aqui, o Supabase sempre rejeita com 422 email_exists.
     const appUrl = process.env.NEXT_PUBLIC_APP_URL!
-    const { data: linkData } = await admin.auth.admin.generateLink({
-      type: 'invite',
+    const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
+      type: 'recovery',
       email,
       options: {
         redirectTo: `${appUrl}/auth/callback?next=/criar-senha`,
-        data: { name: displayName },
       },
     })
+    if (linkError) console.error('[webhook/kiwify] falha ao gerar link de convite:', linkError.message)
     inviteLink = linkData?.properties?.action_link ?? null
   }
 
