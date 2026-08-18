@@ -7,7 +7,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const themeColor = cfg.primary_color || '#b48840'
 
   return {
-    name: `Área de Membros — ${platformName}`,
+    name: `Área de Membros · ${platformName}`,
     short_name: platformName,
     description: 'Acesse seus conteúdos exclusivos.',
     start_url: '/dashboard',

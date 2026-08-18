@@ -5,8 +5,8 @@ const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://membros.thiagocantal
 const webhookToken = process.env.ASAAS_WEBHOOK_TOKEN ?? '(não configurado)'
 
 const EVENTS: { label: string; asaasEvent: string; effect: string; tone: 'ok' | 'warn' | 'danger' }[] = [
-  { label: 'Pagamento confirmado', asaasEvent: 'PAYMENT_CONFIRMED, PAYMENT_RECEIVED', effect: 'Cria o membro (se novo) e libera o produto do externalReference — ou todos os produtos, se for um pack.', tone: 'ok' },
-  { label: 'Pagamento em atraso', asaasEvent: 'PAYMENT_OVERDUE', effect: 'Marca o acesso como "overdue" — não revoga, só sinaliza.', tone: 'warn' },
+  { label: 'Pagamento confirmado', asaasEvent: 'PAYMENT_CONFIRMED, PAYMENT_RECEIVED', effect: 'Cria o membro (se novo) e libera o produto do externalReference, ou todos os produtos, se for um pack.', tone: 'ok' },
+  { label: 'Pagamento em atraso', asaasEvent: 'PAYMENT_OVERDUE', effect: 'Marca o acesso como "overdue". Não revoga, só sinaliza.', tone: 'warn' },
   { label: 'Reembolso / estorno / chargeback', asaasEvent: 'PAYMENT_REFUNDED, PAYMENT_DELETED, PAYMENT_CHARGEBACK_REQUESTED', effect: 'Revoga o acesso concedido por essa compra.', tone: 'danger' },
 ]
 
@@ -62,7 +62,7 @@ export default function AsaasGatewayPage() {
 
       <Section title="Como funciona">
         <p className="text-sm text-gray-600">
-          Diferente de n8n/Make/Zapier (que são clientes da sua API), o Asaas fala diretamente com a plataforma: quando um pagamento é confirmado, o Asaas chama o webhook de entrada abaixo e a plataforma <strong>já cria o membro e libera o acesso sozinha</strong> — sem precisar de nenhuma automação no meio, desde que a cobrança tenha o produto certo no campo <code className="bg-gray-100 px-1 rounded text-xs">externalReference</code>.
+          Diferente de n8n/Make/Zapier (que são clientes da sua API), o Asaas fala diretamente com a plataforma: quando um pagamento é confirmado, o Asaas chama o webhook de entrada abaixo e a plataforma <strong>já cria o membro e libera o acesso sozinha</strong>, sem precisar de nenhuma automação no meio, desde que a cobrança tenha o produto certo no campo <code className="bg-gray-100 px-1 rounded text-xs">externalReference</code>.
         </p>
       </Section>
 
@@ -90,7 +90,7 @@ export default function AsaasGatewayPage() {
 
       <Section title="Como testar">
         <p className="text-sm text-gray-600">
-          O próprio painel do Asaas permite disparar um evento de teste pra um webhook cadastrado (Configurações → Integrações → Webhooks → ícone de teste). Use isso pra confirmar que a URL e o token acima estão corretos antes de ativar em produção — não é necessário simular um pagamento real.
+          O próprio painel do Asaas permite disparar um evento de teste pra um webhook cadastrado (Configurações → Integrações → Webhooks → ícone de teste). Use isso pra confirmar que a URL e o token acima estão corretos antes de ativar em produção. Não é necessário simular um pagamento real.
         </p>
       </Section>
 

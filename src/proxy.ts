@@ -34,7 +34,6 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/admin') ||
     pathname.startsWith('/criar-senha') ||
     pathname.startsWith('/comunidade') ||
-    pathname.startsWith('/assistente') ||
     pathname.startsWith('/ranking') ||
     pathname.startsWith('/certificado') ||
     pathname.startsWith('/busca') ||

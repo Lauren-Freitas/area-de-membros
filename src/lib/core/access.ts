@@ -14,6 +14,15 @@ async function loadMemberAndProduct(admin: AdminClient, userId: string, productI
 }
 
 /**
+ * Liberar um produto nunca pode deixar o membro preso inativo — reativa se
+ * for o caso. Filtro `is_active.eq.false` faz disso um no-op barato quando
+ * já está ativo, sem round-trip extra pra checar antes.
+ */
+async function reactivateIfInactive(admin: AdminClient, userId: string) {
+  await admin.from('profiles').update({ is_active: true }).eq('id', userId).eq('is_active', false)
+}
+
+/**
  * Concessão manual (admin) ou via API — não usado para compras (ver
  * recordPurchaseApproved). Upsert real (não `ignoreDuplicates`): chamar de
  * novo com o mesmo par user_id/product_id atualiza granted_by/expires_at em
@@ -36,6 +45,7 @@ export async function grantAccess(
     { onConflict: 'user_id,product_id' },
   )
   if (error) return { error: error.message }
+  await reactivateIfInactive(admin, userId)
 
   const { member, product } = await loadMemberAndProduct(admin, userId, productId)
   await emitEvent({
@@ -116,6 +126,7 @@ export async function recordPurchaseApproved(
     },
     { onConflict: 'user_id,product_id' },
   )
+  await reactivateIfInactive(admin, userId)
 
   const { member, product } = await loadMemberAndProduct(admin, userId, productId)
   const metadata = { value: billing.value, billing_type: billing.billingType, provider: billing.provider }

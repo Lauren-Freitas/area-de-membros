@@ -25,7 +25,7 @@ export default async function AcessosPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-bold text-gray-900">Acessos</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Histórico completo de concessões de acesso ({acessos?.length ?? 0} no total) — compras, pacotes e liberações manuais.</p>
+        <p className="text-sm text-gray-500 mt-0.5">Histórico completo de concessões de acesso ({acessos?.length ?? 0} no total): compras, pacotes e liberações manuais.</p>
       </div>
 
       {!acessos?.length ? (
@@ -51,11 +51,11 @@ export default async function AcessosPage() {
               return (
                 <div key={v.id} className="flex items-center py-3 hover:bg-gray-50 transition">
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900">{profile?.name ?? '—'}</p>
+                    <p className="font-medium text-gray-900">{profile?.name ?? '-'}</p>
                     <p className="text-xs text-gray-400">{profile?.email}</p>
                   </div>
                   <div className="flex-1 min-w-0 pr-4">
-                    <p className="text-gray-700 truncate">{product?.title ?? '—'}</p>
+                    <p className="text-gray-700 truncate">{product?.title ?? '-'}</p>
                   </div>
                   <div className="w-24 shrink-0">
                     <Badge tone={v.granted_by === 'manual' ? 'neutral' : 'brand'}>
@@ -63,7 +63,7 @@ export default async function AcessosPage() {
                     </Badge>
                   </div>
                   <div className="w-28 text-right text-sm text-gray-700 shrink-0">
-                    {v.value != null ? v.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—'}
+                    {v.value != null ? v.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '-'}
                   </div>
                   <div className="w-36 text-sm text-gray-400 shrink-0">
                     {new Date(v.granted_at).toLocaleDateString('pt-BR', {

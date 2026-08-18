@@ -123,7 +123,7 @@ export function ChamadosClient({ tickets }: { tickets: Ticket[] }) {
                     {t.admin_response && <span className="text-xs text-gray-400">· respondido</span>}
                   </div>
                   <p className="text-xs text-gray-500 truncate">
-                    {t.profiles?.name ?? '—'} · {t.profiles?.email}
+                    {t.profiles?.name ?? '-'} · {t.profiles?.email}
                     {t.products?.title && ` · ${t.products.title}`}
                   </p>
                   <p className="text-sm text-gray-600 mt-1 line-clamp-1">{t.message}</p>
@@ -169,7 +169,7 @@ function TicketModal({ ticket, onClose }: { ticket: Ticket; onClose: () => void 
         <div>
           {ticket.subject && <h2 className="font-semibold text-gray-900 dark:text-gray-100">{ticket.subject}</h2>}
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-            {ticket.profiles?.name ?? '—'} · {ticket.profiles?.email}
+            {ticket.profiles?.name ?? '-'} · {ticket.profiles?.email}
             {ticket.products?.title && ` · ${ticket.products.title}`}
           </p>
         </div>

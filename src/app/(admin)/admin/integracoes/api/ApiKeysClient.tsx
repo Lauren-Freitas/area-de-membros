@@ -23,7 +23,7 @@ function maskKey(key: string) {
 }
 
 function fmt(d: string | null) {
-  if (!d) return '—'
+  if (!d) return '-'
   return new Date(d).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
@@ -103,7 +103,7 @@ export function ApiKeysClient({ keys }: { keys: ApiKey[] }) {
       <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] px-5 py-4 flex items-start gap-3">
         <span className="shrink-0 mt-0.5 text-xs font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400">ENTRADA</span>
         <p className="text-sm text-gray-600 dark:text-gray-300">
-          Esta é a API que sua plataforma <strong>recebe</strong> — qualquer sistema capaz de fazer requisições HTTP (n8n, Make, Zapier, um script Python, uma aplicação Node) chama esses endpoints pra criar membros, liberar acesso, gerenciar produtos etc. Cada chave abaixo autentica quem pode chamar. Referência completa de endpoints em{' '}
+          Esta é a API que sua plataforma <strong>recebe</strong>. Qualquer sistema capaz de fazer requisições HTTP (n8n, Make, Zapier, um script Python, uma aplicação Node) chama esses endpoints pra criar membros, liberar acesso, gerenciar produtos etc. Cada chave abaixo autentica quem pode chamar. Referência completa de endpoints em{' '}
           <Link href="/admin/integracoes/api-reference" className="underline font-medium" style={{ color: 'var(--brand)' }}>API Reference</Link>.
         </p>
       </div>
@@ -111,7 +111,7 @@ export function ApiKeysClient({ keys }: { keys: ApiKey[] }) {
       {/* New key created */}
       {justCreated && (
         <div className="bg-green-50 border border-green-200 rounded-2xl p-4 space-y-2">
-          <p className="text-sm font-semibold text-green-800">🎉 Chave criada — salve agora, ela não será exibida novamente</p>
+          <p className="text-sm font-semibold text-green-800">🎉 Chave criada. Salve agora, ela não será exibida novamente</p>
           <div className="flex items-center gap-3 bg-card rounded-lg px-4 py-3 border border-green-200">
             <code className="flex-1 text-sm font-mono text-gray-800 break-all select-all">{state.key}</code>
             <button
@@ -176,7 +176,7 @@ export function ApiKeysClient({ keys }: { keys: ApiKey[] }) {
             </label>
             {!fullAccess && (
               <p className="text-xs text-gray-400 mb-2">
-                Marque só as permissões que essa integração realmente precisa — princípio de menor privilégio.
+                Marque só as permissões que essa integração realmente precisa (princípio de menor privilégio).
               </p>
             )}
             <ScopeCheckboxes disabled={fullAccess} />

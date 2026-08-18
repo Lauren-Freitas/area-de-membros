@@ -33,7 +33,7 @@ function getInitials(name: string) {
 }
 
 function fmtRelativeDate(iso: string | null) {
-  if (!iso) return '—'
+  if (!iso) return '-'
   const date = new Date(iso)
   const days = Math.floor((Date.now() - date.getTime()) / 86400000)
   if (days <= 0) return 'Hoje'
@@ -43,7 +43,7 @@ function fmtRelativeDate(iso: string | null) {
 }
 
 function expiryInfo(member: MemberSummary): { label: string; tone: 'muted' | 'warning' | 'danger' } {
-  if (member.products_count === 0) return { label: '—', tone: 'muted' }
+  if (member.products_count === 0) return { label: '-', tone: 'muted' }
   if (!member.next_expiry) return { label: 'Permanente', tone: 'muted' }
   const diffDays = Math.ceil((new Date(member.next_expiry).getTime() - Date.now()) / 86400000)
   if (diffDays < 0) return { label: `Expirou há ${Math.abs(diffDays)} ${Math.abs(diffDays) === 1 ? 'dia' : 'dias'}`, tone: 'danger' }
@@ -62,7 +62,7 @@ function statusInfo(member: MemberSummary): { color: string; label: string } {
 }
 
 function ProductChips({ titles }: { titles: string[] }) {
-  if (titles.length === 0) return <span className="text-xs text-gray-300">—</span>
+  if (titles.length === 0) return <span className="text-xs text-gray-300">-</span>
   const visible = titles.slice(0, 2)
   const rest = titles.slice(2)
   return (

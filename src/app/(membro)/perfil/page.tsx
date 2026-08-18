@@ -109,7 +109,7 @@ export default async function PerfilPage() {
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Nível atual</p>
             <p className="text-lg font-bold text-gray-900 dark:text-white mt-0.5">
-              {cur.level} — <span style={{ color: 'var(--brand)' }}>{cur.label}</span>
+              {cur.level}: <span style={{ color: 'var(--brand)' }}>{cur.label}</span>
             </p>
           </div>
           {next && (
@@ -138,7 +138,7 @@ export default async function PerfilPage() {
           <p className="text-xs font-semibold" style={{ color: 'var(--brand)' }}>Nível máximo atingido! 🏆</p>
         )}
         <p className="text-[11px] text-gray-400 mt-3 pt-3 border-t border-gray-100 dark:border-[#1e2030]">
-          XP mede seu progresso pessoal (aulas, avaliações, comentários). Já o ranking compara sua pontuação com a de outros membros — são medidas diferentes.
+          XP mede seu progresso pessoal (aulas, avaliações, comentários). Já o ranking compara sua pontuação com a de outros membros. São medidas diferentes.
         </p>
 
         {/* Escada de níveis */}

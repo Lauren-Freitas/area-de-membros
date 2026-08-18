@@ -9,10 +9,10 @@ interface IndexItem {
 
 const ITEMS: IndexItem[] = [
   { href: '/admin/integracoes/api-reference#autenticacao', title: 'Autenticação', desc: 'Header x-api-key, chaves mestra e nomeadas, escopos de permissão, formato de erro.' },
-  { href: '/admin/integracoes/api-reference', title: 'API', desc: 'Todos os endpoints — Membros, Acessos, Produtos, Compras, Certificados, Convites, Login.' },
+  { href: '/admin/integracoes/api-reference', title: 'API', desc: 'Todos os endpoints: Membros, Acessos, Produtos, Compras, Certificados, Convites, Login.' },
   { href: '/admin/integracoes/webhooks', title: 'Eventos', desc: 'Catálogo de eventos de webhook, payload padronizado, como testar.' },
-  { href: '/admin/integracoes/recipes', title: 'Recipes', desc: 'Fluxos completos prontos — do gatilho de negócio até a chamada de API.' },
-  { href: '', title: 'SDKs', desc: 'Bibliotecas oficiais (JavaScript, Python) — planejado, ainda não disponível.', badge: 'em breve' },
+  { href: '/admin/integracoes/recipes', title: 'Recipes', desc: 'Fluxos completos prontos: do gatilho de negócio até a chamada de API.' },
+  { href: '', title: 'SDKs', desc: 'Bibliotecas oficiais (JavaScript, Python). Planejado, ainda não disponível.', badge: 'em breve' },
 ]
 
 export default function DocumentacaoPage() {
@@ -26,14 +26,14 @@ export default function DocumentacaoPage() {
         </Link>
         <div>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">Documentação</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Ponto de partida — cada seção vive na própria página, sem conteúdo repetido aqui.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Ponto de partida. Cada seção vive na própria página, sem conteúdo repetido aqui.</p>
         </div>
       </div>
 
       <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
         <h2 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Introdução</h2>
         <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-          Esta plataforma foi construída seguindo o princípio <strong>API First</strong>. Qualquer ferramenta capaz de fazer requisições HTTP — n8n, Make, Zapier, um script Python, uma aplicação Node — pode criar membros, conceder acessos, gerenciar produtos e reagir a eventos via Webhooks. A interface administrativa serve para consultar, corrigir e resolver exceções; o fluxo principal do negócio é automatizado através da API.
+          Esta plataforma foi construída seguindo o princípio <strong>API First</strong>. Qualquer ferramenta capaz de fazer requisições HTTP (n8n, Make, Zapier, um script Python, uma aplicação Node) pode criar membros, conceder acessos, gerenciar produtos e reagir a eventos via Webhooks. A interface administrativa serve para consultar, corrigir e resolver exceções; o fluxo principal do negócio é automatizado através da API.
         </p>
       </div>
 

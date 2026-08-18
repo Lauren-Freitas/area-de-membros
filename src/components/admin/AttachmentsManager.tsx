@@ -110,7 +110,7 @@ export function AttachmentsManager({ lessonId, initialAttachments }: { lessonId:
         <label className="block text-sm font-medium text-gray-700">
           Anexos
           <span className="text-gray-400 font-normal ml-1 text-xs">
-            (até {MAX_ATTACHMENTS}, 100MB cada — {totalCount}/{MAX_ATTACHMENTS})
+            (até {MAX_ATTACHMENTS}, 100MB cada, {totalCount}/{MAX_ATTACHMENTS})
           </span>
         </label>
         <button

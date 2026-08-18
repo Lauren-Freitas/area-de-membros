@@ -35,7 +35,9 @@ export function BannerList({ banners }: { banners: Banner[] }) {
   if (visible.length === 0) return null
 
   return (
-    <div className="space-y-3 mb-6">
+    <section>
+      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Novidades</h2>
+      <div className="space-y-3">
       {visible.map(b => {
         const c = colors[b.type] ?? colors.info
         return (
@@ -52,6 +54,7 @@ export function BannerList({ banners }: { banners: Banner[] }) {
                   href={b.link}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => dismiss(b.id)}
                   className="inline-block mt-2 text-xs font-semibold text-white px-3 py-1 rounded-lg transition hover:opacity-90"
                   style={{ backgroundColor: c.btn }}
                 >
@@ -72,6 +75,7 @@ export function BannerList({ banners }: { banners: Banner[] }) {
           </div>
         )
       })}
-    </div>
+      </div>
+    </section>
   )
 }

@@ -239,14 +239,14 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
           <BrandingAssetUpload
             kind="logo"
             label="Logo"
-            hint="PNG, JPG, SVG ou WebP — aparece dentro de um círculo, então funciona melhor centralizada"
+            hint="PNG, JPG, SVG ou WebP. Aparece dentro de um círculo, então funciona melhor centralizada"
             currentUrl={values.logo_url || null}
             onUpdated={url => { set('logo_url', url ?? ''); router.refresh() }}
           />
           <BrandingAssetUpload
             kind="favicon"
             label="Favicon"
-            hint="PNG ou ICO quadrado — ícone da aba do navegador"
+            hint="PNG ou ICO quadrado. Ícone da aba do navegador"
             currentUrl={values.favicon_url || null}
             onUpdated={url => { set('favicon_url', url ?? ''); router.refresh() }}
           />
@@ -258,14 +258,31 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
         title="Paleta de cores"
         description="Use a cor da sua marca em botões, bordas, ícones e elementos de destaque da plataforma."
       >
-        <ResponsiveGrid minItemWidth="200px">
-          <ColorPicker label="Cor primária"    hint="Botões e destaques"  value={values.primary_color  ?? '#b48840'} onChange={v => set('primary_color',  v)} />
-          <ColorPicker label="Cor de destaque" hint="Acento secundário"   value={values.brand_light    ?? '#d2b17b'} onChange={v => set('brand_light',    v)} />
-          <ColorPicker label="Fundo — Claro"   hint="Fundo da página ☀️" value={values.bg_light       ?? '#e4e4e4'} onChange={v => set('bg_light',       v)} />
-          <ColorPicker label="Fundo — Escuro"  hint="Fundo da página 🌙" value={values.bg_dark        ?? '#00060f'} onChange={v => set('bg_dark',        v)} />
-          <ColorPicker label="Cards — Claro"   hint="Cards e painéis ☀️" value={values.card_bg_light  ?? '#ffffff'} onChange={v => set('card_bg_light',  v)} />
-          <ColorPicker label="Cards — Escuro"  hint="Cards e painéis 🌙" value={values.card_bg_dark   ?? '#0d1020'} onChange={v => set('card_bg_dark',   v)} />
-        </ResponsiveGrid>
+        <div className="space-y-6">
+          {/* Cor da marca — a mesma nos dois modos, o sistema deriva o resto (fundo suave, borda, hover) sozinho */}
+          <ResponsiveGrid minItemWidth="200px">
+            <ColorPicker label="Cor primária"    hint="Botões e destaques" value={values.primary_color ?? '#b48840'} onChange={v => set('primary_color', v)} />
+            <ColorPicker label="Cor de destaque" hint="Acento secundário"  value={values.brand_light    ?? '#d2b17b'} onChange={v => set('brand_light',    v)} />
+          </ResponsiveGrid>
+
+          {/* Claro / Escuro lado a lado — cada coluna já avisa o modo, então os blocos abaixo não repetem isso */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-5 border-t border-gray-100">
+            <div>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Modo claro</p>
+              <div className="space-y-4">
+                <ColorPicker label="Fundo" hint="Cor de fundo da página" value={values.bg_light ?? '#e4e4e4'} onChange={v => set('bg_light', v)} />
+                <ColorPicker label="Cards" hint="Painéis e cartões" value={values.card_bg_light ?? '#ffffff'} onChange={v => set('card_bg_light', v)} />
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Modo escuro</p>
+              <div className="space-y-4">
+                <ColorPicker label="Fundo" hint="Cor de fundo da página" value={values.bg_dark ?? '#00060f'} onChange={v => set('bg_dark', v)} />
+                <ColorPicker label="Cards" hint="Painéis e cartões" value={values.card_bg_dark ?? '#0d1020'} onChange={v => set('card_bg_dark', v)} />
+              </div>
+            </div>
+          </div>
+        </div>
       </Section>
 
       {/* Textos */}

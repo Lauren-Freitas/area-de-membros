@@ -143,11 +143,11 @@ export function ProductTabs({
                 {sales.map(s => (
                   <div key={s.id} className="flex items-center py-3">
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900">{s.profile?.name ?? '—'}</p>
+                      <p className="font-medium text-gray-900">{s.profile?.name ?? '-'}</p>
                       <p className="text-xs text-gray-400">{s.profile?.email}</p>
                     </div>
                     <div className="w-28 text-right text-sm text-gray-700 shrink-0">
-                      {s.value != null ? fmtCurrency(s.value) : '—'}
+                      {s.value != null ? fmtCurrency(s.value) : '-'}
                     </div>
                     <div className="w-36 text-sm text-gray-400 shrink-0">{fmtDate(s.granted_at)}</div>
                     <div className="w-28 shrink-0">
@@ -213,7 +213,7 @@ function AcessosTab({
           >
             <option value="">Selecione um membro pra conceder acesso...</option>
             {availableMembers.map(m => (
-              <option key={m.id} value={m.id}>{m.name} — {m.email}</option>
+              <option key={m.id} value={m.id}>{m.name} ({m.email})</option>
             ))}
           </select>
           <button
@@ -247,7 +247,7 @@ function AcessosTab({
                 return (
                   <div key={a.id} className="flex items-center py-3">
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900">{a.profile?.name ?? '—'}</p>
+                      <p className="font-medium text-gray-900">{a.profile?.name ?? '-'}</p>
                       <p className="text-xs text-gray-400">{a.profile?.email}</p>
                     </div>
                     <div className="w-24 shrink-0">

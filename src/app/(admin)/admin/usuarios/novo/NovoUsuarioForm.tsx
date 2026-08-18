@@ -137,7 +137,7 @@ export function NovoUsuarioForm({ products, isEquipe = false }: { products: Prod
         <div className="bg-card rounded-2xl border border-gray-100 p-6 space-y-5">
           <div>
             <h2 className="font-semibold text-gray-900 mb-1">Liberar acesso aos produtos</h2>
-            <p className="text-sm text-gray-500 mb-4">Opcional — pode liberar depois também.</p>
+            <p className="text-sm text-gray-500 mb-4">Opcional. Pode liberar depois também.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {products.map((p) => (
                 <label

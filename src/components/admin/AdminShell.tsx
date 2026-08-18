@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { AdminSidebar } from './AdminSidebar'
-import { ProteinoFAB } from '@/components/ProteinoFAB'
 
 interface Props {
   children: React.ReactNode
@@ -66,7 +65,6 @@ export function AdminShell({ children, userName, userEmail, userAvatar, userRole
       <main className={`transition-[margin] duration-200 pt-14 lg:pt-0 ${collapsed ? 'lg:ml-16' : 'lg:ml-60'}`}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">{children}</div>
       </main>
-      <ProteinoFAB persona="admin" />
     </div>
   )
 }

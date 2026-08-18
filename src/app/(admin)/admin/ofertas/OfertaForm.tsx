@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useActionState, useState } from 'react'
 import { saveOffer } from '@/lib/actions/offers'
 import { Switch } from '@/components/admin/Switch'
 import { Button } from '@/components/Button'
@@ -16,10 +16,15 @@ interface Offer {
 
 export function OfertaForm({ offer, products }: { offer?: Offer; products: Product[] }) {
   const [isActive, setIsActive] = useState(offer?.is_active ?? true)
+  const [state, action, isPending] = useActionState(saveOffer, {})
 
   return (
-    <form action={saveOffer} className="space-y-5 bg-card rounded-2xl border border-gray-100 p-6 max-w-lg">
+    <form action={action} className="space-y-5 bg-card rounded-2xl border border-gray-100 p-6 max-w-lg">
       {offer && <input type="hidden" name="id" value={offer.id} />}
+
+      {state?.error && (
+        <div className="p-3 rounded-lg bg-red-50 border border-red-100 text-sm text-red-700">{state.error}</div>
+      )}
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">Título da oferta *</label>
@@ -27,7 +32,7 @@ export function OfertaForm({ offer, products }: { offer?: Offer; products: Produ
           name="title"
           required
           defaultValue={offer?.title}
-          placeholder="Ex: Oferta relâmpago — 50% off!"
+          placeholder="Ex: Oferta relâmpago, 50% off!"
         />
       </div>
 
@@ -85,7 +90,7 @@ export function OfertaForm({ offer, products }: { offer?: Offer; products: Produ
           placeholder="EX: PROMO50"
           className="font-mono"
         />
-        <p className="text-xs text-gray-400 mt-1">Opcional — o membro pode copiar e usar no checkout.</p>
+        <p className="text-xs text-gray-400 mt-1">Opcional. O membro pode copiar e usar no checkout.</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -112,8 +117,8 @@ export function OfertaForm({ offer, products }: { offer?: Offer; products: Produ
       </div>
 
       <div className="flex items-center gap-3 pt-2">
-        <Button type="submit">
-          {offer ? 'Salvar alterações' : 'Criar oferta'}
+        <Button type="submit" disabled={isPending}>
+          {isPending ? 'Salvando...' : offer ? 'Salvar alterações' : 'Criar oferta'}
         </Button>
         <Button variant="secondary" href="/admin/ofertas">Cancelar</Button>
       </div>

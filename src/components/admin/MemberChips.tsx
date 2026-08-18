@@ -3,7 +3,7 @@
 import { Menu } from '@/components/Menu'
 
 export function MemberChips({ titles }: { titles: string[] }) {
-  if (titles.length === 0) return <span className="text-xs text-gray-300">—</span>
+  if (titles.length === 0) return <span className="text-xs text-gray-300">-</span>
 
   const visible = titles.slice(0, 3)
   const rest = titles.slice(3)

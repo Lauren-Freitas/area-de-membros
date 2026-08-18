@@ -121,7 +121,7 @@ export function ProductForm({ product }: { product?: Product }) {
         <div className="w-48">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Tipo de conteúdo
-            <span className="text-gray-400 font-normal ml-1 text-xs">(só é usado se o produto não tiver módulos/aulas)</span>
+            <span className="block text-gray-400 font-normal text-xs">(só é usado se o produto não tiver módulos/aulas)</span>
           </label>
           <Select
             name="content_type"
@@ -141,11 +141,6 @@ export function ProductForm({ product }: { product?: Product }) {
               placeholder="https://youtube.com/watch?v=... ou https://vimeo.com/..."
             />
           </div>
-        )}
-        {contentType === 'file' && (
-          <p className="text-xs text-gray-400 self-end pb-2.5">
-            O arquivo é enviado direto no Storage do Supabase (bucket <code className="bg-gray-100 px-1 rounded">produtos</code>, caminho <code className="bg-gray-100 px-1 rounded">{'{id do produto}'}/arquivo</code>).
-          </p>
         )}
       </div>
 
@@ -197,7 +192,7 @@ export function ProductForm({ product }: { product?: Product }) {
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           ID do produto na Kiwify
-          <span className="text-gray-400 font-normal ml-1 text-xs">(opcional — necessário só se vender esse produto pela Kiwify)</span>
+          <span className="text-gray-400 font-normal ml-1 text-xs">(opcional, necessário só se vender esse produto pela Kiwify)</span>
         </label>
         <Input
           name="kiwify_product_id"

@@ -34,6 +34,7 @@ export async function uploadBrandingAsset(
   if (!ALLOWED_EXTENSIONS.includes(ext)) return { error: `Tipo de arquivo não permitido: .${ext}` }
 
   const admin = createAdminClient()
+  await admin.storage.createBucket(BUCKET, { public: true }).catch(() => {})
   const path = `${kind}.${ext}`
   const bytes = await file.arrayBuffer()
   const { error: uploadError } = await admin.storage

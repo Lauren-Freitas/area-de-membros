@@ -4,7 +4,11 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { logActivity } from '@/lib/log-activity'
 
-export async function saveOffer(formData: FormData) {
+export interface OfferActionState {
+  error?: string
+}
+
+export async function saveOffer(prevState: OfferActionState, formData: FormData): Promise<OfferActionState> {
   const adminClient = createAdminClient()
   const id = formData.get('id') as string | null
   const product_id = (formData.get('product_id') as string) || null
@@ -17,13 +21,16 @@ export async function saveOffer(formData: FormData) {
   const sort_order = parseInt(formData.get('sort_order') as string) || 0
   const is_active = formData.get('is_active') === 'on'
 
+  if (ends_at && new Date(ends_at) <= new Date()) {
+    return { error: 'A data de encerramento precisa ser no futuro.' }
+  }
+
   const payload = { product_id, title, description, original_price, promo_price, coupon_code, ends_at, sort_order, is_active }
 
-  if (id) {
-    await adminClient.from('offers').update(payload).eq('id', id)
-  } else {
-    await adminClient.from('offers').insert(payload)
-  }
+  const { error } = id
+    ? await adminClient.from('offers').update(payload).eq('id', id)
+    : await adminClient.from('offers').insert(payload)
+  if (error) return { error: error.message }
 
   await logActivity({ action: id ? 'editar' : 'criar', entity: 'oferta', entityName: title })
   revalidatePath('/admin/ofertas')

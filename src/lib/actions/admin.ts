@@ -53,7 +53,7 @@ function authErrorMessage(err: unknown, fallback: string): string {
     const message = typeof anyErr.message === 'string' ? anyErr.message : ''
     if (message && message !== '{}') return message
     const name = typeof anyErr.name === 'string' ? anyErr.name : ''
-    if (name) return `${name}${typeof anyErr.status === 'number' ? ` (status ${anyErr.status})` : ''} — tente novamente em instantes`
+    if (name) return `${name}${typeof anyErr.status === 'number' ? ` (status ${anyErr.status})` : ''}. Tente novamente em instantes`
   }
   return fallback
 }
@@ -471,6 +471,10 @@ export async function createInvite(
   const max_uses = parseInt(formData.get('max_uses') as string) || null
   const expires_at = (formData.get('expires_at') as string)?.trim() || null
 
+  if (expires_at && new Date(expires_at) <= new Date()) {
+    return { error: 'A data de expiração precisa ser no futuro.' }
+  }
+
   const code = Math.random().toString(36).slice(2, 10).toUpperCase()
 
   const { error } = await admin.from('invites').insert({
@@ -509,6 +513,10 @@ export async function updateInvite(
   const product_ids = formData.getAll('products') as string[]
   const max_uses = parseInt(formData.get('max_uses') as string) || null
   const expires_at = (formData.get('expires_at') as string)?.trim() || null
+
+  if (expires_at && new Date(expires_at) <= new Date()) {
+    return { error: 'A data de expiração precisa ser no futuro.' }
+  }
 
   const { error } = await admin.from('invites').update({
     note,

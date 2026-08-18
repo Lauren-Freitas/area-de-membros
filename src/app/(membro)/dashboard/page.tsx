@@ -203,6 +203,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         )}
       </div>
 
+      {/* Novidades — só aparece quando há algo não lido; some sozinho quando tudo é dispensado */}
+      <BannerList banners={banners} />
+
       {/* Continue de onde parou */}
       {continueLesson && (
         <section>
@@ -402,13 +405,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         </section>
       )}
 
-      {/* Novidades */}
-      {banners.length > 0 && (
-        <section>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Novidades</h2>
-          <BannerList banners={banners} />
-        </section>
-      )}
     </div>
   )
 }

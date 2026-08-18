@@ -94,12 +94,12 @@ export default async function AdminPage() {
     ...(lessonCommentsRows ?? []).map(c => {
       const author = Array.isArray(c.profiles) ? c.profiles[0] : c.profiles
       const lesson = Array.isArray(c.lessons) ? c.lessons[0] : c.lessons
-      return { id: c.id, content: c.content, created_at: c.created_at, author: author?.name ?? '—', context: lesson?.title ?? 'Aula' }
+      return { id: c.id, content: c.content, created_at: c.created_at, author: author?.name ?? '-', context: lesson?.title ?? 'Aula' }
     }),
     ...(productCommentsRows ?? []).map(c => {
       const author = Array.isArray(c.profiles) ? c.profiles[0] : c.profiles
       const product = Array.isArray(c.products) ? c.products[0] : c.products
-      return { id: c.id, content: c.content, created_at: c.created_at, author: author?.name ?? '—', context: product?.title ?? 'Produto' }
+      return { id: c.id, content: c.content, created_at: c.created_at, author: author?.name ?? '-', context: product?.title ?? 'Produto' }
     }),
   ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 5)
 
@@ -223,7 +223,7 @@ export default async function AdminPage() {
               </div>
               {up !== null && (
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${up ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'bg-gray-50 dark:bg-gray-500/10 text-gray-400'}`}>
-                  {up ? '↑' : '—'}
+                  {up ? '↑' : '-'}
                 </span>
               )}
             </div>
@@ -319,8 +319,8 @@ export default async function AdminPage() {
                       📦
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{profile?.name ?? '—'}</p>
-                      <p className="text-xs text-gray-400 truncate">{product?.title ?? '—'}</p>
+                      <p className="text-sm font-medium text-gray-900 truncate">{profile?.name ?? '-'}</p>
+                      <p className="text-xs text-gray-400 truncate">{product?.title ?? '-'}</p>
                     </div>
                     <span className="text-xs text-gray-400 shrink-0">{fmt(v.granted_at)}</span>
                   </div>

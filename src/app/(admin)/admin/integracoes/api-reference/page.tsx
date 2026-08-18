@@ -170,7 +170,7 @@ export default function ApiReferencePage() {
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             Gerada a partir do{' '}
             <a href="/openapi.json" target="_blank" rel="noopener noreferrer" className="underline font-medium" style={{ color: 'var(--brand)' }}>OpenAPI spec</a>
-            {' '}— a fonte oficial. Veja também em{' '}
+            {' '}(a fonte oficial). Veja também em{' '}
             <Link href="/admin/integracoes/api-reference/swagger" className="underline font-medium" style={{ color: 'var(--brand)' }}>Swagger UI</Link>.
           </p>
         </div>
@@ -179,7 +179,7 @@ export default function ApiReferencePage() {
       <Section title="Autenticação" id="autenticacao">
         <p className="text-sm text-gray-600 dark:text-gray-300">
           Todo endpoint abaixo exige o header <code className="bg-gray-100 dark:bg-[#1a2035] px-1.5 py-0.5 rounded text-xs">x-api-key</code>. Gerencie chaves em{' '}
-          <Link href="/admin/integracoes/api" className="underline font-medium" style={{ color: 'var(--brand)' }}>Integrações → API</Link> — nomear a chave (ex. &quot;n8n&quot;) faz esse nome aparecer como autor de cada ação no histórico de auditoria. Chamadas mutáveis também aceitam <code className="bg-gray-100 dark:bg-[#1a2035] px-1.5 py-0.5 rounded text-xs">Idempotency-Key</code> — repetir a mesma chave replay a resposta já registrada em vez de repetir o efeito colateral. Cada chave pode ser criada com acesso total ou restrita a escopos específicos (ex. <code className="bg-gray-100 dark:bg-[#1a2035] px-1.5 py-0.5 rounded text-xs">members:read</code>) — o escopo exigido por cada endpoint aparece ao lado da rota abaixo; uma chave sem o escopo necessário recebe <code className="bg-gray-100 dark:bg-[#1a2035] px-1.5 py-0.5 rounded text-xs">403 FORBIDDEN</code>.
+          <Link href="/admin/integracoes/api" className="underline font-medium" style={{ color: 'var(--brand)' }}>Integrações → API</Link>. Nomear a chave (ex. &quot;n8n&quot;) faz esse nome aparecer como autor de cada ação no histórico de auditoria. Chamadas mutáveis também aceitam <code className="bg-gray-100 dark:bg-[#1a2035] px-1.5 py-0.5 rounded text-xs">Idempotency-Key</code>: repetir a mesma chave replay a resposta já registrada em vez de repetir o efeito colateral. Cada chave pode ser criada com acesso total ou restrita a escopos específicos (ex. <code className="bg-gray-100 dark:bg-[#1a2035] px-1.5 py-0.5 rounded text-xs">members:read</code>). O escopo exigido por cada endpoint aparece ao lado da rota abaixo; uma chave sem o escopo necessário recebe <code className="bg-gray-100 dark:bg-[#1a2035] px-1.5 py-0.5 rounded text-xs">403 FORBIDDEN</code>.
         </p>
         <CodeBlock>{`x-api-key: sua-chave\nContent-Type: application/json\nIdempotency-Key: chave-unica-opcional`}</CodeBlock>
         <p className="text-sm text-gray-600 dark:text-gray-300">
@@ -192,7 +192,7 @@ export default function ApiReferencePage() {
 
       <Section title="Exemplos em outras linguagens">
         <p className="text-sm text-gray-600 dark:text-gray-300">
-          Todo endpoint abaixo é HTTP puro — os exemplos de cada bloco usam cURL por ser universal, mas qualquer linguagem funciona da mesma forma. Mais exemplos (n8n, Make, Zapier) em{' '}
+          Todo endpoint abaixo é HTTP puro. Os exemplos de cada bloco usam cURL por ser universal, mas qualquer linguagem funciona da mesma forma. Mais exemplos (n8n, Make, Zapier) em{' '}
           <Link href="/admin/integracoes/recipes" className="underline font-medium" style={{ color: 'var(--brand)' }}>Recipes</Link>.
         </p>
         <div>

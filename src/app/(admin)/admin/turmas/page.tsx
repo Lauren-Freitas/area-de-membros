@@ -11,7 +11,7 @@ export default async function TurmasPage() {
     .order('created_at', { ascending: false })
 
   function formatDate(d: string | null) {
-    if (!d) return '—'
+    if (!d) return '-'
     return new Date(d).toLocaleDateString('pt-BR')
   }
 
@@ -62,9 +62,9 @@ export default async function TurmasPage() {
                       </Link>
                       {c.description && <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{c.description}</p>}
                     </td>
-                    <td className="px-5 py-3.5 text-gray-500 hidden md:table-cell">{product?.title ?? '—'}</td>
+                    <td className="px-5 py-3.5 text-gray-500 hidden md:table-cell">{product?.title ?? '-'}</td>
                     <td className="px-5 py-3.5 text-gray-500 hidden lg:table-cell">
-                      {c.starts_at || c.ends_at ? `${formatDate(c.starts_at)} → ${formatDate(c.ends_at)}` : '—'}
+                      {c.starts_at || c.ends_at ? `${formatDate(c.starts_at)} → ${formatDate(c.ends_at)}` : '-'}
                     </td>
                     <td className="px-5 py-3.5 text-center text-gray-700 font-semibold">{memberCount}</td>
                     <td className="px-5 py-3.5 text-right">

@@ -38,10 +38,10 @@ export default async function CertificadosAdminPage() {
                 return (
                   <tr key={cert.id} className="hover:bg-gray-50 transition">
                     <td className="px-5 py-3">
-                      <p className="font-medium text-gray-900">{profile?.name ?? '—'}</p>
+                      <p className="font-medium text-gray-900">{profile?.name ?? '-'}</p>
                       <p className="text-xs text-gray-400">{profile?.email}</p>
                     </td>
-                    <td className="px-5 py-3 text-gray-700">{product?.title ?? '—'}</td>
+                    <td className="px-5 py-3 text-gray-700">{product?.title ?? '-'}</td>
                     <td className="px-5 py-3 text-gray-400">
                       {new Date(cert.issued_at).toLocaleDateString('pt-BR', {
                         day: 'numeric', month: 'short', year: 'numeric'

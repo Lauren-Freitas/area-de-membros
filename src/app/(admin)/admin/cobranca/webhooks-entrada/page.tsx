@@ -56,7 +56,7 @@ export default async function WebhooksEntradaPage({
       <div>
         <h1 className="text-xl font-bold text-gray-900">Webhooks de entrada</h1>
         <p className="text-sm text-gray-500 mt-0.5 max-w-2xl">
-          Eventos de pagamento recebidos do Asaas e da Kiwify — cada compra, atraso ou estorno gera um evento aqui, mesmo quando falha ao processar. Não afeta a API pública nem os webhooks de saída configurados em Integrações.
+          Eventos de pagamento recebidos do Asaas e da Kiwify. Cada compra, atraso ou estorno gera um evento aqui, mesmo quando falha ao processar. Não afeta a API pública nem os webhooks de saída configurados em Integrações.
         </p>
       </div>
 

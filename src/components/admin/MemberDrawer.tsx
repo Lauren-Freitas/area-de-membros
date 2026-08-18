@@ -24,7 +24,7 @@ function getInitials(name: string) {
 }
 
 function fmtDate(iso: string | null, withTime = false) {
-  if (!iso) return '—'
+  if (!iso) return '-'
   const date = new Date(iso)
   const base = date.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })
   if (!withTime) return base
@@ -158,7 +158,7 @@ function ResumoView({
 
       {/* Dados */}
       <div className="px-6 pb-5 border-b border-gray-100 dark:border-[#1e2030] grid grid-cols-2 gap-4">
-        <Field label="Telefone" value={detail.profile.phone || '—'} />
+        <Field label="Telefone" value={detail.profile.phone || '-'} />
         <Field label="Cadastro" value={fmtDate(detail.profile.created_at)} />
         <div className="col-span-2">
           <Field label="Último acesso" value={fmtDate(detail.profile.last_login_at, true)} />

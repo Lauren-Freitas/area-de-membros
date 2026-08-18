@@ -63,11 +63,11 @@ export function VendasClient({ vendas }: { vendas: Venda[] }) {
     const statusLabel = { confirmed: 'Aprovada', overdue: 'Em atraso', refunded: 'Reembolsada', chargeback: 'Chargeback' }
     const rows = filtered.map(v => {
       const date = new Date(v.granted_at).toLocaleDateString('pt-BR')
-      const product = v.products?.title ?? '—'
-      const name = v.profiles?.name ?? '—'
-      const email = v.profiles?.email ?? '—'
+      const product = v.products?.title ?? '-'
+      const name = v.profiles?.name ?? '-'
+      const email = v.profiles?.email ?? '-'
       const status = v.payment_status ? statusLabel[v.payment_status] : 'Acesso manual'
-      const value = v.value != null ? v.value.toFixed(2).replace('.', ',') : '—'
+      const value = v.value != null ? v.value.toFixed(2).replace('.', ',') : '-'
       return `${date},"${product}","${name}",${email},${status},${value}`
     })
     const csv = [header, ...rows].join('\n')
@@ -172,16 +172,16 @@ export function VendasClient({ vendas }: { vendas: Venda[] }) {
             pageItems.map(v => (
               <div key={v.id} className="flex items-center py-3.5 hover:bg-gray-50 transition">
                 <div className="w-24 shrink-0 text-sm text-gray-500 whitespace-nowrap">{fmt(v.granted_at)}</div>
-                <div className="flex-1 min-w-0 pr-4 text-gray-800 font-medium truncate">{v.products?.title ?? '—'}</div>
+                <div className="flex-1 min-w-0 pr-4 text-gray-800 font-medium truncate">{v.products?.title ?? '-'}</div>
                 <div className="flex-1 min-w-0 pr-4">
-                  <p className="text-gray-900 font-medium truncate">{v.profiles?.name ?? '—'}</p>
+                  <p className="text-gray-900 font-medium truncate">{v.profiles?.name ?? '-'}</p>
                   <p className="text-xs text-gray-400 truncate">{v.profiles?.email}</p>
                 </div>
                 <div className="w-28 shrink-0">
                   <PaymentStatusBadge status={v.payment_status} />
                 </div>
                 <div className="w-24 shrink-0 text-right text-gray-700">
-                  {v.value != null ? fmtCurrency(v.value) : '—'}
+                  {v.value != null ? fmtCurrency(v.value) : '-'}
                 </div>
               </div>
             ))

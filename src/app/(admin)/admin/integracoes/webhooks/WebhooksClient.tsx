@@ -50,7 +50,7 @@ const EVENT_LABELS: Record<WebhookEvent, string> = {
 }
 
 function fmt(d: string | null) {
-  if (!d) return '—'
+  if (!d) return '-'
   return new Date(d).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })
 }
 
@@ -59,7 +59,7 @@ function fmtFull(d: string) {
 }
 
 function StatusBadge({ status, responseBody }: { status: number | null; responseBody?: string | null }) {
-  if (!status) return <span className="text-gray-300 text-xs">—</span>
+  if (!status) return <span className="text-gray-300 text-xs">-</span>
   const ok = status >= 200 && status < 300
   return (
     <span
@@ -75,7 +75,7 @@ function EventCheckboxes({ defaultSelected }: { defaultSelected: string[] }) {
   return (
     <div>
       <label className="block text-xs font-medium text-gray-700 mb-1">
-        Eventos <span className="text-gray-400">(opcional — vazio recebe todos)</span>
+        Eventos <span className="text-gray-400">(opcional, vazio recebe todos)</span>
       </label>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-40 overflow-y-auto border border-gray-200 dark:border-[#374151] rounded-lg p-2.5">
         {ALL_WEBHOOK_EVENTS.map(ev => (
@@ -213,7 +213,7 @@ function WebhookRow({ webhook, products }: { webhook: Webhook; products: Product
           <div>
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Histórico de entregas</p>
-              <p className="text-[11px] text-gray-300">Retentativa automática: em breve — hoje, reenvie manualmente</p>
+              <p className="text-[11px] text-gray-300">Retentativa automática: em breve. Hoje, reenvie manualmente</p>
             </div>
             {loadingDeliveries ? (
               <p className="text-xs text-gray-400 py-3">Carregando...</p>
@@ -281,7 +281,7 @@ export function WebhooksClient({ webhooks, products }: { webhooks: Webhook[]; pr
       <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] px-5 py-4 flex items-start gap-3">
         <span className="shrink-0 mt-0.5 text-xs font-bold px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400">SAÍDA</span>
         <p className="text-sm text-gray-600 dark:text-gray-300">
-          Esta é a API que sua plataforma <strong>envia</strong> — cadastre uma URL abaixo e receba um POST toda vez que um dos eventos escolhidos acontecer, em qualquer endpoint capaz de receber HTTP. Catálogo completo de eventos logo abaixo.
+          Esta é a API que sua plataforma <strong>envia</strong>. Cadastre uma URL abaixo e receba um POST toda vez que um dos eventos escolhidos acontecer, em qualquer endpoint capaz de receber HTTP. Catálogo completo de eventos logo abaixo.
         </p>
       </div>
 
@@ -293,7 +293,7 @@ export function WebhooksClient({ webhooks, products }: { webhooks: Webhook[]; pr
           Eventos disponíveis
         </summary>
         <div className="mt-3 space-y-3">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Todo evento chega no mesmo formato — só o conteúdo de <code className="bg-gray-100 dark:bg-[#1a2035] px-1 rounded text-xs">metadata</code> muda:</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Todo evento chega no mesmo formato, só o conteúdo de <code className="bg-gray-100 dark:bg-[#1a2035] px-1 rounded text-xs">metadata</code> muda:</p>
           <pre className="bg-gray-900 text-gray-100 rounded-xl p-3.5 text-[11px] overflow-x-auto leading-relaxed">{JSON.stringify({
             event: 'purchase.approved',
             timestamp: new Date().toISOString(),
@@ -356,7 +356,7 @@ export function WebhooksClient({ webhooks, products }: { webhooks: Webhook[]; pr
               <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
               <input
                 name="name"
-                placeholder="Ex: n8n — Nova venda"
+                placeholder="Ex: n8n, Nova venda"
                 className="w-full px-3 py-2 border border-gray-200 dark:border-[#374151] rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-[#111827] focus:outline-none focus:ring-2 focus:ring-yellow-300"
                 required
               />
@@ -384,7 +384,7 @@ export function WebhooksClient({ webhooks, products }: { webhooks: Webhook[]; pr
           </div>
           <EventCheckboxes defaultSelected={[]} />
           <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-500">
-            <p className="font-semibold mb-1">Payload enviado (exemplo — mesmo formato pra todo evento):</p>
+            <p className="font-semibold mb-1">Payload enviado (exemplo, mesmo formato pra todo evento):</p>
             <pre className="font-mono text-[11px] leading-relaxed">{JSON.stringify({
               event: 'purchase.approved',
               timestamp: new Date().toISOString(),

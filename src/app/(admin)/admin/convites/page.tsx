@@ -72,13 +72,13 @@ export default async function ConvitesPage() {
                       {inv.note && <p className="text-xs text-gray-400 mt-0.5">{inv.note}</p>}
                     </td>
                     <td className="px-5 py-3.5 text-gray-500 hidden md:table-cell">
-                      {productNames || <span className="text-gray-300">—</span>}
+                      {productNames || <span className="text-gray-300">-</span>}
                     </td>
                     <td className="px-5 py-3.5 text-gray-500 hidden lg:table-cell">
                       {inv.used_count}{inv.max_uses ? `/${inv.max_uses}` : ''}
                     </td>
                     <td className="px-5 py-3.5 text-gray-500 hidden lg:table-cell">
-                      {inv.expires_at ? new Date(inv.expires_at).toLocaleDateString('pt-BR') : '—'}
+                      {inv.expires_at ? new Date(inv.expires_at).toLocaleDateString('pt-BR') : '-'}
                     </td>
                     <td className="px-5 py-3.5 text-center">
                       {expired

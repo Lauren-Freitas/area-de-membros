@@ -8,10 +8,10 @@ interface Card {
 }
 
 const COMUNICACAO: Card[] = [
-  { href: '/admin/integracoes/api-reference', emoji: '📡', name: 'API Reference', desc: 'Autenticação, API Keys e todos os endpoints — Membros, Acessos, Produtos e mais.' },
+  { href: '/admin/integracoes/api-reference', emoji: '📡', name: 'API Reference', desc: 'Autenticação, API Keys e todos os endpoints: Membros, Acessos, Produtos e mais.' },
   { href: '/admin/integracoes/webhooks', emoji: '🔔', name: 'Webhooks', desc: 'Receba eventos da plataforma em qualquer endpoint.' },
-  { href: '/admin/integracoes/documentacao', emoji: '📖', name: 'Documentação', desc: 'Ponto de partida — introdução, autenticação, API, eventos e recipes.' },
-  { href: '/admin/integracoes/recipes', emoji: '⚡', name: 'Recipes', desc: 'Fluxos completos prontos — n8n, Make, Zapier, código, o que for.' },
+  { href: '/admin/integracoes/documentacao', emoji: '📖', name: 'Documentação', desc: 'Ponto de partida: introdução, autenticação, API, eventos e recipes.' },
+  { href: '/admin/integracoes/recipes', emoji: '⚡', name: 'Recipes', desc: 'Fluxos completos prontos: n8n, Make, Zapier, código, o que for.' },
 ]
 
 function CardLink({ card }: { card: Card }) {
@@ -61,7 +61,7 @@ export default function IntegracoesPage() {
               <span className="text-xl font-black tracking-tight" style={{ color: '#00b1e4' }}>Asaas</span>
               <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-gray-100 dark:bg-[#1a2035] text-gray-400 uppercase tracking-wide">Gateway</span>
             </div>
-            <p className="text-xs text-gray-400 leading-relaxed">Webhook de pagamento confirmado — libera acesso automaticamente, sem automação externa.</p>
+            <p className="text-xs text-gray-400 leading-relaxed">Webhook de pagamento confirmado. Libera acesso automaticamente, sem automação externa.</p>
           </Link>
         </div>
       </div>

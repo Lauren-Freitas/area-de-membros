@@ -33,7 +33,7 @@ export function AulaForm({ productId, moduleId, lesson, attachments }: Props) {
           name="title"
           defaultValue={lesson?.title}
           required
-          placeholder="Ex: Aula 1 — Introdução"
+          placeholder="Ex: Aula 1: Introdução"
         />
       </div>
 
@@ -49,7 +49,7 @@ export function AulaForm({ productId, moduleId, lesson, attachments }: Props) {
       {/* Vídeo */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Vídeo <span className="text-gray-400 font-normal text-xs">(opcional — YouTube ou Vimeo)</span>
+          Vídeo <span className="text-gray-400 font-normal text-xs">(opcional: YouTube ou Vimeo)</span>
         </label>
         <Input
           name="content_url"
@@ -158,7 +158,7 @@ export function AulaForm({ productId, moduleId, lesson, attachments }: Props) {
             min="1"
             defaultValue={lesson?.access_duration_days ?? ''}
             className="w-24 px-3 py-1.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2"
-            placeholder="—"
+            placeholder="Sem limite"
           />
           <span className="text-sm text-gray-500">dias após a liberação (deixe em branco para acesso sem prazo)</span>
         </div>

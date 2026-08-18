@@ -10,7 +10,7 @@ export function ViewAsBanner({ memberName }: { memberName: string }) {
         <span className="text-base shrink-0">👁️</span>
         <span className="truncate">
           Visualizando como <strong>{memberName}</strong>
-          <span className="hidden sm:inline"> — somente leitura</span>
+          <span className="hidden sm:inline"> (somente leitura)</span>
         </span>
       </div>
       <form action={stopViewAs} className="shrink-0 ml-3">

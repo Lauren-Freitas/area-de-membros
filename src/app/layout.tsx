@@ -14,13 +14,13 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://membros.thiagocantal
 export async function generateMetadata(): Promise<Metadata> {
   const cfg = await getSiteConfig()
   const platformName = cfg.platform_name || 'Thiago Cantalovo'
-  const title = `Área de Membros — ${platformName}`
+  const title = `Área de Membros · ${platformName}`
   const description = cfg.welcome_message || 'Acesse seus conteúdos exclusivos.'
   const ogImage = cfg.logo_url || '/iav_1024.png'
 
   return {
     metadataBase: new URL(APP_URL),
-    title: { default: title, template: `%s — ${platformName}` },
+    title: { default: title, template: `%s · ${platformName}` },
     description,
     ...(cfg.favicon_url ? { icons: { icon: cfg.favicon_url } } : {}),
     openGraph: {

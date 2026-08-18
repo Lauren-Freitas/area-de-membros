@@ -14,7 +14,7 @@ interface Props {
 
 const OPTIONS: { value: DuplicateMode; label: string; description: string }[] = [
   { value: 'full', label: 'Cópia completa', description: 'Produto, módulos, aulas e anexos. Ideal para criar uma nova turma a partir desta.' },
-  { value: 'shallow', label: 'Apenas produto', description: 'Só o cadastro — sem módulos, aulas ou anexos. Mais rápido.' },
+  { value: 'shallow', label: 'Apenas produto', description: 'Só o cadastro, sem módulos, aulas ou anexos. Mais rápido.' },
 ]
 
 /** Duplicar sempre pergunta o modo — nunca copia certificados (recibo de conclusão por aluno, não conteúdo). */

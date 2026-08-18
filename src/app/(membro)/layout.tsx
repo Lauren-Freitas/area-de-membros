@@ -10,7 +10,6 @@ import { MemberTopNav } from '@/components/MemberTopNav'
 import { MEMBER_NAV_ITEMS } from '@/lib/member-nav'
 import { ProfileMenu } from '@/components/ProfileMenu'
 import { MobileSidebar } from '@/components/MobileSidebar'
-import { ProteinoFAB } from '@/components/ProteinoFAB'
 import { ViewAsBanner } from '@/components/ViewAsBanner'
 import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
 import { getWebhookActor } from '@/lib/core/actor'
@@ -124,9 +123,6 @@ export default async function MemberLayout({ children }: { children: React.React
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         {children}
       </main>
-
-      {/* FAB do Proteíno — oculto em modo view-as */}
-      {!isViewingAs && user && <ProteinoFAB />}
     </div>
   )
 }

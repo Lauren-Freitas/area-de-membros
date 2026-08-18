@@ -164,7 +164,7 @@ export async function updateMember(userId: string, patch: UpdateMemberInput, act
   if (!before) return { error: 'Usuário não encontrado.' }
 
   if (patch.is_active === false && await isLastActiveAdmin(admin, userId)) {
-    return { error: 'Esse é o único admin ativo — não é possível desativá-lo. Ative outro admin antes.' }
+    return { error: 'Esse é o único admin ativo. Não é possível desativá-lo. Ative outro admin antes.' }
   }
 
   const update: Record<string, unknown> = {}
@@ -201,7 +201,7 @@ export async function updateMember(userId: string, patch: UpdateMemberInput, act
 export async function setMemberActive(userId: string, active: boolean, actor: Actor): Promise<{ success?: boolean; error?: string }> {
   const admin = createAdminClient()
   if (!active && await isLastActiveAdmin(admin, userId)) {
-    return { error: 'Esse é o único admin ativo — não é possível desativá-lo. Ative outro admin antes.' }
+    return { error: 'Esse é o único admin ativo. Não é possível desativá-lo. Ative outro admin antes.' }
   }
   const { data: profile } = await admin.from('profiles').select('name, email').eq('id', userId).maybeSingle()
   const { error } = await admin.from('profiles').update({ is_active: active }).eq('id', userId)
@@ -222,7 +222,7 @@ export async function deleteMember(userId: string, actor: Actor): Promise<{ succ
   if (!profile) return { success: true }
 
   if (await isLastActiveAdmin(admin, userId)) {
-    return { error: 'Esse é o único admin ativo — não é possível excluí-lo. Ative outro admin antes.' }
+    return { error: 'Esse é o único admin ativo. Não é possível excluí-lo. Ative outro admin antes.' }
   }
 
   const { error } = await admin.auth.admin.deleteUser(userId)

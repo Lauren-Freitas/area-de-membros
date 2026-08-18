@@ -35,7 +35,7 @@ const RECIPES: Recipe[] = [
   },
   {
     title: 'Compra aprovada',
-    desc: 'Pagamento confirmado no Asaas/Kiwify já libera acesso sozinho (webhook de entrada) — nenhuma chamada de API necessária aqui. Escute o webhook de saída pra reagir em outro lugar.',
+    desc: 'Pagamento confirmado no Asaas/Kiwify já libera acesso sozinho (webhook de entrada). Nenhuma chamada de API necessária aqui. Escute o webhook de saída pra reagir em outro lugar.',
     steps: [
       { label: 'Asaas / Kiwify', sub: 'pagamento confirmado' },
       { label: 'Webhook de entrada', sub: 'libera acesso automaticamente' },
@@ -64,7 +64,7 @@ const RECIPES: Recipe[] = [
   },
   {
     title: 'Liberar produto',
-    desc: 'Conceder acesso a um produto específico pra um membro já existente. Idempotente — chamar de novo com o mesmo par é sempre seguro.',
+    desc: 'Conceder acesso a um produto específico pra um membro já existente. Idempotente: chamar de novo com o mesmo par é sempre seguro.',
     steps: [
       { label: 'Decisão externa', sub: 'Notion, planilha, humano' },
       { label: 'API', sub: 'POST /api/v1/access-grants' },
@@ -91,7 +91,7 @@ const RECIPES: Recipe[] = [
   },
   {
     title: 'Renovar assinatura',
-    desc: 'Pagamento recorrente confirmado — estende a validade a partir de hoje em vez de substituir por uma data fixa.',
+    desc: 'Pagamento recorrente confirmado. Estende a validade a partir de hoje em vez de substituir por uma data fixa.',
     steps: [
       { label: 'Cobrança recorrente paga', sub: 'Asaas' },
       { label: 'n8n', sub: 'calcula nova data (+30 dias)' },
@@ -102,7 +102,7 @@ const RECIPES: Recipe[] = [
   -H "x-api-key: sua-chave" \\
   -H "Content-Type: application/json" \\
   -d '{"user_id":"uuid-do-membro","product_id":"uuid-do-produto","expires_at":"{{data atual + 30 dias}}"}'`,
-    note: 'A data de expiração é calculada por quem chama (ex. um nó Set no n8n) — a API só grava o valor que recebe.',
+    note: 'A data de expiração é calculada por quem chama (ex. um nó Set no n8n). A API só grava o valor que recebe.',
     workflow: 'renovar-validade.json',
   },
   {
@@ -120,7 +120,7 @@ const RECIPES: Recipe[] = [
   },
   {
     title: 'Trocar produto',
-    desc: 'Upgrade/downgrade — concede o novo e revoga o antigo em sequência.',
+    desc: 'Upgrade/downgrade: concede o novo e revoga o antigo em sequência.',
     steps: [
       { label: 'Troca decidida', sub: 'ex: upgrade de plano' },
       { label: 'API', sub: 'POST acesso novo' },
@@ -138,7 +138,7 @@ curl -X DELETE ${baseUrl}/api/v1/access-grants \\
   },
   {
     title: 'Enviar certificado',
-    desc: 'Emitir certificado de conclusão manualmente (fora do fluxo automático de aula concluída). Idempotente — chamar de novo com o mesmo par não gera um segundo certificado.',
+    desc: 'Emitir certificado de conclusão manualmente (fora do fluxo automático de aula concluída). Idempotente: chamar de novo com o mesmo par não gera um segundo certificado.',
     steps: [
       { label: 'Conclusão confirmada', sub: 'externamente' },
       { label: 'API', sub: 'POST /api/v1/certificates' },
@@ -211,13 +211,13 @@ export default function RecipesPage() {
         </Link>
         <div>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">Recipes</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Fluxos completos, prontos pra usar — não é referência técnica, é o &quot;como fazer X&quot; direto.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Fluxos completos, prontos pra usar. Não é referência técnica, é o &quot;como fazer X&quot; direto.</p>
         </div>
       </div>
 
       <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6 space-y-3">
         <p className="text-sm text-gray-600 dark:text-gray-300">
-          A tela de <strong>Gerenciar Membros</strong> existe pra consultar, corrigir e resolver exceções — o dia a dia normalmente é automatizado por uma das receitas abaixo. Cada uma mostra o fluxo e uma chamada de exemplo em cURL; o mesmo endpoint funciona a partir de n8n, Make, Zapier ou qualquer linguagem — outros exemplos de código (JavaScript, PHP, Python) estão na{' '}
+          A tela de <strong>Gerenciar Membros</strong> existe pra consultar, corrigir e resolver exceções. O dia a dia normalmente é automatizado por uma das receitas abaixo. Cada uma mostra o fluxo e uma chamada de exemplo em cURL; o mesmo endpoint funciona a partir de n8n, Make, Zapier ou qualquer linguagem. Outros exemplos de código (JavaScript, PHP, Python) estão na{' '}
           <Link href="/admin/integracoes/api-reference" className="underline font-medium" style={{ color: 'var(--brand)' }}>API Reference</Link>.
         </p>
         <div className="flex flex-wrap gap-2 pt-1">

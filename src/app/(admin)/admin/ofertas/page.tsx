@@ -12,12 +12,12 @@ export default async function OfertasAdminPage() {
     .order('created_at', { ascending: false })
 
   function formatDate(d: string | null) {
-    if (!d) return '—'
+    if (!d) return '-'
     return new Date(d).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })
   }
 
   function formatPrice(v: number | null) {
-    if (v == null) return '—'
+    if (v == null) return '-'
     return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
   }
 
@@ -69,7 +69,7 @@ export default async function OfertasAdminPage() {
                     <td className="px-5 py-3.5 hidden md:table-cell">
                       {offer.original_price && <span className="text-xs text-gray-400 line-through mr-1">{formatPrice(offer.original_price)}</span>}
                       {offer.promo_price && <span className="font-semibold text-green-600">{formatPrice(offer.promo_price)}</span>}
-                      {!offer.original_price && !offer.promo_price && <span className="text-gray-400">—</span>}
+                      {!offer.original_price && !offer.promo_price && <span className="text-gray-400">-</span>}
                     </td>
                     <td className="px-5 py-3.5 hidden lg:table-cell">
                       <span className={expired ? 'text-red-500' : 'text-gray-500'}>{formatDate(offer.ends_at)}</span>

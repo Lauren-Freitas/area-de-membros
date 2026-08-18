@@ -56,7 +56,7 @@ export default async function RankingPage() {
           Os membros mais engajados. Pontos: conclusão de aula (+50), avaliação (+25), comentário (+25).
         </p>
         <p className="text-xs text-gray-400 mt-1">
-          Isso é diferente do seu <Link href="/perfil" className="underline hover:no-underline">XP e nível</Link> — o XP mede seu progresso pessoal, o ranking compara você com outros membros.
+          Isso é diferente do seu <Link href="/perfil" className="underline hover:no-underline">XP e nível</Link>: o XP mede seu progresso pessoal, o ranking compara você com outros membros.
         </p>
       </div>
 
@@ -74,7 +74,7 @@ export default async function RankingPage() {
             <p className="text-sm font-semibold" style={{ color: 'var(--brand-text)' }}>Sua posição: {myPosition + 1}º</p>
             <p className="text-xs text-gray-500 mt-0.5">
               {myRow.lessons_completed} aula{myRow.lessons_completed !== 1 ? 's' : ''} concluída{myRow.lessons_completed !== 1 ? 's' : ''}
-              {' · '}Nível {cur.level} — {cur.label}
+              {' · '}Nível {cur.level}: {cur.label}
             </p>
           </div>
           <div className="text-right shrink-0">

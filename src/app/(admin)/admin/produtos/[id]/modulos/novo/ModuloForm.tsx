@@ -28,7 +28,7 @@ export function ModuloForm({ productId, module }: Props) {
           name="title"
           defaultValue={module?.title}
           required
-          placeholder="Ex: Módulo 1 — Fundamentos"
+          placeholder="Ex: Módulo 1: Fundamentos"
         />
       </div>
 

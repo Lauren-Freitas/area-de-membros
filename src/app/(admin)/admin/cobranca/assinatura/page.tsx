@@ -91,15 +91,15 @@ export default async function AssinaturaPage() {
             {activeSubscribers.map(a => (
               <div key={a.id} className="flex items-center gap-3 py-3 last:pb-0">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{a.profile?.name ?? '—'}</p>
+                  <p className="text-sm font-medium text-gray-900 truncate">{a.profile?.name ?? '-'}</p>
                   <p className="text-xs text-gray-400 truncate">{a.profile?.email}</p>
                 </div>
                 <div className="text-sm text-gray-600 shrink-0">{a.product?.title}</div>
                 <div className="text-xs text-gray-400 shrink-0 w-20 text-right">
-                  {a.product?.billing_cycle ? CYCLE_LABELS[a.product.billing_cycle] : '—'}
+                  {a.product?.billing_cycle ? CYCLE_LABELS[a.product.billing_cycle] : '-'}
                 </div>
                 <div className="text-sm font-medium text-gray-900 shrink-0 w-24 text-right">
-                  {a.value != null ? a.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '—'}
+                  {a.value != null ? a.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '-'}
                 </div>
               </div>
             ))}
