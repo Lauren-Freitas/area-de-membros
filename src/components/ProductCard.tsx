@@ -62,7 +62,7 @@ export function ProductCard({ product, unlocked, expiresAt, progress, certificat
               className="inline-flex items-center text-[11px] font-semibold px-3 py-1 rounded-full transition group-hover:opacity-90"
               style={{ backgroundColor: 'var(--brand)', color: '#fff' }}
             >
-              {isExpired ? 'Renovar acesso' : 'Conhecer'}
+              {isExpired ? 'Renovar acesso' : 'Clique para conhecer'}
             </span>
           </div>
         )}

@@ -18,7 +18,7 @@ interface Props {
   userInitials?: string
   userAvatarUrl?: string | null
   onSubmit: (content: string) => Promise<unknown>
-  onDelete: (commentId: string) => Promise<unknown>
+  onDelete: (commentId: string) => Promise<{ error?: string } | unknown>
 }
 
 function initials(name: string) {
@@ -29,6 +29,7 @@ function initials(name: string) {
 export function CommentThread({ initialComments, currentUserId, isAdmin, userInitials = 'EU', userAvatarUrl, onSubmit, onDelete }: Props) {
   const [comments, setComments] = useState(initialComments)
   const [text, setText] = useState('')
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   function handlePost() {
@@ -47,8 +48,19 @@ export function CommentThread({ initialComments, currentUserId, isAdmin, userIni
   }
 
   function handleDelete(commentId: string) {
+    setDeleteError(null)
+    const removed = comments.find(c => c.id === commentId)
     setComments(prev => prev.filter(c => c.id !== commentId))
-    startTransition(async () => { await onDelete(commentId) })
+    startTransition(async () => {
+      const result = await onDelete(commentId)
+      const error = (result as { error?: string } | undefined)?.error
+      if (error && removed) {
+        // Delete falhou de verdade (não só otimista) — devolve o comentário
+        // pra lista em vez de deixar a UI mentir que foi excluído.
+        setComments(prev => [...prev, removed].sort((a, b) => a.created_at.localeCompare(b.created_at)))
+        setDeleteError(error)
+      }
+    })
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -60,6 +72,10 @@ export function CommentThread({ initialComments, currentUserId, isAdmin, userIni
       <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4">
         Comentários {comments.length > 0 && <span className="text-gray-400 font-normal">({comments.length})</span>}
       </h3>
+
+      {deleteError && (
+        <p className="text-xs text-red-500 mb-3">Não foi possível excluir: {deleteError}</p>
+      )}
 
       {/* Form */}
       <div className="flex gap-3 mb-6">
@@ -104,8 +120,9 @@ export function CommentThread({ initialComments, currentUserId, isAdmin, userIni
       ) : (
         <div className="space-y-4">
           {comments.map(comment => {
-            const name = comment.profiles?.name ?? 'Você'
-            const canDelete = isAdmin || comment.user_id === currentUserId
+            const isMine = comment.user_id === currentUserId
+            const name = isMine ? 'Você' : (comment.profiles?.name ?? 'Membro')
+            const canDelete = isAdmin || isMine
             return (
               <div key={comment.id} className="flex gap-3">
                 <div

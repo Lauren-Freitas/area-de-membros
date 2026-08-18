@@ -1,7 +1,7 @@
 'use client'
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { APPEARANCE_DEFAULTS } from '@/lib/appearance-defaults'
+import { APPEARANCE_DEFAULTS, WELCOME_MESSAGE_MAX_LENGTH } from '@/lib/appearance-defaults'
 import { uploadBrandingAsset, removeBrandingAsset } from '@/lib/actions/appearance'
 import { Input } from '@/components/Input'
 import { Textarea } from '@/components/Textarea'
@@ -287,10 +287,14 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
             <Textarea
               rows={2}
               placeholder="Mensagem exibida no topo do dashboard"
+              maxLength={WELCOME_MESSAGE_MAX_LENGTH}
               value={values.welcome_message ?? ''}
-              onChange={e => set('welcome_message', e.target.value)}
+              onChange={e => set('welcome_message', e.target.value.slice(0, WELCOME_MESSAGE_MAX_LENGTH))}
             />
-            <p className="text-xs text-gray-400 mt-1">Aparece no topo do dashboard para todos os membros.</p>
+            <div className="flex items-center justify-between mt-1">
+              <p className="text-xs text-gray-400">Aparece no topo do dashboard para todos os membros.</p>
+              <p className="text-xs text-gray-400 shrink-0 ml-2">{(values.welcome_message ?? '').length}/{WELCOME_MESSAGE_MAX_LENGTH}</p>
+            </div>
           </div>
         </div>
       </Section>

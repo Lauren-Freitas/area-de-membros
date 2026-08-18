@@ -19,7 +19,7 @@ export function WelcomeModal({ firstName }: { firstName: string }) {
     <div className="fixed inset-0 z-[999] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
       <div className="w-full max-w-sm bg-card rounded-2xl shadow-2xl p-8 text-center">
         <p className="text-4xl mb-3">👋</p>
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Bem-vindo{firstName ? `, ${firstName}` : ''}!</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Boas-vindas{firstName ? `, ${firstName}` : ''}!</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mb-1">
           Obrigado por confiar no meu trabalho. Espero que este conteúdo ajude você a evoluir cada vez mais.
         </p>

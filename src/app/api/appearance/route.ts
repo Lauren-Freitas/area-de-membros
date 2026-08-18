@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
-import { APPEARANCE_DEFAULTS } from '@/lib/appearance-defaults'
+import { APPEARANCE_DEFAULTS, WELCOME_MESSAGE_MAX_LENGTH } from '@/lib/appearance-defaults'
 import { logActivity } from '@/lib/log-activity'
 import { revalidatePath } from 'next/cache'
 
@@ -21,6 +21,9 @@ export async function POST(request: NextRequest) {
   }
   try {
     const values: Record<string, string> = await request.json()
+    if (typeof values.welcome_message === 'string' && values.welcome_message.length > WELCOME_MESSAGE_MAX_LENGTH) {
+      return NextResponse.json({ ok: false, error: `Mensagem de boas-vindas excede o limite de ${WELCOME_MESSAGE_MAX_LENGTH} caracteres.` }, { status: 400 })
+    }
     const adminClient = createAdminClient()
     const rows = Object.entries(values).map(([key, value]) => ({ key, value: String(value) }))
     const { error } = await adminClient.from('site_config').upsert(rows, { onConflict: 'key' })

@@ -243,7 +243,7 @@ export async function deleteMember(userId: string, actor: Actor): Promise<{ succ
  */
 export async function resendAccess(userId: string, actor: Actor): Promise<{ success?: boolean; error?: string }> {
   const admin = createAdminClient()
-  const { data: profile } = await admin.from('profiles').select('name, email, last_login_at').eq('id', userId).maybeSingle()
+  const { data: profile } = await admin.from('profiles').select('name, email, role, last_login_at').eq('id', userId).maybeSingle()
   if (!profile) return { error: 'Usuário não encontrado.' }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL!
@@ -259,8 +259,16 @@ export async function resendAccess(userId: string, actor: Actor): Promise<{ succ
     const inviteLink = linkData?.properties?.action_link
     if (!inviteLink) return { error: 'Não foi possível gerar o link de convite.' }
 
+    // O template de e-mail tem que refletir o role real — reenviar acesso pra
+    // um membro nunca pode usar a cópia de "você entrou pra equipe/painel
+    // admin", mesmo que a função sirva os dois casos.
+    const isStaff = profile.role === 'admin' || profile.role === 'equipe'
     try {
-      await sendCollaboratorInviteEmail({ email: profile.email, name: profile.name, inviteLink })
+      if (isStaff) {
+        await sendCollaboratorInviteEmail({ email: profile.email, name: profile.name, inviteLink })
+      } else {
+        await sendWelcomeEmail({ email: profile.email, name: profile.name, productTitle: 'Área de Membros', inviteLink })
+      }
     } catch (err) {
       return { error: `Email não enviado: ${err instanceof Error ? err.message : String(err)}` }
     }

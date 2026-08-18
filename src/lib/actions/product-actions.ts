@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { awardXp, checkBadgesAfterComment, checkBadgesAfterProduct, checkBadgesAfterRating } from '@/lib/xp'
 
@@ -86,7 +87,7 @@ export async function addProductComment(productId: string, content: string) {
   return { success: true }
 }
 
-export async function deleteProductComment(productId: string, commentId: string) {
+export async function deleteProductComment(productId: string, commentId: string): Promise<{ error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Não autenticado' }
@@ -94,11 +95,13 @@ export async function deleteProductComment(productId: string, commentId: string)
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   const isAdmin = profile?.role === 'admin' || profile?.role === 'equipe'
 
-  await supabase
-    .from('product_comments')
-    .delete()
-    .eq('id', commentId)
-    .or(isAdmin ? 'id.neq.null' : `user_id.eq.${user.id}`)
+  // Admin modera qualquer comentário (client de service_role, ignora RLS de
+  // propósito). Membro só apaga o próprio, imposto pela RLS.
+  const client = isAdmin ? createAdminClient() : supabase
+  const { data, error } = await client.from('product_comments').delete().eq('id', commentId).select('id')
+  if (error) return { error: error.message }
+  if (!data?.length) return { error: 'Comentário não encontrado ou sem permissão para excluir.' }
 
   revalidatePath(`/produto/${productId}`)
+  return {}
 }

@@ -6,7 +6,7 @@ import { cookies } from 'next/headers'
 import { BrandLogo } from '@/components/BrandLogo'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { NotificationBell } from '@/components/NotificationBell'
-import { NavLink } from '@/components/NavLink'
+import { MemberTopNav } from '@/components/MemberTopNav'
 import { MEMBER_NAV_ITEMS } from '@/lib/member-nav'
 import { ProfileMenu } from '@/components/ProfileMenu'
 import { MobileSidebar } from '@/components/MobileSidebar'
@@ -118,19 +118,7 @@ export default async function MemberLayout({ children }: { children: React.React
       </header>
 
       <nav className="bg-card border-b border-gray-100 dark:border-[#1e2030]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center gap-1 h-10 overflow-x-auto scrollbar-none">
-          {MEMBER_NAV_ITEMS.map(item => (
-            <NavLink key={item.href} href={item.href} label={item.label} />
-          ))}
-          {myProducts.length > 0 && (
-            <>
-              <span className="w-px h-4 bg-gray-200 dark:bg-[#2a2f45] mx-1 shrink-0" />
-              {myProducts.map(p => (
-                <NavLink key={p.id} href={`/produto/${p.id}`} label={p.title} />
-              ))}
-            </>
-          )}
-        </div>
+        <MemberTopNav navItems={MEMBER_NAV_ITEMS} products={myProducts} />
       </nav>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
