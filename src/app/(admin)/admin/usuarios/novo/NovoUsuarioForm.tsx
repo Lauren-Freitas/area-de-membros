@@ -90,7 +90,7 @@ export function NovoUsuarioForm({ products, isEquipe = false }: { products: Prod
                     style={{ transform: isActive ? 'translateX(20px)' : 'translateX(0)' }}
                   />
                 </button>
-                {isActive && <input type="hidden" name="is_active" value="on" />}
+                <input type="hidden" name="is_active" value={isActive ? 'on' : 'off'} />
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-900">Colaborador ativo</p>

@@ -139,7 +139,10 @@ export async function createUser(
   const phone = (formData.get('phone') as string)?.trim() || null
   const role = ((formData.get('role') as string) || 'membro') as 'admin' | 'equipe' | 'membro'
   const productIds = formData.getAll('products') as string[]
-  const is_active = formData.get('is_active') === 'on'
+  // O toggle "ativo" só existe no formulário de colaborador (equipe/admin) — o
+  // de membro nem pergunta, então a ausência do campo tem que significar
+  // "ativo" (o default da coluna), não "inativo". Só 'off' explícito desativa.
+  const is_active = formData.get('is_active') !== 'off'
 
   const accessType = (formData.get('access_type') as string) || 'permanent'
   let accessExpiresAt: string | null = null

@@ -80,8 +80,12 @@ export async function createMember(input: CreateMemberInput, actor: Actor): Prom
     profileUpdate.role = role
     if (input.isActive === false) profileUpdate.is_active = false
   } else {
+    // Reaproveitar um profile existente pelo e-mail (idempotência) nunca pode
+    // desativar essa conta de lado — quem quer desativar alguém usa a ação
+    // dedicada (setMemberActive/updateMember), que passa pela confirmação e
+    // pelo guard-rail de "nunca ficar sem admin ativo". "Criar membro" com um
+    // e-mail que já existe só deve reconciliar produto/telefone, nunca status.
     if (role !== 'membro') profileUpdate.role = role
-    if (input.isActive === false) profileUpdate.is_active = false
   }
   if (phone) profileUpdate.phone = phone
 
@@ -128,6 +132,25 @@ export async function createMember(input: CreateMemberInput, actor: Actor): Prom
   return { userId, isNewUser }
 }
 
+/**
+ * A plataforma nunca pode ficar sem nenhum admin ativo pra acessar o painel.
+ * Bloqueia desativar/excluir um admin quando ele é o único admin ativo
+ * restante — não é sobre uma pessoa específica, é sobre nunca haver um
+ * lockout total do painel administrativo.
+ */
+async function isLastActiveAdmin(admin: ReturnType<typeof createAdminClient>, userId: string): Promise<boolean> {
+  const { data: target } = await admin.from('profiles').select('role, is_active').eq('id', userId).maybeSingle()
+  if (!target || target.role !== 'admin' || target.is_active === false) return false
+
+  const { count } = await admin
+    .from('profiles')
+    .select('id', { count: 'exact', head: true })
+    .eq('role', 'admin')
+    .eq('is_active', true)
+    .neq('id', userId)
+  return (count ?? 0) === 0
+}
+
 interface UpdateMemberInput {
   name?: string
   role?: Role
@@ -139,6 +162,10 @@ export async function updateMember(userId: string, patch: UpdateMemberInput, act
   const admin = createAdminClient()
   const { data: before } = await admin.from('profiles').select('is_active, email').eq('id', userId).maybeSingle()
   if (!before) return { error: 'Usuário não encontrado.' }
+
+  if (patch.is_active === false && await isLastActiveAdmin(admin, userId)) {
+    return { error: 'Esse é o único admin ativo — não é possível desativá-lo. Ative outro admin antes.' }
+  }
 
   const update: Record<string, unknown> = {}
   if (typeof patch.name === 'string') update.name = patch.name.trim()
@@ -173,6 +200,9 @@ export async function updateMember(userId: string, patch: UpdateMemberInput, act
 /** Toggle rápido (menu de ações / drawer) — distinto de updateMember pra manter o rótulo semântico "ativar/desativar" no histórico. Idempotente: chamar de novo com o mesmo estado é um no-op. */
 export async function setMemberActive(userId: string, active: boolean, actor: Actor): Promise<{ success?: boolean; error?: string }> {
   const admin = createAdminClient()
+  if (!active && await isLastActiveAdmin(admin, userId)) {
+    return { error: 'Esse é o único admin ativo — não é possível desativá-lo. Ative outro admin antes.' }
+  }
   const { data: profile } = await admin.from('profiles').select('name, email').eq('id', userId).maybeSingle()
   const { error } = await admin.from('profiles').update({ is_active: active }).eq('id', userId)
   if (error) return { error: error.message }
@@ -190,6 +220,10 @@ export async function deleteMember(userId: string, actor: Actor): Promise<{ succ
   const admin = createAdminClient()
   const { data: profile } = await admin.from('profiles').select('name, email').eq('id', userId).maybeSingle()
   if (!profile) return { success: true }
+
+  if (await isLastActiveAdmin(admin, userId)) {
+    return { error: 'Esse é o único admin ativo — não é possível excluí-lo. Ative outro admin antes.' }
+  }
 
   const { error } = await admin.auth.admin.deleteUser(userId)
   if (error) return { error: error.message }
