@@ -37,9 +37,9 @@ function fmtShort(iso: string) {
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
-    <div>
+    <div className="min-w-0">
       <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5">{label}</p>
-      <p className="text-sm text-gray-700 dark:text-gray-300">{value}</p>
+      <p className="text-sm text-gray-700 dark:text-gray-300 break-words">{value}</p>
     </div>
   )
 }
