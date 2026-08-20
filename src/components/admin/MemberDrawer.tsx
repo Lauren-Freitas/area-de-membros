@@ -289,12 +289,11 @@ function EditarView({
               style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Email" value={detail.profile.email} />
-            <Field label="Tipo de conta" value="Membro" />
-          </div>
+          <Field label="Email" value={detail.profile.email} />
           <div className="flex items-center gap-1.5 text-xs text-gray-400">
             <span className={`w-1.5 h-1.5 rounded-full ${detail.profile.is_active ? 'bg-green-500' : 'bg-red-500'}`} />
+            Tipo de conta: Membro
+            <span className="text-gray-300 dark:text-gray-600">·</span>
             Status: {detail.profile.is_active ? 'Ativo' : 'Inativo'}
           </div>
         </div>
