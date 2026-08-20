@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { getLevelInfo, LEVELS, BADGES } from '@/lib/xp'
+import { getLevelInfo, BADGES } from '@/lib/xp'
 
 export default async function PerfilPage() {
   const supabase = await createClient()
@@ -137,23 +137,6 @@ export default async function PerfilPage() {
         ) : (
           <p className="text-xs font-semibold" style={{ color: 'var(--brand)' }}>Nível máximo atingido! 🏆</p>
         )}
-
-        {/* Escada de níveis */}
-        <div className="mt-4 grid grid-cols-5 gap-1">
-          {LEVELS.map(lvl => (
-            <div
-              key={lvl.level}
-              className="flex flex-col items-center gap-0.5"
-              title={`Nível ${lvl.level}: ${lvl.label} (${lvl.minXp} XP)`}
-            >
-              <div
-                className="w-full h-1.5 rounded-full"
-                style={{ backgroundColor: totalXp >= lvl.minXp ? 'var(--brand)' : '#e5e7eb' }}
-              />
-              <span className="text-[9px] text-gray-400">{lvl.level}</span>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* Conquistas / Badges */}
