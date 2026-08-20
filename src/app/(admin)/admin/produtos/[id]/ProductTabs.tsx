@@ -67,7 +67,7 @@ export function ProductTabs({
   return (
     <div>
       {/* Tabs */}
-      <div className="flex items-center gap-1 mb-6 border-b border-gray-100 overflow-x-auto scrollbar-none">
+      <div className="flex items-center gap-1 mb-6 border-b border-gray-100 overflow-x-auto overflow-y-hidden py-0.5 scrollbar-none">
         {TABS.map(t => (
           <button
             key={t.key}
