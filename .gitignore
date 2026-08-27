@@ -40,5 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# claude code
-.claude/
+# claude code (config/permissions ficam locais; skills são versionadas)
+.claude/*
+!.claude/skills
