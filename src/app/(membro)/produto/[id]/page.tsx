@@ -9,6 +9,7 @@ import { rateProduct, markProductComplete, unmarkProductComplete, addProductComm
 import { CommentThread } from '@/components/CommentThread'
 import { LessonVideoPlayer } from '@/components/LessonVideoPlayer'
 import { computeReleaseState } from '@/lib/release'
+import { isAccessExpired } from '@/lib/entitlement'
 
 export default async function ProdutoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -19,18 +20,21 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
 
   const [{ data: product }, { data: access }] = await Promise.all([
     supabase.from('products').select('*').eq('id', id).eq('is_active', true).single(),
-    supabase.from('user_products').select('id, is_completed, granted_at').eq('user_id', user.id).eq('product_id', id).maybeSingle(),
+    supabase.from('user_products').select('id, is_completed, granted_at, expires_at').eq('user_id', user.id).eq('product_id', id).maybeSingle(),
   ])
 
   if (!product) redirect('/dashboard')
 
-  // Sem acesso: prévia in-app (banner, descrição, motivo do bloqueio, CTA de compra) em vez de
-  // sair direto pro WhatsApp/checkout externo sem mostrar nada da plataforma primeiro.
-  if (!access) {
+  const expired = access ? isAccessExpired((access as { expires_at: string | null }).expires_at) : false
+
+  // Sem acesso (ou acesso expirado): prévia in-app (banner, descrição, motivo do bloqueio, CTA de
+  // compra/renovação) em vez de sair direto pro WhatsApp/checkout sem mostrar nada da plataforma,
+  // e nunca servir o conteúdo em si — a checagem real é feita aqui, não só escondida na Home.
+  if (!access || expired) {
     const { data: previewModules } = await supabase.from('modules').select('id, lessons(id, is_published)').eq('product_id', id)
     const isCourse = (previewModules ?? []).length > 0
     const lessonCount = (previewModules ?? []).reduce((acc, m) => acc + (m.lessons?.filter((l: { is_published: boolean }) => l.is_published).length ?? 0), 0)
-    return <ProductPreview product={product as Product} isCourse={isCourse} lessonCount={lessonCount} />
+    return <ProductPreview product={product as Product} isCourse={isCourse} lessonCount={lessonCount} isExpired={expired} />
   }
 
   const [{ data: modules }, { data: progressRows }, { data: certificate }, { data: profile }] = await Promise.all([
@@ -298,7 +302,7 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
   )
 }
 
-function ProductPreview({ product, isCourse, lessonCount }: { product: Product; isCourse: boolean; lessonCount: number }) {
+function ProductPreview({ product, isCourse, lessonCount, isExpired }: { product: Product; isCourse: boolean; lessonCount: number; isExpired: boolean }) {
   const typeLabel = isCourse ? 'Curso' : product.content_type === 'video' ? 'Vídeo' : 'Arquivo'
   const buyTarget = product.buy_url
     ?? `https://wa.me/5561991900589?text=${encodeURIComponent(`Olá! Tenho interesse em: ${product.title}`)}`
@@ -351,10 +355,12 @@ function ProductPreview({ product, isCourse, lessonCount }: { product: Product; 
           )}
 
           <div className="inline-flex flex-col items-center gap-3 px-6 py-5 rounded-xl bg-gray-50 dark:bg-[#12162a] max-w-sm">
-            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Conteúdo exclusivo</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Você ainda não tem acesso a este conteúdo.</p>
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{isExpired ? 'Acesso expirado' : 'Conteúdo exclusivo'}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {isExpired ? 'Seu acesso a este conteúdo expirou.' : 'Você ainda não tem acesso a este conteúdo.'}
+            </p>
             <Button href={buyTarget}>
-              Adquirir
+              {isExpired ? 'Renovar acesso' : 'Adquirir'}
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>

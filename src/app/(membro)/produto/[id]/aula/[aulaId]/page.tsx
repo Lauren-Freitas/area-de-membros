@@ -16,6 +16,7 @@ import { postComment, deleteComment } from '@/lib/actions/comments'
 import { toggleLessonComplete } from '@/lib/actions/progress'
 import { LessonComment } from '@/types'
 import { computeReleaseState } from '@/lib/release'
+import { isAccessExpired } from '@/lib/entitlement'
 
 export default async function AulaPage({
   params,
@@ -30,12 +31,15 @@ export default async function AulaPage({
 
   const { data: access } = await supabase
     .from('user_products')
-    .select('id, granted_at')
+    .select('id, granted_at, expires_at')
     .eq('user_id', user.id)
     .eq('product_id', id)
-    .single()
+    .maybeSingle()
 
-  if (!access) redirect('/dashboard')
+  // Mesma regra de autorização da página do produto: sem linha de acesso, ou
+  // linha existente mas expirada, nunca serve o conteúdo — manda pro portão
+  // (/produto/[id]), que já sabe mostrar "expirado" vs. "nunca teve acesso".
+  if (!access || isAccessExpired((access as { expires_at: string | null }).expires_at)) redirect(`/produto/${id}`)
 
   const { data: lesson } = await supabase
     .from('lessons')
