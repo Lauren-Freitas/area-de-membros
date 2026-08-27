@@ -46,19 +46,49 @@ export function MemberTopNav({ navItems, products }: {
     }
   }
 
+  function scrollBy(dir: 1 | -1) {
+    const el = scrollRef.current
+    if (!el) return
+    el.scrollBy({ left: dir * el.clientWidth * 0.6, behavior: 'smooth' })
+  }
+
   return (
     <div className="relative">
       {canScrollLeft && (
-        <div
-          className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 z-10"
-          style={{ background: 'linear-gradient(to right, var(--card), transparent)' }}
-        />
+        <>
+          <div
+            className="pointer-events-none absolute left-0 top-0 bottom-0 w-8 z-10"
+            style={{ background: 'linear-gradient(to right, var(--card), transparent)' }}
+          />
+          <button
+            type="button"
+            onClick={() => scrollBy(-1)}
+            aria-label="Rolar para a esquerda"
+            className="absolute left-1 top-1/2 -translate-y-1/2 z-20 w-6 h-6 flex items-center justify-center rounded-full bg-card border border-gray-200 dark:border-[#2a2f45] text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 shadow-sm transition"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        </>
       )}
       {canScrollRight && (
-        <div
-          className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 z-10"
-          style={{ background: 'linear-gradient(to left, var(--card), transparent)' }}
-        />
+        <>
+          <div
+            className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 z-10"
+            style={{ background: 'linear-gradient(to left, var(--card), transparent)' }}
+          />
+          <button
+            type="button"
+            onClick={() => scrollBy(1)}
+            aria-label="Rolar para a direita"
+            className="absolute right-1 top-1/2 -translate-y-1/2 z-20 w-6 h-6 flex items-center justify-center rounded-full bg-card border border-gray-200 dark:border-[#2a2f45] text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 shadow-sm transition"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </>
       )}
       <div
         ref={scrollRef}
