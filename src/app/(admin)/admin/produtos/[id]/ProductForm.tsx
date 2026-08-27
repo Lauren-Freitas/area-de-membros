@@ -8,7 +8,8 @@ import { Button } from '@/components/Button'
 import { Input } from '@/components/Input'
 import { Textarea } from '@/components/Textarea'
 import { Select } from '@/components/Select'
-import { Product } from '@/types'
+import { ClassificationFields } from '@/components/admin/ClassificationFields'
+import { Product, Territory, SkillTrack, ContentFormat } from '@/types'
 
 const BILLING_CYCLES: { value: string; label: string }[] = [
   { value: '', label: 'Avulso (pagamento único)' },
@@ -52,7 +53,15 @@ function GeneratePaymentLinkButton({ productId, buyUrlInputRef }: { productId: s
   )
 }
 
-export function ProductForm({ product }: { product?: Product }) {
+export function ProductForm({
+  product, territories = [], skillTracks = [], contentFormats = [], selectedSkillTrackIds,
+}: {
+  product?: Product
+  territories?: Territory[]
+  skillTracks?: SkillTrack[]
+  contentFormats?: ContentFormat[]
+  selectedSkillTrackIds?: string[]
+}) {
   const [state, action, isPending] = useActionState(saveProduct, undefined)
   const buyUrlInputRef = useRef<HTMLInputElement>(null)
   const [contentType, setContentType] = useState(product?.content_type ?? 'file')
@@ -143,6 +152,17 @@ export function ProductForm({ product }: { product?: Product }) {
           </div>
         )}
       </div>
+
+      {/* Classificação (território, trilhas, tipo de conteúdo) — só usada se o produto não tiver módulos/aulas */}
+      <ClassificationFields
+        territories={territories}
+        skillTracks={skillTracks}
+        contentFormats={contentFormats}
+        defaultTerritoryId={product?.territory_id}
+        defaultContentFormatId={product?.content_format_id}
+        defaultSkillTrackIds={selectedSkillTrackIds}
+        hint="Só é usada se o produto não tiver módulos/aulas."
+      />
 
       {/* Preço + Ciclo de cobrança */}
       <div className="flex flex-wrap gap-4">

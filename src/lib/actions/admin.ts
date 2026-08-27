@@ -11,6 +11,7 @@ import { getAdminActor } from '@/lib/core/actor'
 import * as coreMembers from '@/lib/core/members'
 import * as coreAccess from '@/lib/core/access'
 import * as coreProducts from '@/lib/core/products'
+import { syncSkillTracks } from '@/lib/core/taxonomy'
 
 function sanitizeLessonHtml(html: string): string {
   return sanitizeHtml(html, {
@@ -82,13 +83,22 @@ export async function saveProduct(
   const content_type = (formData.get('content_type') as string) || 'file'
   const content_url = (formData.get('content_url') as string)?.trim() || null
   const kiwify_product_id = (formData.get('kiwify_product_id') as string)?.trim() || null
-  const payload = { title, description: description || '', banner_url, buy_url, price, billing_cycle, content_type, content_url, kiwify_product_id, is_pack, sort_order, is_active, is_featured }
+  const territory_id = (formData.get('territory_id') as string)?.trim() || null
+  const content_format_id = (formData.get('content_format_id') as string)?.trim() || null
+  const skill_track_ids = [...new Set(formData.getAll('skill_track_ids') as string[])]
+  if (skill_track_ids.length > 2) return { error: 'No máximo 2 trilhas de habilidade por produto.' }
+
+  const payload = { title, description: description || '', banner_url, buy_url, price, billing_cycle, content_type, content_url, kiwify_product_id, territory_id, content_format_id, is_pack, sort_order, is_active, is_featured }
 
   const isNew = !id || id === 'novo'
   const result = isNew
     ? await coreProducts.createProduct(payload, actor)
     : await coreProducts.updateProduct(id, payload, actor)
   if (result.error) return { error: result.error }
+
+  const admin = createAdminClient()
+  const tracksResult = await syncSkillTracks(admin, { productId: result.data!.id as string }, skill_track_ids)
+  if (tracksResult.error) return { error: tracksResult.error }
 
   revalidatePath('/admin/produtos')
   revalidatePath('/dashboard')
@@ -284,8 +294,12 @@ export async function saveLesson(
     : null
   const access_duration_raw = (formData.get('access_duration_days') as string)?.trim()
   const access_duration_days = access_duration_raw ? parseInt(access_duration_raw) || null : null
+  const territory_id = (formData.get('territory_id') as string)?.trim() || null
+  const content_format_id = (formData.get('content_format_id') as string)?.trim() || null
+  const skill_track_ids = [...new Set(formData.getAll('skill_track_ids') as string[])]
 
   if (!title) return { error: 'O título é obrigatório.' }
+  if (skill_track_ids.length > 2) return { error: 'No máximo 2 trilhas de habilidade por aula.' }
 
   const content_html = content_html_raw ? sanitizeLessonHtml(content_html_raw) : null
   // lesson_type não é mais escolhido no formulário — mantido só pra compatibilidade
@@ -293,13 +307,17 @@ export async function saveLesson(
   const lesson_type = content_url ? 'video' : 'text'
 
   // sort_order não é mais editado aqui — é definido na tela "Organizar módulos e aulas".
-  const payload = { module_id, title, description, lesson_type, content_url, content_html, is_published, release_type, release_after_days, release_at, access_duration_days }
+  const payload = { module_id, title, description, lesson_type, content_url, content_html, is_published, release_type, release_after_days, release_at, access_duration_days, territory_id, content_format_id }
   const isNew = !id
-  const { error } = isNew
-    ? await admin.from('lessons').insert(payload)
-    : await admin.from('lessons').update(payload).eq('id', id)
+  const { data: savedLesson, error } = isNew
+    ? await admin.from('lessons').insert(payload).select('id').single()
+    : await admin.from('lessons').update(payload).eq('id', id).select('id').single()
 
   if (error) return { error: error.message }
+
+  const tracksResult = await syncSkillTracks(admin, { lessonId: savedLesson.id }, skill_track_ids)
+  if (tracksResult.error) return { error: tracksResult.error }
+
   await logActivity({ action: isNew ? 'criar' : 'editar', entity: 'aula', entityName: title })
   revalidatePath(`/admin/produtos/${product_id}/modulos/${module_id}`)
   redirect(`/admin/produtos/${product_id}/modulos/${module_id}`)

@@ -46,6 +46,8 @@ export interface ProductPayload {
   content_type?: string
   content_url?: string | null
   kiwify_product_id?: string | null
+  territory_id?: string | null
+  content_format_id?: string | null
   is_pack?: boolean
   sort_order?: number
   is_active?: boolean
@@ -70,6 +72,8 @@ export async function createProduct(payload: ProductPayload, actor: Actor): Prom
     content_type: payload.content_type ?? 'file',
     content_url: payload.content_url ?? null,
     kiwify_product_id: payload.kiwify_product_id ?? null,
+    territory_id: payload.territory_id ?? null,
+    content_format_id: payload.content_format_id ?? null,
     is_pack: payload.is_pack ?? false,
     sort_order: payload.sort_order ?? 0,
     is_active: payload.is_active ?? true,
@@ -100,6 +104,8 @@ export async function updateProduct(id: string, payload: Partial<ProductPayload>
   if (typeof payload.content_type === 'string') update.content_type = payload.content_type
   if (typeof payload.content_url === 'string' || payload.content_url === null) update.content_url = payload.content_url
   if (typeof payload.kiwify_product_id === 'string' || payload.kiwify_product_id === null) update.kiwify_product_id = payload.kiwify_product_id
+  if (typeof payload.territory_id === 'string' || payload.territory_id === null) update.territory_id = payload.territory_id
+  if (typeof payload.content_format_id === 'string' || payload.content_format_id === null) update.content_format_id = payload.content_format_id
   if (typeof payload.is_pack === 'boolean') update.is_pack = payload.is_pack
   if (typeof payload.sort_order === 'number') update.sort_order = payload.sort_order
   if (typeof payload.is_active === 'boolean') update.is_active = payload.is_active

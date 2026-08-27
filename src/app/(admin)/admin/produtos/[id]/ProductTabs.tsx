@@ -9,7 +9,7 @@ import { Badge, type BadgeTone } from '@/components/Badge'
 import { EmptyState } from '@/components/EmptyState'
 import { grantAccess, revokeAccess } from '@/lib/actions/admin'
 import { PaymentStatusBadge } from '@/components/admin/PaymentStatusBadge'
-import { Product, Module, Lesson, PaymentStatus } from '@/types'
+import { Product, Module, Lesson, PaymentStatus, Territory, SkillTrack, ContentFormat } from '@/types'
 
 export interface AccessRow {
   id: string
@@ -46,12 +46,20 @@ export function ProductTabs({
   modules,
   accessRows,
   availableMembers,
+  territories,
+  skillTracks,
+  contentFormats,
+  selectedSkillTrackIds,
 }: {
   productId: string
   product: Product
   modules: (Module & { lessons: Lesson[] })[]
   accessRows: AccessRow[]
   availableMembers: { id: string; name: string; email: string }[]
+  territories: Territory[]
+  skillTracks: SkillTrack[]
+  contentFormats: ContentFormat[]
+  selectedSkillTrackIds: string[]
 }) {
   const [tab, setTab] = useState<TabKey>('visao')
 
@@ -163,7 +171,13 @@ export function ProductTabs({
 
       {tab === 'config' && (
         <div className="bg-card rounded-2xl border border-gray-100 p-6 sm:p-8">
-          <ProductForm product={product} />
+          <ProductForm
+            product={product}
+            territories={territories}
+            skillTracks={skillTracks}
+            contentFormats={contentFormats}
+            selectedSkillTrackIds={selectedSkillTrackIds}
+          />
         </div>
       )}
     </div>

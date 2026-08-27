@@ -6,13 +6,24 @@ import { Button } from '@/components/Button'
 import { Lesson, LessonAttachment } from '@/types'
 import { RichTextEditor } from '@/components/admin/RichTextEditor'
 import { AttachmentsManager } from '@/components/admin/AttachmentsManager'
+import { ClassificationFields } from '@/components/admin/ClassificationFields'
 import { Switch } from '@/components/admin/Switch'
 import { Input } from '@/components/Input'
 import { Textarea } from '@/components/Textarea'
+import { Territory, SkillTrack, ContentFormat } from '@/types'
 
-interface Props { productId: string; moduleId: string; lesson?: Lesson; attachments?: LessonAttachment[] }
+interface Props {
+  productId: string
+  moduleId: string
+  lesson?: Lesson
+  attachments?: LessonAttachment[]
+  territories: Territory[]
+  skillTracks: SkillTrack[]
+  contentFormats: ContentFormat[]
+  selectedSkillTrackIds?: string[]
+}
 
-export function AulaForm({ productId, moduleId, lesson, attachments }: Props) {
+export function AulaForm({ productId, moduleId, lesson, attachments, territories, skillTracks, contentFormats, selectedSkillTrackIds }: Props) {
   const [state, action, isPending] = useActionState(saveLesson, undefined)
   const [releaseType, setReleaseType] = useState<string>(lesson?.release_type ?? 'immediate')
   const [isPublished, setIsPublished] = useState(lesson?.is_published ?? true)
@@ -74,6 +85,16 @@ export function AulaForm({ productId, moduleId, lesson, attachments }: Props) {
           Salve a aula primeiro para poder adicionar anexos.
         </div>
       )}
+
+      {/* Classificação (território, trilhas, tipo de conteúdo) */}
+      <ClassificationFields
+        territories={territories}
+        skillTracks={skillTracks}
+        contentFormats={contentFormats}
+        defaultTerritoryId={lesson?.territory_id}
+        defaultContentFormatId={lesson?.content_format_id}
+        defaultSkillTrackIds={selectedSkillTrackIds}
+      />
 
       {/* Liberação */}
       <div>

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ProductForm } from './ProductForm'
 import { Product, Module, Lesson } from '@/types'
 import { ProductTabs, type AccessRow } from './ProductTabs'
+import { getTaxonomyCatalogs, getSelectedSkillTrackIds } from '@/lib/core/taxonomy'
 
 export default async function AdminProdutoPage({
   params,
@@ -15,6 +16,7 @@ export default async function AdminProdutoPage({
   const isNew = id === 'novo'
 
   if (isNew) {
+    const { territories, skillTracks, contentFormats } = await getTaxonomyCatalogs(createAdminClient())
     return (
       <div>
         <div className="flex items-center gap-2 text-sm mb-6">
@@ -25,7 +27,7 @@ export default async function AdminProdutoPage({
           <span className="text-gray-900">Novo produto</span>
         </div>
         <div className="bg-card rounded-2xl border border-gray-100 p-6 sm:p-8">
-          <ProductForm />
+          <ProductForm territories={territories} skillTracks={skillTracks} contentFormats={contentFormats} />
         </div>
       </div>
     )
@@ -33,7 +35,7 @@ export default async function AdminProdutoPage({
 
   const supabase = await createClient()
   const adminClient = createAdminClient()
-  const [{ data: prod }, { data: mods }, { data: accesses }, { data: members }] = await Promise.all([
+  const [{ data: prod }, { data: mods }, { data: accesses }, { data: members }, catalogs, selectedSkillTrackIds] = await Promise.all([
     supabase.from('products').select('*').eq('id', id).single(),
     supabase.from('modules').select('*, lessons(*)').eq('product_id', id).order('sort_order'),
     adminClient
@@ -42,6 +44,8 @@ export default async function AdminProdutoPage({
       .eq('product_id', id)
       .order('granted_at', { ascending: false }),
     adminClient.from('profiles').select('id, name, email').eq('role', 'membro').order('name'),
+    getTaxonomyCatalogs(adminClient),
+    getSelectedSkillTrackIds(adminClient, { productId: id }),
   ])
   if (!prod) redirect('/admin/produtos')
 
@@ -77,6 +81,10 @@ export default async function AdminProdutoPage({
         modules={modules}
         accessRows={accessRows}
         availableMembers={availableMembers}
+        territories={catalogs.territories}
+        skillTracks={catalogs.skillTracks}
+        contentFormats={catalogs.contentFormats}
+        selectedSkillTrackIds={selectedSkillTrackIds}
       />
     </div>
   )

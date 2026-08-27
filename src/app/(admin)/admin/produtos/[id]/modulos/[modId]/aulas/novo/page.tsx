@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import { AulaForm } from './AulaForm'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { getTaxonomyCatalogs } from '@/lib/core/taxonomy'
 
 export default async function NovaAulaPage({
   params,
@@ -7,6 +9,8 @@ export default async function NovaAulaPage({
   params: Promise<{ id: string; modId: string }>
 }) {
   const { id, modId } = await params
+  const admin = createAdminClient()
+  const { territories, skillTracks, contentFormats } = await getTaxonomyCatalogs(admin)
 
   return (
     <div className="max-w-2xl">
@@ -19,7 +23,13 @@ export default async function NovaAulaPage({
       </div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Nova aula</h1>
       <div className="bg-card rounded-2xl border border-gray-100 p-6">
-        <AulaForm productId={id} moduleId={modId} />
+        <AulaForm
+          productId={id}
+          moduleId={modId}
+          territories={territories}
+          skillTracks={skillTracks}
+          contentFormats={contentFormats}
+        />
       </div>
     </div>
   )

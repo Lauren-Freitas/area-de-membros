@@ -36,6 +36,8 @@ export interface Product {
   is_featured: boolean
   sort_order: number
   category: string | null
+  territory_id: string | null
+  content_format_id: string | null
   created_at: string
 }
 
@@ -70,6 +72,39 @@ export interface Lesson {
   release_after_days: number | null
   release_at: string | null
   access_duration_days: number | null
+  territory_id: string | null
+  content_format_id: string | null
+  created_at: string
+}
+
+/** Catálogos de classificação editorial (não de renderização — ver lesson_type/content_type). */
+export interface Territory {
+  id: string
+  slug: string
+  title: string
+  description: string | null
+  sort_order: number
+  is_active: boolean
+  created_at: string
+}
+
+export interface SkillTrack {
+  id: string
+  slug: string
+  title: string
+  description: string | null
+  sort_order: number
+  is_active: boolean
+  created_at: string
+}
+
+export interface ContentFormat {
+  id: string
+  slug: string
+  title: string
+  description: string | null
+  sort_order: number
+  is_active: boolean
   created_at: string
 }
 
