@@ -14,7 +14,7 @@ export function MobileSidebar({ userName }: { userName?: string }) {
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     if (search.trim().length < 2) return
-    router.push(`/busca?q=${encodeURIComponent(search.trim())}`)
+    router.push(`/biblioteca?q=${encodeURIComponent(search.trim())}`)
     setSearch('')
     setOpen(false)
   }

@@ -77,6 +77,19 @@ export interface Lesson {
   created_at: string
 }
 
+/** Linha da view library_items — aula publicada ou produto avulso ativo, formato único pra Biblioteca. */
+export interface LibraryItem {
+  content_id: string
+  kind: 'lesson' | 'product'
+  title: string
+  description: string | null
+  territory_id: string | null
+  content_format_id: string | null
+  product_id: string
+  product_title: string
+  created_at: string
+}
+
 /** Catálogos de classificação editorial (não de renderização — ver lesson_type/content_type). */
 export interface Territory {
   id: string
