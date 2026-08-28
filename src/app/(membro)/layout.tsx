@@ -6,7 +6,7 @@ import { cookies } from 'next/headers'
 import { BrandLogo } from '@/components/BrandLogo'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { NotificationBell } from '@/components/NotificationBell'
-import { MemberSidebar } from '@/components/MemberSidebar'
+import { MemberShell } from '@/components/MemberShell'
 import { MobileSidebar } from '@/components/MobileSidebar'
 import { ProfileMenu } from '@/components/ProfileMenu'
 import { ViewAsBanner } from '@/components/ViewAsBanner'
@@ -110,16 +110,15 @@ export default async function MemberLayout({ children }: { children: React.React
         </header>
       </div>
 
-      {/* Sidebar desktop-only, fixa */}
-      <MemberSidebar
+      {/* Sidebar desktop-only, fixa e recolhível -- estado/persistência em MemberShell (client) */}
+      <MemberShell
         platformName={platformName}
         userName={userName}
         avatarUrl={avatarUrl}
         unreadCount={unreadCount}
         isViewingAs={isViewingAs}
-      />
-
-      <div className={`lg:ml-60 ${bannerOffset}`}>
+        bannerOffset={bannerOffset}
+      >
         {/* Tira utilitária do desktop: notificações, tema, admin. Conta já está na sidebar. */}
         <header className="hidden lg:flex h-14 items-center justify-end gap-2 px-6 border-b border-gray-100 dark:border-[#1e2030] bg-card sticky top-0 z-20">
           {!isViewingAs && isAdminOrEquipe && (
@@ -138,7 +137,7 @@ export default async function MemberLayout({ children }: { children: React.React
         <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
           {children}
         </main>
-      </div>
+      </MemberShell>
     </div>
   )
 }
