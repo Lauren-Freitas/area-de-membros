@@ -362,7 +362,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       {/* Meu progresso — compacto, secundário ao conteúdo, linka pro perfil completo */}
       {totalXp > 0 && (
         <Link
-          href="/perfil"
+          href="/progresso"
           className="flex items-center gap-4 px-5 py-4 bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] hover:shadow-md transition group"
         >
           <div

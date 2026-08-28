@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/login',
-      disallow: ['/admin', '/api', '/dashboard', '/produto', '/perfil', '/comunidade', '/assinatura', '/busca', '/ranking', '/atendimento'],
+      disallow: ['/admin', '/api', '/dashboard', '/produto', '/perfil', '/comunidade', '/assinatura', '/busca', '/ranking', '/atendimento', '/biblioteca', '/progresso', '/conta', '/certificado'],
     },
     host: APP_URL,
   }

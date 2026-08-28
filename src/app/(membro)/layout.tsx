@@ -6,11 +6,11 @@ import { cookies } from 'next/headers'
 import { BrandLogo } from '@/components/BrandLogo'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { NotificationBell } from '@/components/NotificationBell'
-import { MemberTopNav } from '@/components/MemberTopNav'
-import { MEMBER_NAV_ITEMS } from '@/lib/member-nav'
-import { ProfileMenu } from '@/components/ProfileMenu'
+import { MemberSidebar } from '@/components/MemberSidebar'
 import { MobileSidebar } from '@/components/MobileSidebar'
+import { ProfileMenu } from '@/components/ProfileMenu'
 import { ViewAsBanner } from '@/components/ViewAsBanner'
+import { getSiteConfig } from '@/lib/branding'
 import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
 import { getWebhookActor } from '@/lib/core/actor'
 
@@ -44,15 +44,14 @@ export default async function MemberLayout({ children }: { children: React.React
   // ID efetivo: o membro alvo (view-as) ou o próprio usuário
   const targetId = isViewingAs ? viewAsMemberId! : user.id
 
-  const [{ data: profile }, { data: notifData }, { data: userProducts }, { data: allProducts }] = await Promise.all([
+  const [{ data: profile }, { data: notifData }, siteConfig] = await Promise.all([
     adminClient.from('profiles').select('name, role, avatar_url, is_active, last_login_at').eq('id', targetId).single(),
     adminClient.from('notifications')
       .select('id, title, body, link, read, created_at')
       .eq('user_id', targetId)
       .order('created_at', { ascending: false })
       .limit(20),
-    adminClient.from('user_products').select('product_id').eq('user_id', targetId),
-    adminClient.from('products').select('id, title').eq('is_active', true).order('sort_order'),
+    getSiteConfig(),
   ])
 
   // Membro desativado não tem acesso (só aplica quando não estamos em modo view-as)
@@ -62,12 +61,11 @@ export default async function MemberLayout({ children }: { children: React.React
 
   const notifications = notifData ?? []
   const unreadCount = notifications.filter(n => !n.read).length
-  const unlockedIds = new Set((userProducts ?? []).map(p => p.product_id))
-  const myProducts = (allProducts ?? []).filter(p => unlockedIds.has(p.id))
 
   const userName = profile?.name ?? 'Usuário'
-  const firstName = userName.trim().split(' ')[0]
   const avatarUrl = (profile as { avatar_url?: string | null } | null)?.avatar_url ?? null
+  const isAdminOrEquipe = profile?.role === 'admin' || profile?.role === 'equipe'
+  const platformName = siteConfig.platform_name || 'Thiago Cantalovo'
 
   // Último acesso — atualiza no máximo a cada 5 minutos pra não gravar a cada navegação,
   // e nunca em modo "ver como membro" (não é um acesso de verdade do membro).
@@ -78,51 +76,69 @@ export default async function MemberLayout({ children }: { children: React.React
     after(() => touchLastLogin(adminClient, user.id, lastLoginAt))
   }
 
+  const bannerOffset = isViewingAs ? 'pt-10' : ''
+
   return (
-    <div className={`min-h-screen bg-[var(--background)] transition-colors duration-200 ${isViewingAs ? 'pt-10' : ''}`}>
+    <div className="min-h-screen bg-[var(--background)] transition-colors duration-200">
 
       {/* Banner de "ver como membro" */}
       {isViewingAs && <ViewAsBanner memberName={viewAsName} />}
 
-      <header className="bg-card border-b border-gray-100 dark:border-[#1e2030] sticky top-0 z-30">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <MobileSidebar userName={userName} />
-            <BrandLogo size={32} className="shrink-0" />
-            <div className="hidden sm:block">
-              <p className="text-sm font-semibold text-gray-900 dark:text-white leading-none">Thiago Cantalovo</p>
-              <p className="text-xs text-gray-400 mt-0.5">Nutricionista</p>
+      {/* Header mobile-only: hamburger, logo, notificações, tema, conta. Some no desktop -- a sidebar assume o papel de navegação e conta ali. */}
+      <div className={bannerOffset}>
+        <header className="lg:hidden bg-card border-b border-gray-100 dark:border-[#1e2030] sticky top-0 z-30">
+          <div className="px-4 h-16 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <MobileSidebar userName={userName} />
+              <BrandLogo size={32} className="shrink-0" />
+            </div>
+            <div className="flex items-center gap-1.5">
+              {!isViewingAs && isAdminOrEquipe && (
+                <a
+                  href="/admin"
+                  className="text-xs font-medium px-3 py-1.5 rounded-full transition"
+                  style={{ color: 'var(--brand-text)', backgroundColor: 'var(--brand-bg)' }}
+                >
+                  Admin
+                </a>
+              )}
+              <NotificationBell notifications={notifications} unreadCount={unreadCount} />
+              <ThemeToggle />
+              <ProfileMenu name={userName} avatarUrl={avatarUrl} unreadCount={unreadCount} />
             </div>
           </div>
+        </header>
+      </div>
 
-          <div className="flex items-center gap-1.5">
-            {/* Botão Admin — oculto em modo view-as para não confundir */}
-            {!isViewingAs && (profile?.role === 'admin' || profile?.role === 'equipe') && (
-              <a
-                href="/admin"
-                className="hidden sm:inline-flex text-xs font-medium px-3 py-1.5 rounded-full transition"
-                style={{ color: 'var(--brand-text)', backgroundColor: 'var(--brand-bg)' }}
-              >
-                Admin
-              </a>
-            )}
-            <span className="hidden md:inline text-sm text-gray-600 dark:text-gray-300 mr-1">
-              Olá, {firstName} 👋
-            </span>
-            <NotificationBell notifications={notifications} unreadCount={unreadCount} />
-            <ThemeToggle />
-            <ProfileMenu name={userName} avatarUrl={avatarUrl} unreadCount={unreadCount} />
-          </div>
-        </div>
-      </header>
+      {/* Sidebar desktop-only, fixa */}
+      <MemberSidebar
+        platformName={platformName}
+        userName={userName}
+        avatarUrl={avatarUrl}
+        unreadCount={unreadCount}
+        isViewingAs={isViewingAs}
+      />
 
-      <nav className="bg-card border-b border-gray-100 dark:border-[#1e2030]">
-        <MemberTopNav navItems={MEMBER_NAV_ITEMS} products={myProducts} />
-      </nav>
+      <div className={`lg:ml-60 ${bannerOffset}`}>
+        {/* Tira utilitária do desktop: notificações, tema, admin. Conta já está na sidebar. */}
+        <header className="hidden lg:flex h-14 items-center justify-end gap-2 px-6 border-b border-gray-100 dark:border-[#1e2030] bg-card sticky top-0 z-20">
+          {!isViewingAs && isAdminOrEquipe && (
+            <a
+              href="/admin"
+              className="text-xs font-medium px-3 py-1.5 rounded-full transition mr-1"
+              style={{ color: 'var(--brand-text)', backgroundColor: 'var(--brand-bg)' }}
+            >
+              Admin
+            </a>
+          )}
+          <NotificationBell notifications={notifications} unreadCount={unreadCount} />
+          <ThemeToggle />
+        </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        {children}
-      </main>
+        <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          {children}
+        </main>
+      </div>
     </div>
   )
 }

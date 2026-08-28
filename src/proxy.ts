@@ -38,6 +38,11 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/certificado') ||
     pathname.startsWith('/busca') ||
     pathname.startsWith('/perfil') ||
+    pathname.startsWith('/progresso') ||
+    pathname.startsWith('/conta') ||
+    pathname.startsWith('/assinatura') ||
+    pathname.startsWith('/biblioteca') ||
+    pathname.startsWith('/atendimento') ||
     pathname.startsWith('/suporte')
 
   // Só a página de login redireciona usuário já logado para o dashboard —

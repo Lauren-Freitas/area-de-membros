@@ -51,9 +51,8 @@ export async function updateMemberProfile(
 
   revalidatePath('/', 'layout')
   revalidatePath('/conta')
-  revalidatePath('/perfil')
+  revalidatePath('/progresso')
   revalidatePath('/dashboard')
-  revalidatePath('/ranking')
   return { success: true }
 }
 

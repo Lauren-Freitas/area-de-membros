@@ -109,13 +109,13 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
   return (
     <div className="max-w-3xl mx-auto">
       <Link
-        href="/dashboard"
+        href="/biblioteca"
         className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition mb-6"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
-        Voltar para meus conteúdos
+        Voltar para a Biblioteca
       </Link>
 
       {/* Painel do curso — visão geral + portão de entrada, só quando há módulos */}
@@ -310,13 +310,13 @@ function ProductPreview({ product, isCourse, lessonCount, isExpired }: { product
   return (
     <div className="max-w-2xl mx-auto">
       <Link
-        href="/dashboard"
+        href="/biblioteca"
         className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition mb-6"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
-        Voltar para meus conteúdos
+        Voltar para a Biblioteca
       </Link>
 
       <div className="rounded-2xl overflow-hidden border border-gray-100 dark:border-[#1e2030] bg-card">

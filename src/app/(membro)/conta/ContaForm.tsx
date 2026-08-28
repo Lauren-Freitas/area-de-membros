@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState, useRef } from 'react'
-import { updateMemberProfile, updateMemberPassword } from '@/lib/actions/member'
+import { updateMemberProfile } from '@/lib/actions/member'
 import { AvatarCropper } from '@/components/AvatarCropper'
 import { AvatarPhotoModal } from '@/components/AvatarPhotoModal'
 import { Input } from '@/components/Input'
@@ -80,7 +80,6 @@ interface InitialData {
 
 export function ContaForm({ initialData }: { initialData: InitialData }) {
   const [profileState, profileAction, profilePending] = useActionState(updateMemberProfile, undefined)
-  const [passwordState, passwordAction, passwordPending] = useActionState(updateMemberPassword, undefined)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(initialData.avatar_url)
   const [cropSrc, setCropSrc] = useState<string | null>(null)
   const [photoModalOpen, setPhotoModalOpen] = useState(false)
@@ -89,7 +88,6 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
   const parsedPhone = parsePhone(initialData.phone)
   const [selectedDdi, setSelectedDdi] = useState(parsedPhone.ddi)
   const [profileFormKey, setProfileFormKey] = useState(0)
-  const [passwordFormKey, setPasswordFormKey] = useState(0)
 
   function handleProfileCancel() {
     setProfileFormKey(k => k + 1)
@@ -97,10 +95,6 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
     setAvatarPreview(initialData.avatar_url)
     setRemoveAvatar(false)
     if (fileRef.current) fileRef.current.value = ''
-  }
-
-  function handlePasswordCancel() {
-    setPasswordFormKey(k => k + 1)
   }
 
   function handleCropConfirm(previewUrl: string, file: File) {
@@ -145,13 +139,6 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
           onClose={() => setPhotoModalOpen(false)}
         />
       )}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Minha Conta</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Preencha suas informações pessoais para personalizar sua experiência na plataforma.
-        </p>
-      </div>
-
       {/* Informações do perfil */}
       <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
         <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-5">Informações pessoais</h2>
@@ -291,81 +278,6 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
             <button
               type="button"
               onClick={handleProfileCancel}
-              className="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition focus:outline-none"
-            >
-              Cancelar
-            </button>
-          </div>
-        </form>
-      </div>
-
-      {/* Alteração de senha */}
-      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
-        <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-1">Alteração de senha</h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
-          Para alterar sua senha, informe a senha atual e depois a nova senha desejada.
-        </p>
-
-        <form key={passwordFormKey} action={passwordAction} className="space-y-4">
-          {passwordState?.error && (
-            <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-sm text-red-700 dark:text-red-400">
-              {passwordState.error}
-            </div>
-          )}
-          {passwordState?.success && (
-            <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 text-sm text-green-700 dark:text-green-400">
-              Senha alterada com sucesso!
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Senha atual</label>
-            <Input
-              name="current_password"
-              type="password"
-              autoComplete="current-password"
-              required
-              placeholder="••••••••"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Nova senha</label>
-              <Input
-                name="new_password"
-                type="password"
-                autoComplete="new-password"
-                required
-                minLength={8}
-                placeholder="Mínimo 8 caracteres"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Confirmar nova senha</label>
-              <Input
-                name="confirm_password"
-                type="password"
-                autoComplete="new-password"
-                required
-                minLength={8}
-                placeholder="Repita a nova senha"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 pt-1">
-            <button
-              type="submit"
-              disabled={passwordPending}
-              className="px-5 py-2.5 text-sm font-semibold text-white rounded-lg transition hover:opacity-90 disabled:opacity-60"
-              style={{ backgroundColor: 'var(--brand)' }}
-            >
-              {passwordPending ? 'Alterando...' : 'Atualizar senha'}
-            </button>
-            <button
-              type="button"
-              onClick={handlePasswordCancel}
               className="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition focus:outline-none"
             >
               Cancelar

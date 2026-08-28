@@ -35,6 +35,8 @@ interface MenuProps {
   /** Classe de largura/etc do painel — sobrescreve o padrão w-52. */
   panelClassName?: string
   className?: string
+  /** Abre acima do gatilho — pra gatilho no rodapé da tela (ex: conta no rodapé da sidebar). */
+  openUpward?: boolean
 }
 
 /**
@@ -43,7 +45,7 @@ interface MenuProps {
  * MenuItem/MenuDivider para uma lista de ações, ou qualquer JSX pra conteúdo
  * customizado (ex: lista de notificações, popover de "+N produtos").
  */
-export function Menu({ trigger, children, align = 'right', panelClassName = 'w-52', className = '' }: MenuProps) {
+export function Menu({ trigger, children, align = 'right', panelClassName = 'w-52', className = '', openUpward = false }: MenuProps) {
   const { open, setOpen, ref } = useDisclosure()
   const close = () => setOpen(false)
   const toggle = () => setOpen(v => !v)
@@ -53,7 +55,7 @@ export function Menu({ trigger, children, align = 'right', panelClassName = 'w-5
       {trigger({ open, toggle })}
       {open && (
         <div
-          className={`absolute ${align === 'right' ? 'right-0' : 'left-0'} top-full mt-2 ${panelClassName} bg-card border border-gray-100 dark:border-[#1e2030] rounded-xl shadow-lg z-50 overflow-hidden py-1`}
+          className={`absolute ${align === 'right' ? 'right-0' : 'left-0'} ${openUpward ? 'bottom-full mb-2' : 'top-full mt-2'} ${panelClassName} bg-card border border-gray-100 dark:border-[#1e2030] rounded-xl shadow-lg z-50 overflow-hidden py-1`}
         >
           <MenuContext.Provider value={{ close }}>{children}</MenuContext.Provider>
         </div>
