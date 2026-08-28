@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { createPortal } from 'react-dom'
 import { markWelcomeSeen } from '@/lib/actions/member'
 
-export function WelcomeModal({ firstName }: { firstName: string }) {
+export function WelcomeModal({ firstName, platformName }: { firstName: string; platformName: string }) {
   const [dismissed, setDismissed] = useState(false)
   const [isPending, startTransition] = useTransition()
 
@@ -24,7 +24,7 @@ export function WelcomeModal({ firstName }: { firstName: string }) {
           Obrigado por confiar no meu trabalho. Espero que este conteúdo ajude você a evoluir cada vez mais.
         </p>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Bom estudo!</p>
-        <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-6">Thiago Cantalovo</p>
+        <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-6">{platformName}</p>
         <button
           type="button"
           onClick={handleStart}
