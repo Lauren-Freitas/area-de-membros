@@ -9,6 +9,8 @@ interface Props {
   unreadCount: number
   /** 'icon' = avatar redondo isolado (header mobile/desktop utilitário). 'row' = linha com nome, pro rodapé da sidebar. */
   variant?: 'icon' | 'row'
+  /** Variant 'row' apenas: recolhe pra mostrar só o avatar (rodapé da sidebar recolhida). */
+  collapsed?: boolean
 }
 
 function getInitials(name: string) {
@@ -37,7 +39,7 @@ function Avatar({ name, avatarUrl, unreadCount, size = 36 }: { name: string; ava
 }
 
 /** Conta + Sair — Perfil/XP e Assinatura foram consolidados dentro de /conta (Etapa 5). */
-export function ProfileMenu({ name, avatarUrl, unreadCount, variant = 'icon' }: Props) {
+export function ProfileMenu({ name, avatarUrl, unreadCount, variant = 'icon', collapsed = false }: Props) {
   return (
     <Menu
       panelClassName="w-52"
@@ -47,18 +49,32 @@ export function ProfileMenu({ name, avatarUrl, unreadCount, variant = 'icon' }: 
         variant === 'row' ? (
           <button
             onClick={toggle}
-            className="w-full flex items-center gap-2.5 px-2 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-[#1a1f35] transition focus:outline-none focus:ring-2 focus:ring-offset-1"
+            className={`group relative w-full flex items-center rounded-xl hover:bg-gray-50 dark:hover:bg-[#1a1f35] transition focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+              collapsed ? 'justify-center px-0 py-2' : 'gap-2.5 px-2 py-2'
+            }`}
             style={{ '--tw-ring-color': 'var(--brand)' } as React.CSSProperties}
             aria-label="Menu da conta"
           >
             <Avatar name={name} avatarUrl={avatarUrl} unreadCount={unreadCount} size={32} />
-            <span className="flex-1 min-w-0 text-left">
-              <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{name}</p>
-              <p className="text-xs text-gray-400">Ver conta</p>
-            </span>
-            <svg className="w-4 h-4 text-gray-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
-            </svg>
+            {!collapsed && (
+              <>
+                <span className="flex-1 min-w-0 text-left">
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{name}</p>
+                  <p className="text-xs text-gray-400">Ver conta</p>
+                </span>
+                <svg className="w-4 h-4 text-gray-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
+                </svg>
+              </>
+            )}
+            {collapsed && (
+              <span
+                role="tooltip"
+                className="pointer-events-none absolute left-full top-1/2 ml-2 -translate-y-1/2 whitespace-nowrap rounded-lg bg-gray-900 dark:bg-black px-2.5 py-1.5 text-xs font-medium text-white opacity-0 scale-95 transition duration-150 group-hover:opacity-100 group-hover:scale-100 group-focus-visible:opacity-100 group-focus-visible:scale-100 z-50"
+              >
+                Ver conta
+              </span>
+            )}
           </button>
         ) : (
           <button
