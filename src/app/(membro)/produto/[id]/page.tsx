@@ -51,7 +51,7 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
   const [ratingResult, commentsResult] = needsSimpleView
     ? await Promise.all([
         supabase.from('product_ratings').select('rating').eq('user_id', user.id).eq('product_id', id).maybeSingle(),
-        supabase.from('product_comments').select('id, content, created_at, user_id, profiles(name)').eq('product_id', id).order('created_at', { ascending: true }),
+        supabase.from('product_comments').select('id, content, created_at, user_id').eq('product_id', id).order('created_at', { ascending: true }),
       ])
     : [{ data: null, error: null }, { data: null, error: null }]
 
@@ -104,7 +104,21 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
 
   const myRating = ratingResult.data?.rating ?? null
   type CommentRow = { id: string; content: string; created_at: string; user_id: string; profiles: { name: string } | null }
-  const comments: CommentRow[] = (commentsResult.data as CommentRow[] | null) ?? []
+  // Lista vazia é um estado válido (produto sem comentários ainda); uma falha real
+  // de consulta não pode se disfarçar da mesma coisa -- registra nos logs do
+  // servidor em vez de sumir em silêncio.
+  if (commentsResult.error) console.error('product_comments query failed:', commentsResult.error)
+  const rawComments = (commentsResult.data as Omit<CommentRow, 'profiles'>[] | null) ?? []
+  const commentAuthorIds = [...new Set(rawComments.map(c => c.user_id))]
+  const commentAuthorsResult = commentAuthorIds.length
+    ? await supabase.rpc('get_profile_names', { profile_ids: commentAuthorIds })
+    : { data: [] }
+  const commentAuthors = (commentAuthorsResult.data ?? []) as { id: string; name: string }[]
+  const nameByAuthorId = new Map(commentAuthors.map(a => [a.id, a.name]))
+  const comments: CommentRow[] = rawComments.map(c => ({
+    ...c,
+    profiles: nameByAuthorId.has(c.user_id) ? { name: nameByAuthorId.get(c.user_id)! } : null,
+  }))
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -437,7 +451,12 @@ function SimpleProductView({
 
 async function FileContent({ productId, title }: { productId: string; title: string }) {
   const supabase = await createClient()
-  const { data } = await supabase.storage.from('produtos').createSignedUrl(`${productId}/arquivo`, 3600)
+  const { data, error } = await supabase.storage.from('produtos').createSignedUrl(`${productId}/arquivo`, 3600)
+  // Storage responde "Bucket not found"/"Object not found" quando o registro existe
+  // mas ninguém ainda subiu o arquivo -- ausência de configuração conhecida, não uma
+  // falha real. Qualquer outra mensagem (rede, permissão, etc.) é tratada como erro
+  // de verdade, com um aviso diferente -- não fingimos que é a mesma coisa.
+  const notConfigured = error?.message === 'Object not found' || error?.message === 'Bucket not found'
   return (
     <div className="p-8 flex flex-col items-center text-center gap-4">
       <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--brand-bg)' }}>
@@ -453,8 +472,10 @@ async function FileContent({ productId, title }: { productId: string; title: str
         <Button href={data.signedUrl} download>
           Baixar arquivo
         </Button>
+      ) : notConfigured ? (
+        <p className="text-sm text-gray-400">Este conteúdo ainda não foi disponibilizado.</p>
       ) : (
-        <p className="text-sm text-red-500">Arquivo não encontrado.</p>
+        <p className="text-sm text-amber-600 dark:text-amber-400">Não foi possível carregar este arquivo agora. Tente novamente mais tarde.</p>
       )}
     </div>
   )

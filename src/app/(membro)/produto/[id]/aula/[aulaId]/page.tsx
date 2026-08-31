@@ -81,7 +81,7 @@ export default async function AulaPage({
     })
   )
 
-  const [{ data: siblings }, { data: progressRows }, { data: profile }, { data: commentsData }, { data: ratingData }] = await Promise.all([
+  const [{ data: siblings }, { data: progressRows }, { data: profile }, { data: commentsData, error: commentsError }, { data: ratingData }] = await Promise.all([
     supabase
       .from('lessons')
       .select('id, title, sort_order, lesson_type')
@@ -95,7 +95,7 @@ export default async function AulaPage({
     supabase.from('profiles').select('role, name, avatar_url').eq('id', user.id).single(),
     supabase
       .from('lesson_comments')
-      .select('*, profiles(name)')
+      .select('*')
       .eq('lesson_id', aulaId)
       .order('created_at', { ascending: true }),
     supabase
@@ -114,7 +114,21 @@ export default async function AulaPage({
     : 'EU'
   const userAvatarUrl = (profile as { avatar_url?: string | null } | null)?.avatar_url ?? null
   const myRating = ratingData?.rating ?? null
-  const comments = (commentsData ?? []) as LessonComment[]
+  // Lista vazia é um estado válido (aula sem comentários ainda); uma falha real de
+  // consulta não pode se disfarçar da mesma coisa -- registra pra aparecer nos logs
+  // do servidor em vez de sumir em silêncio (foi assim que o embed profiles(name)
+  // quebrado ficou invisível por tanto tempo).
+  if (commentsError) console.error('lesson_comments query failed:', commentsError)
+  const commentAuthorIds = [...new Set((commentsData ?? []).map(c => c.user_id))]
+  const commentAuthorsResult = commentAuthorIds.length
+    ? await supabase.rpc('get_profile_names', { profile_ids: commentAuthorIds })
+    : { data: [] }
+  const commentAuthors = (commentAuthorsResult.data ?? []) as { id: string; name: string }[]
+  const nameByAuthorId = new Map(commentAuthors.map(a => [a.id, a.name]))
+  const comments = (commentsData ?? []).map(c => ({
+    ...c,
+    profiles: nameByAuthorId.has(c.user_id) ? { name: nameByAuthorId.get(c.user_id)! } : null,
+  })) as LessonComment[]
 
   const currentIdx = siblings?.findIndex(s => s.id === aulaId) ?? -1
   const prevLesson = currentIdx > 0 ? siblings![currentIdx - 1] : null
@@ -254,7 +268,7 @@ function RichTextContent({ html }: { html: string }) {
   })
   return (
     <div
-      className="p-6 sm:p-8 max-w-prose mx-auto text-sm leading-relaxed text-gray-700 dark:text-gray-300"
+      className="lesson-content p-6 sm:p-8 max-w-prose mx-auto text-sm leading-relaxed text-gray-700 dark:text-gray-300"
       dangerouslySetInnerHTML={{ __html: clean }}
     />
   )
@@ -326,7 +340,7 @@ function AttachmentsList({ attachments }: { attachments: (LessonAttachment & { u
 function TextLesson({ content }: { content: string | null }) {
   if (!content) return <div className="p-8 text-gray-400 text-center">Conteúdo não disponível.</div>
   return (
-    <div className="p-6 sm:p-8 max-w-prose mx-auto text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+    <div className="lesson-content p-6 sm:p-8 max-w-prose mx-auto text-sm leading-relaxed text-gray-700 dark:text-gray-300">
       {content.split('\n').map((line, i) => (
         <p key={i} className="mb-3 text-gray-700 dark:text-gray-300">{line || ' '}</p>
       ))}

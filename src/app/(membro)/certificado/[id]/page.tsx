@@ -10,13 +10,18 @@ export default async function CertificadoPage({ params }: { params: Promise<{ id
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: cert } = await supabase
+  const { data: cert, error: certError } = await supabase
     .from('certificates')
     .select('*, products(title), profiles(name)')
     .eq('id', id)
     .eq('user_id', user.id)
     .single()
 
+  // "Não encontrado" (certificado alheio ou inexistente) é um caso válido pra
+  // redirecionar sem aviso -- mas uma falha real de consulta não pode se
+  // disfarçar da mesma coisa, senão vira o mesmo "certificado inacessível em
+  // silêncio" que essa etapa corrigiu.
+  if (certError) console.error('certificate query failed:', certError)
   if (!cert) redirect('/dashboard')
 
   const productTitle = (Array.isArray(cert.products) ? cert.products[0] : cert.products)?.title ?? ''
