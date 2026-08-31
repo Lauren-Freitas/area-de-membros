@@ -3,11 +3,11 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Product, Module, Lesson } from '@/types'
 import { Button } from '@/components/Button'
-import { CompleteButton } from '@/components/CompleteButton'
 import { StarRating } from '@/components/StarRating'
 import { rateProduct, markProductComplete, unmarkProductComplete, addProductComment, deleteProductComment } from '@/lib/actions/product-actions'
 import { CommentThread } from '@/components/CommentThread'
 import { LessonVideoPlayer } from '@/components/LessonVideoPlayer'
+import { LessonCompletionActions } from '@/components/LessonCompletionActions'
 import { computeReleaseState } from '@/lib/release'
 import { isAccessExpired } from '@/lib/entitlement'
 
@@ -394,13 +394,7 @@ function SimpleProductView({
       {/* Conteúdo principal */}
       <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
         {product.content_type === 'video' ? (
-          <LessonVideoPlayer
-            url={product.content_url}
-            progressPct={isCompleted ? 100 : 0}
-            prevHref={null}
-            nextHref={null}
-            completionEventKey={`product-complete:${productId}`}
-          />
+          <LessonVideoPlayer url={product.content_url} />
         ) : (
           <FileContent productId={product.id} title={product.title} />
         )}
@@ -412,50 +406,30 @@ function SimpleProductView({
         {description && <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{description}</p>}
       </div>
 
-      {/* Barra de progresso — mesmo em conteúdo único (sem módulos/aulas) */}
-      <div>
-        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1.5">
-          <span>{isCompleted ? 'Concluído' : 'Não concluído'}</span>
-          <span className="font-semibold" style={{ color: 'var(--brand)' }}>{isCompleted ? 100 : 0}%</span>
-        </div>
-        <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-500"
-            style={{ width: isCompleted ? '100%' : '0%', backgroundColor: 'var(--brand)' }}
-          />
-        </div>
+      {/* Conclusão -- mesmo bloco usado em /aula, sem navegação (não há módulo aqui) */}
+      <LessonCompletionActions
+        completed={isCompleted}
+        onComplete={markProductComplete.bind(null, productId)}
+        onIncomplete={unmarkProductComplete.bind(null, productId)}
+      />
+
+      {/* Comentários */}
+      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
+        <CommentThread
+          currentUserId={userId}
+          isAdmin={isAdmin}
+          initialComments={comments}
+          userInitials={userInitials}
+          userAvatarUrl={userAvatarUrl}
+          onSubmit={addProductComment.bind(null, productId)}
+          onDelete={deleteProductComment.bind(null, productId)}
+        />
       </div>
 
-      {/* Comentários + Ações */}
-      <div className="grid grid-cols-1 sm:grid-cols-[1fr_220px] gap-4 items-start">
-        <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
-          <CommentThread
-            currentUserId={userId}
-            isAdmin={isAdmin}
-            initialComments={comments}
-            userInitials={userInitials}
-            userAvatarUrl={userAvatarUrl}
-            onSubmit={addProductComment.bind(null, productId)}
-            onDelete={deleteProductComment.bind(null, productId)}
-          />
-        </div>
-
-        <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5 flex flex-col gap-5">
-          <div>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Avaliação</p>
-            <StarRating initialRating={myRating} onRate={rateProduct.bind(null, productId)} />
-          </div>
-          <div>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Progresso</p>
-            <CompleteButton
-              completed={isCompleted}
-              onComplete={markProductComplete.bind(null, productId)}
-              onIncomplete={unmarkProductComplete.bind(null, productId)}
-              completionEventKey={`product-complete:${productId}`}
-              fullWidth
-            />
-          </div>
-        </div>
+      {/* Avaliação */}
+      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5">
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Avaliação</p>
+        <StarRating initialRating={myRating} onRate={rateProduct.bind(null, productId)} />
       </div>
     </div>
   )

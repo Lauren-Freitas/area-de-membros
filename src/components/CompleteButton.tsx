@@ -16,8 +16,6 @@ interface Props {
    */
   onComplete: () => Promise<unknown>
   onIncomplete: () => Promise<unknown>
-  /** Nome do CustomEvent disparado a cada troca — o player de vídeo do modo "produto simples" escuta isso pra atualizar sem esperar o round-trip. */
-  completionEventKey?: string
   fullWidth?: boolean
   /** Textos com concordância de gênero correta pro item (aula = feminino, produto/curso = masculino). */
   pendingLabel?: string
@@ -29,7 +27,6 @@ export function CompleteButton({
   completed: initial,
   onComplete,
   onIncomplete,
-  completionEventKey,
   fullWidth = false,
   pendingLabel = 'Marcar como concluído',
   doneLabel = 'Concluído!',
@@ -41,9 +38,6 @@ export function CompleteButton({
   function handleClick() {
     const next = !completed
     setCompleted(next)
-    if (completionEventKey) {
-      window.dispatchEvent(new CustomEvent(completionEventKey, { detail: { completed: next } }))
-    }
     startTransition(async () => {
       await (next ? onComplete() : onIncomplete())
       router.refresh()

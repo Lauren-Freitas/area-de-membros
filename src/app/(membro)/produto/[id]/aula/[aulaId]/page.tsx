@@ -6,10 +6,10 @@ import Link from 'next/link'
 import sanitizeHtml from 'sanitize-html'
 import { Lesson, LessonAttachment } from '@/types'
 import { Button } from '@/components/Button'
-import { CompleteButton } from '@/components/CompleteButton'
 import { CommentThread } from '@/components/CommentThread'
 import { LessonSidebar } from '@/components/LessonSidebar'
 import { LessonVideoPlayer } from '@/components/LessonVideoPlayer'
+import { LessonCompletionActions } from '@/components/LessonCompletionActions'
 import { StarRating } from '@/components/StarRating'
 import { rateLesson } from '@/lib/actions/ratings'
 import { postComment, deleteComment } from '@/lib/actions/comments'
@@ -120,10 +120,6 @@ export default async function AulaPage({
   const prevLesson = currentIdx > 0 ? siblings![currentIdx - 1] : null
   const nextLesson = siblings && currentIdx < siblings.length - 1 ? siblings[currentIdx + 1] : null
 
-  const modTotal = siblings?.length ?? 0
-  const modDone = (siblings ?? []).filter(s => completedSet.has(s.id)).length
-  const modPct = modTotal > 0 ? Math.round((modDone / modTotal) * 100) : 0
-
   const prevHref = prevLesson ? `/produto/${id}/aula/${prevLesson.id}` : null
   const nextHref = nextLesson ? `/produto/${id}/aula/${nextLesson.id}` : null
 
@@ -155,9 +151,7 @@ export default async function AulaPage({
               {l.lesson_type === 'link' && <LinkLesson url={l.content_url} title={l.title} />}
             </div>
           ) : (
-            l.content_url && (
-              <LessonVideoPlayer url={l.content_url} progressPct={modPct} prevHref={prevHref} nextHref={nextHref} />
-            )
+            l.content_url && <LessonVideoPlayer url={l.content_url} />
           )}
 
           {/* Título e descrição da aula */}
@@ -191,7 +185,19 @@ export default async function AulaPage({
           {/* Arquivos da aula */}
           {attachments.length > 0 && <AttachmentsList attachments={attachments} />}
 
-          {/* Sidebar no mobile (abaixo do vídeo) */}
+          {/* Conclusão + continuidade -- a principal ação pós-consumo, logo após o conteúdo */}
+          <LessonCompletionActions
+            completed={isCompleted}
+            onComplete={toggleLessonComplete.bind(null, aulaId, id, false)}
+            onIncomplete={toggleLessonComplete.bind(null, aulaId, id, true)}
+            pendingLabel="Marcar como concluída"
+            doneLabel="Concluída"
+            prevHref={prevHref}
+            nextHref={nextHref}
+            courseFallbackHref={`/produto/${id}`}
+          />
+
+          {/* Sidebar no mobile */}
           <div id="lesson-sidebar" className="lg:hidden">
             <LessonSidebar
               productId={id}
@@ -218,41 +224,6 @@ export default async function AulaPage({
           <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5">
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Avaliação</p>
             <StarRating size="sm" showLabel initialRating={myRating} onRate={rateLesson.bind(null, aulaId, id)} />
-          </div>
-
-          {/* Progresso + navegação pra próxima aula */}
-          <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5 flex flex-col gap-4">
-            <div>
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Progresso</p>
-              <CompleteButton
-                completed={isCompleted}
-                onComplete={toggleLessonComplete.bind(null, aulaId, id, false)}
-                onIncomplete={toggleLessonComplete.bind(null, aulaId, id, true)}
-                pendingLabel="Marcar como concluída"
-                doneLabel="Concluída"
-              />
-            </div>
-
-            {(prevLesson || nextLesson) && (
-              <div className="flex items-center gap-2 pt-1 border-t border-gray-100 dark:border-[#1e2030]">
-                {prevLesson && (
-                  <Button href={`/produto/${id}/aula/${prevLesson.id}`} variant="secondary">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                    </svg>
-                    Anterior
-                  </Button>
-                )}
-                {nextLesson && (
-                  <Button href={`/produto/${id}/aula/${nextLesson.id}`} className="flex-1">
-                    Próxima aula
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </Button>
-                )}
-              </div>
-            )}
           </div>
         </div>
 
@@ -283,7 +254,7 @@ function RichTextContent({ html }: { html: string }) {
   })
   return (
     <div
-      className="p-6 sm:p-8 prose prose-gray dark:prose-invert max-w-none text-sm leading-relaxed"
+      className="p-6 sm:p-8 max-w-prose mx-auto text-sm leading-relaxed text-gray-700 dark:text-gray-300"
       dangerouslySetInnerHTML={{ __html: clean }}
     />
   )
@@ -355,7 +326,7 @@ function AttachmentsList({ attachments }: { attachments: (LessonAttachment & { u
 function TextLesson({ content }: { content: string | null }) {
   if (!content) return <div className="p-8 text-gray-400 text-center">Conteúdo não disponível.</div>
   return (
-    <div className="p-6 sm:p-8 prose prose-gray dark:prose-invert max-w-none text-sm leading-relaxed">
+    <div className="p-6 sm:p-8 max-w-prose mx-auto text-sm leading-relaxed text-gray-700 dark:text-gray-300">
       {content.split('\n').map((line, i) => (
         <p key={i} className="mb-3 text-gray-700 dark:text-gray-300">{line || ' '}</p>
       ))}
