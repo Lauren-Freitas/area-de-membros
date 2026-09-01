@@ -1,5 +1,6 @@
 'use server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { awardXp, checkBadgesAfterLesson } from '@/lib/xp'
 import { fireOutboundWebhooks } from '@/lib/fire-webhooks'
@@ -78,7 +79,11 @@ async function maybeIssueCertificate(
       .maybeSingle()
 
     if (!existing) {
-      await supabase.from('certificates').insert({ user_id: userId, product_id: productId })
+      const { data: certificate } = await supabase
+        .from('certificates')
+        .insert({ user_id: userId, product_id: productId })
+        .select('id')
+        .single()
 
       // Notificar o membro
       const { data: product } = await supabase
@@ -87,12 +92,23 @@ async function maybeIssueCertificate(
         .eq('id', productId)
         .single()
 
-      await supabase.from('notifications').insert({
-        user_id: userId,
-        title: '🎓 Certificado disponível!',
-        body: `Você concluiu "${product?.title}". Seu certificado está pronto para download.`,
-        link: '/dashboard',
-      })
+      if (certificate) {
+        // Notificação é um evento de sistema sobre o próprio usuário -- o client
+        // autenticado do membro não tem permissão de INSERT em notifications (só
+        // UPDATE em linha própria, usado em markAllRead/markOneRead). Mesmo padrão
+        // já validado em community.ts e api/v1/certificates/route.ts.
+        const admin = createAdminClient()
+        const { error: notifError } = await admin.from('notifications').insert({
+          user_id: userId,
+          title: '🎓 Certificado disponível!',
+          body: `Você concluiu "${product?.title}". Seu certificado está pronto para download.`,
+          link: `/certificado/${certificate.id}`,
+        })
+        // Notificação é um "nice to have" pós-emissão -- o certificado já foi
+        // criado e continua válido mesmo se isto falhar. Só registra pra não
+        // repetir o silêncio que esse bug já causou.
+        if (notifError) console.error('Falha ao criar notificação de certificado:', notifError)
+      }
 
       await fireOutboundWebhooks('certificate.generated', {
         member: { id: userId },

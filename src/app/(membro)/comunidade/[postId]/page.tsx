@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { deletePost, pinPost, deleteReply } from '@/lib/actions/community'
 import { ReplyForm } from './ReplyForm'
 import { DeleteConfirmButton } from '@/components/DeleteConfirmButton'
+import { Button } from '@/components/Button'
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime()
@@ -28,15 +29,26 @@ export default async function PostPage({ params }: { params: Promise<{ postId: s
   if (!user) redirect('/login')
 
   const [{ data: post }, { data: replies }, { data: profile }] = await Promise.all([
-    supabase.from('community_posts').select('*, profiles(name)').eq('id', postId).single(),
-    supabase.from('community_replies').select('*, profiles(name)').eq('post_id', postId).order('created_at'),
+    supabase.from('community_posts').select('*').eq('id', postId).single(),
+    supabase.from('community_replies').select('*').eq('post_id', postId).order('created_at'),
     supabase.from('profiles').select('role').eq('id', user.id).single(),
   ])
 
   if (!post) redirect('/comunidade')
 
+  // Autoria pra terceiros: RLS de profiles só permite ler a própria linha, então
+  // um embed profiles(name) direto resolveria null pro autor do post/respostas
+  // de qualquer outra pessoa. get_profile_names (SECURITY DEFINER, só id+name --
+  // Etapa 8) resolve isso sem abrir SELECT amplo na tabela.
+  const authorIds = [...new Set([post.user_id, ...(replies ?? []).map(r => r.user_id)])]
+  const authorsResult = authorIds.length
+    ? await supabase.rpc('get_profile_names', { profile_ids: authorIds })
+    : { data: [] }
+  const authors = (authorsResult.data ?? []) as { id: string; name: string }[]
+  const nameByAuthorId = new Map(authors.map(a => [a.id, a.name]))
+
   const isAdmin = profile?.role === 'admin' || profile?.role === 'equipe'
-  const postAuthor = Array.isArray(post.profiles) ? post.profiles[0] : post.profiles
+  const postAuthorName = nameByAuthorId.get(post.user_id)
   const isMyPost = post.user_id === user.id
 
   return (
@@ -54,14 +66,14 @@ export default async function PostPage({ params }: { params: Promise<{ postId: s
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0" style={{ backgroundColor: 'var(--brand-bg)', color: 'var(--brand-text)' }}>
-              {initials(postAuthor?.name ?? '?')}
+              {initials(postAuthorName ?? '?')}
             </div>
             <div>
               <div className="flex items-center gap-2">
                 {post.pinned && <span className="text-sm">📌</span>}
                 <h1 className="text-lg font-bold text-gray-900 dark:text-white">{post.title}</h1>
               </div>
-              <p className="text-xs text-gray-400 mt-0.5">{postAuthor?.name} · {timeAgo(post.created_at)}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{postAuthorName ?? 'Membro'} · {timeAgo(post.created_at)}</p>
             </div>
           </div>
 
@@ -70,9 +82,9 @@ export default async function PostPage({ params }: { params: Promise<{ postId: s
             <div className="flex items-center gap-2 shrink-0">
               {isAdmin && (
                 <form action={async () => { 'use server'; await pinPost(postId, !post.pinned) }}>
-                  <button type="submit" className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition">
+                  <Button type="submit" variant="secondary" size="sm">
                     {post.pinned ? 'Desafixar' : '📌 Fixar'}
-                  </button>
+                  </Button>
                 </form>
               )}
               <DeleteConfirmButton
@@ -95,18 +107,18 @@ export default async function PostPage({ params }: { params: Promise<{ postId: s
         </h2>
 
         {replies?.map((reply) => {
-          const author = Array.isArray(reply.profiles) ? reply.profiles[0] : reply.profiles
+          const replyAuthorName = nameByAuthorId.get(reply.user_id)
           const isMyReply = reply.user_id === user.id
           return (
             <div key={reply.id} className="bg-card rounded-xl border border-gray-100 dark:border-[#1e2030] px-5 py-4">
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: 'var(--brand-bg)', color: 'var(--brand-text)' }}>
-                  {initials(author?.name ?? '?')}
+                  {initials(replyAuthorName ?? '?')}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-                      {author?.name} <span className="font-normal text-gray-400">· {timeAgo(reply.created_at)}</span>
+                      {replyAuthorName ?? 'Membro'} <span className="font-normal text-gray-400">· {timeAgo(reply.created_at)}</span>
                     </p>
                     {(isAdmin || isMyReply) && (
                       <DeleteConfirmButton

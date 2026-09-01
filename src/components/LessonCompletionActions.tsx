@@ -30,7 +30,7 @@ export function LessonCompletionActions({
   const showNav = Boolean(prevHref || nextHref || courseFallbackHref)
 
   return (
-    <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5 flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       <CompleteButton
         completed={completed}
         onComplete={onComplete}
@@ -41,7 +41,7 @@ export function LessonCompletionActions({
       />
 
       {showNav && (
-        <div className="flex items-center gap-2 pt-1 border-t border-gray-100 dark:border-[#1e2030]">
+        <div className="flex items-center gap-2">
           {prevHref && (
             <Button href={prevHref} variant="secondary">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

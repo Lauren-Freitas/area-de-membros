@@ -622,3 +622,70 @@ export async function updateTicketStatus(
   revalidatePath('/admin/chamados')
   return { success: true }
 }
+
+// ─── Categorias (skill_tracks) ─────────────────────────────────────────────
+
+function slugify(text: string): string {
+  return text
+    .normalize('NFD').replace(/[̀-ͯ]/g, '') // remove acentos
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+/**
+ * Cria ou edita uma categoria (skill_track). O slug é gerado só na criação e
+ * nunca é reenviado pelo formulário de edição -- fica imutável depois, porque
+ * /biblioteca/trilha/[slug] e o filtro ?categoria= dependem dele.
+ */
+export async function saveCategory(
+  prevState: AdminActionState,
+  formData: FormData
+): Promise<AdminActionState> {
+  await requireAdmin()
+  const admin = createAdminClient()
+
+  const id = formData.get('id') as string | null
+  const title = (formData.get('title') as string)?.trim()
+  const description = (formData.get('description') as string)?.trim() || null
+  const isNew = !id || id === 'novo'
+
+  if (!title) return { error: 'O nome é obrigatório.' }
+
+  if (isNew) {
+    const baseSlug = slugify(title)
+    if (!baseSlug) return { error: 'Não foi possível gerar um identificador a partir desse nome.' }
+    let slug = baseSlug
+    let attempt = 1
+    while (true) {
+      const { data: existing } = await admin.from('skill_tracks').select('id').eq('slug', slug).maybeSingle()
+      if (!existing) break
+      attempt += 1
+      slug = `${baseSlug}-${attempt}`
+    }
+    const { error } = await admin.from('skill_tracks').insert({ slug, title, description })
+    if (error) return { error: error.message }
+    await logActivity({ action: 'criar', entity: 'categoria', entityName: title })
+  } else {
+    const { error } = await admin.from('skill_tracks').update({ title, description }).eq('id', id)
+    if (error) return { error: error.message }
+    await logActivity({ action: 'editar', entity: 'categoria', entityId: id, entityName: title })
+  }
+
+  revalidatePath('/admin/categorias')
+  revalidatePath('/biblioteca')
+  redirect('/admin/categorias')
+}
+
+export async function toggleCategoryActive(id: string, isActive: boolean): Promise<{ error?: string }> {
+  await requireAdmin()
+  const admin = createAdminClient()
+  const { error } = await admin.from('skill_tracks').update({ is_active: isActive }).eq('id', id)
+  if (error) return { error: error.message }
+
+  await logActivity({ action: isActive ? 'reativar' : 'desativar', entity: 'categoria', entityId: id })
+  revalidatePath('/admin/categorias')
+  revalidatePath('/biblioteca')
+  return {}
+}

@@ -7,6 +7,7 @@ import { AvatarPhotoModal } from '@/components/AvatarPhotoModal'
 import { Input } from '@/components/Input'
 import { Textarea } from '@/components/Textarea'
 import { Select } from '@/components/Select'
+import { Button } from '@/components/Button'
 
 const COUNTRIES = [
   { ddi: '+55',  flag: '🇧🇷', name: 'Brasil' },
@@ -267,21 +268,12 @@ export function ContaForm({ initialData }: { initialData: InitialData }) {
           </div>
 
           <div className="flex items-center gap-3 pt-1">
-            <button
-              type="submit"
-              disabled={profilePending}
-              className="px-5 py-2.5 text-sm font-semibold text-white rounded-lg transition hover:opacity-90 disabled:opacity-60"
-              style={{ backgroundColor: 'var(--brand)' }}
-            >
+            <Button type="submit" disabled={profilePending}>
               {profilePending ? 'Salvando...' : 'Atualizar'}
-            </button>
-            <button
-              type="button"
-              onClick={handleProfileCancel}
-              className="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition focus:outline-none"
-            >
+            </Button>
+            <Button type="button" variant="secondary" onClick={handleProfileCancel}>
               Cancelar
-            </button>
+            </Button>
           </div>
         </form>
       </div>

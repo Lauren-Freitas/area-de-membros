@@ -66,15 +66,17 @@ export async function rateProduct(productId: string, rating: number) {
   }
 }
 
-export async function addProductComment(productId: string, content: string) {
+export async function addProductComment(productId: string, content: string): Promise<{ id?: string; error?: string }> {
   if (!content.trim()) return { error: 'Comentário vazio' }
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Não autenticado' }
 
-  const { error } = await supabase
+  const { data: comment, error } = await supabase
     .from('product_comments')
     .insert({ user_id: user.id, product_id: productId, content: content.trim() })
+    .select('id')
+    .single()
 
   if (error) return { error: error.message }
 
@@ -84,7 +86,7 @@ export async function addProductComment(productId: string, content: string) {
   ])
 
   revalidatePath(`/produto/${productId}`)
-  return { success: true }
+  return { id: comment.id }
 }
 
 export async function deleteProductComment(productId: string, commentId: string): Promise<{ error?: string }> {

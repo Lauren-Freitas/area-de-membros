@@ -2,21 +2,20 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import {
   queryLibraryItems,
-  getFacetCounts,
+  getCategoryCounts,
+  getCategoryTitlesForItems,
   getAccessMap,
   getCompletedLessonIds,
   type LibraryFilters,
 } from '@/lib/core/library'
 import { SearchBox } from '@/components/biblioteca/SearchBox'
-import { TerritoryPicker } from '@/components/biblioteca/TerritoryPicker'
-import { TrackPicker } from '@/components/biblioteca/TrackPicker'
-import { FormatFilter } from '@/components/biblioteca/FormatFilter'
+import { CategoryPicker } from '@/components/biblioteca/CategoryPicker'
 import { LibraryResults } from '@/components/biblioteca/LibraryResults'
 
 export default async function BibliotecaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; territorio?: string; trilha?: string; tipo?: string }>
+  searchParams: Promise<{ q?: string; categoria?: string }>
 }) {
   const params = await searchParams
   const supabase = await createClient()
@@ -25,33 +24,32 @@ export default async function BibliotecaPage({
 
   const filters: LibraryFilters = {
     q: params.q,
-    territorio: params.territorio,
-    trilha: params.trilha,
-    tipo: params.tipo,
+    categoria: params.categoria,
   }
 
-  const [{ territories, tracks }, { data: formats }, { items, hasMore }] = await Promise.all([
-    getFacetCounts(supabase),
-    supabase.from('content_formats').select('*').eq('is_active', true).order('sort_order'),
+  const [{ categories: allCategories }, { items, hasMore }] = await Promise.all([
+    getCategoryCounts(supabase),
     queryLibraryItems(supabase, filters, 0),
   ])
+
+  // Só categorias com material real associado aparecem pro paciente -- uma
+  // categoria vazia (criada mas ainda sem nada associado) não é uma opção de
+  // navegação válida ainda.
+  const categories = allCategories.filter(c => c.count > 0)
 
   const productIds = items.map(i => i.product_id)
   const lessonIds = items.filter(i => i.kind === 'lesson').map(i => i.content_id)
 
-  const [accessByProduct, completedLessonSet, { data: buyUrlRows }] = await Promise.all([
+  const [accessByProduct, completedLessonSet, categoryTitlesByContentId, { data: buyUrlRows }] = await Promise.all([
     getAccessMap(supabase, user.id, productIds),
     getCompletedLessonIds(supabase, user.id, lessonIds),
+    getCategoryTitlesForItems(supabase, items),
     productIds.length
       ? supabase.from('products').select('id, buy_url').in('id', [...new Set(productIds)])
       : Promise.resolve({ data: [] as { id: string; buy_url: string | null }[] }),
   ])
 
-  const formatTitleById = Object.fromEntries((formats ?? []).map(f => [f.id, f.title]))
   const buyUrlByProduct = Object.fromEntries((buyUrlRows ?? []).map(p => [p.id, p.buy_url]))
-
-  const activeTerritory = territories.find(t => t.slug === params.territorio)
-  const activeTrack = tracks.find(t => t.slug === params.trilha)
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -62,26 +60,15 @@ export default async function BibliotecaPage({
 
       <SearchBox filters={filters} />
 
-      <TerritoryPicker territories={territories} filters={filters} activeSlug={params.territorio} />
-      <TrackPicker tracks={tracks} filters={filters} activeSlug={params.trilha} />
-      <FormatFilter formats={formats ?? []} filters={filters} activeSlug={params.tipo} />
-
-      {(activeTerritory || activeTrack) && (
-        <div className="mb-6 space-y-2">
-          {activeTerritory?.description && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 italic">{activeTerritory.title}: {activeTerritory.description}</p>
-          )}
-          {activeTrack?.description && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 italic">{activeTrack.title}: {activeTrack.description}</p>
-          )}
-        </div>
-      )}
+      <CategoryPicker categories={categories} filters={filters} activeSlug={params.categoria} />
 
       <LibraryResults
+        key={`${filters.categoria ?? ''}|${filters.q ?? ''}`}
         initialItems={items}
         initialHasMore={hasMore}
         filters={filters}
-        formatTitleById={formatTitleById}
+        categories={categories}
+        categoryTitlesByContentId={categoryTitlesByContentId}
         buyUrlByProduct={buyUrlByProduct}
         initialAccessByProduct={accessByProduct}
         initialCompletedLessonIds={[...completedLessonSet]}

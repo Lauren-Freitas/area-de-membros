@@ -16,6 +16,8 @@ interface Props {
   moduleTitle: string
   lessons: SidebarLesson[]
   currentLessonId: string
+  /** Tratamento visual mais leve (sem borda pesada) -- usado na versão inline do mobile, pra não competir com o conteúdo principal. Desktop mantém o padrão. */
+  compact?: boolean
 }
 
 const typeLabel: Record<string, string> = {
@@ -25,14 +27,17 @@ const typeLabel: Record<string, string> = {
   link: 'Link',
 }
 
-export function LessonSidebar({ productId, moduleTitle, lessons, currentLessonId }: Props) {
+export function LessonSidebar({ productId, moduleTitle, lessons, currentLessonId, compact = false }: Props) {
   const [open, setOpen] = useState(true)
 
   const completedCount = lessons.filter(l => l.completed).length
   const pct = lessons.length > 0 ? Math.round((completedCount / lessons.length) * 100) : 0
 
   return (
-    <aside className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
+    <aside className={compact
+      ? 'bg-gray-50 dark:bg-[#12162a] rounded-xl overflow-hidden'
+      : 'bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden'
+    }>
       {/* Header */}
       <button
         onClick={() => setOpen(v => !v)}

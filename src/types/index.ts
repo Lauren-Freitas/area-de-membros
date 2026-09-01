@@ -1,5 +1,5 @@
 export type UserRole = 'member' | 'admin'
-export type ContentType = 'video' | 'file'
+export type ContentType = 'video' | 'file' | 'link'
 export type GrantedBy = 'purchase' | 'manual' | 'pack'
 export type WebhookStatus = 'processed' | 'failed' | 'ignored'
 export type BillingCycle = 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'BIMONTHLY' | 'QUARTERLY' | 'SEMIANNUALLY' | 'YEARLY'

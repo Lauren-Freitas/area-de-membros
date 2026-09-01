@@ -8,12 +8,22 @@ export async function ProgressoTab({ userId }: { userId: string }) {
   const supabase = await createClient()
   const adminClient = createAdminClient()
 
-  const [{ data: profile }, xpResult, { data: badgesData }, { count: lessonsCompleted }] = await Promise.all([
+  const [{ data: profile }, xpResult, { data: badgesData }, { count: lessonsCompleted }, { data: certsData }] = await Promise.all([
     supabase.from('profiles').select('name, avatar_url, bio').eq('id', userId).single(),
     adminClient.from('user_xp_totals').select('total_xp').eq('user_id', userId).maybeSingle(),
     adminClient.from('user_badges').select('badge_key, awarded_at').eq('user_id', userId),
     supabase.from('lesson_progress').select('*', { count: 'exact', head: true }).eq('user_id', userId),
+    // Client autenticado do próprio membro -- mesma leitura já usada em
+    // /certificado/[id], só a lista em vez de um registro único. Sem adminClient
+    // aqui: não é necessário, o próprio membro já pode ler seus certificados.
+    supabase.from('certificates').select('id, issued_at, products(title)').eq('user_id', userId).order('issued_at', { ascending: false }),
   ])
+
+  const certificates = (certsData ?? []).map(c => ({
+    id: c.id as string,
+    issuedAt: c.issued_at as string,
+    productTitle: ((Array.isArray(c.products) ? c.products[0] : c.products) as { title: string } | null)?.title ?? 'Curso',
+  }))
 
   const totalXp = (xpResult.data as { total_xp?: number } | null)?.total_xp ?? 0
   const { cur, next, xpInLevel, xpNeeded, pct } = getLevelInfo(totalXp)
@@ -160,6 +170,34 @@ export async function ProgressoTab({ userId }: { userId: string }) {
             )
           })}
         </div>
+      </div>
+
+      {/* Certificados -- histórico permanente; a celebração do momento vive na
+          página do produto e na notificação do sino, isto aqui é só o arquivo. */}
+      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5">
+        <h2 className="text-sm font-bold text-gray-900 dark:text-white mb-4">Certificados</h2>
+        {certificates.length === 0 ? (
+          <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-6">Você ainda não possui certificados.</p>
+        ) : (
+          <div className="space-y-3">
+            {certificates.map(cert => (
+              <div
+                key={cert.id}
+                className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-gray-100 dark:border-[#1e2030]"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{cert.productTitle}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Emitido em {new Date(cert.issuedAt).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </p>
+                </div>
+                <Link href={`/certificado/${cert.id}`} className="shrink-0 text-xs font-semibold" style={{ color: 'var(--brand)' }}>
+                  Ver certificado →
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

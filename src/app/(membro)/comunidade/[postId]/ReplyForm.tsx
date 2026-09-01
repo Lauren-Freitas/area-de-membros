@@ -2,6 +2,7 @@
 import { useRef, useState, useTransition } from 'react'
 import { createReply } from '@/lib/actions/community'
 import { Textarea } from '@/components/Textarea'
+import { Button } from '@/components/Button'
 
 export function ReplyForm({ postId }: { postId: string }) {
   const [body, setBody] = useState('')
@@ -31,14 +32,9 @@ export function ReplyForm({ postId }: { postId: string }) {
       />
       <div className="flex items-center justify-between">
         <span className="text-xs text-gray-400">{body.length}/1000</span>
-        <button
-          type="submit"
-          disabled={pending || !body.trim()}
-          className="px-4 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90 disabled:opacity-50"
-          style={{ backgroundColor: 'var(--brand)' }}
-        >
+        <Button type="submit" size="sm" disabled={pending || !body.trim()}>
           {pending ? 'Enviando...' : 'Responder'}
-        </button>
+        </Button>
       </div>
     </form>
   )

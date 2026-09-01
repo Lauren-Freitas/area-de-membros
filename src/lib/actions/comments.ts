@@ -4,16 +4,22 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { awardXp, checkBadgesAfterComment } from '@/lib/xp'
 
-export async function postComment(lessonId: string, productId: string, content: string) {
+export async function postComment(lessonId: string, productId: string, content: string): Promise<{ id?: string; error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user || !content.trim()) return
+  if (!user) return { error: 'Não autenticado.' }
+  if (!content.trim()) return { error: 'Comentário vazio.' }
 
-  await supabase.from('lesson_comments').insert({
-    lesson_id: lessonId,
-    user_id: user.id,
-    content: content.trim().slice(0, 1000),
-  })
+  const { data: comment, error } = await supabase
+    .from('lesson_comments')
+    .insert({
+      lesson_id: lessonId,
+      user_id: user.id,
+      content: content.trim().slice(0, 1000),
+    })
+    .select('id')
+    .single()
+  if (error) return { error: error.message }
 
   await Promise.all([
     awardXp(user.id, 'lesson_comment', { lesson_id: lessonId, product_id: productId }),
@@ -21,6 +27,7 @@ export async function postComment(lessonId: string, productId: string, content: 
   ])
 
   revalidatePath(`/produto/${productId}/aula/${lessonId}`)
+  return { id: comment.id }
 }
 
 export async function deleteComment(lessonId: string, productId: string, commentId: string): Promise<{ error?: string }> {

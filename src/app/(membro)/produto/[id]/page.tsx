@@ -7,6 +7,7 @@ import { StarRating } from '@/components/StarRating'
 import { rateProduct, markProductComplete, unmarkProductComplete, addProductComment, deleteProductComment } from '@/lib/actions/product-actions'
 import { CommentThread } from '@/components/CommentThread'
 import { LessonVideoPlayer } from '@/components/LessonVideoPlayer'
+import { LinkContent } from '@/components/LinkContent'
 import { LessonCompletionActions } from '@/components/LessonCompletionActions'
 import { computeReleaseState } from '@/lib/release'
 import { isAccessExpired } from '@/lib/entitlement'
@@ -317,7 +318,7 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
 }
 
 function ProductPreview({ product, isCourse, lessonCount, isExpired }: { product: Product; isCourse: boolean; lessonCount: number; isExpired: boolean }) {
-  const typeLabel = isCourse ? 'Curso' : product.content_type === 'video' ? 'Vídeo' : 'Arquivo'
+  const typeLabel = isCourse ? 'Curso' : product.content_type === 'video' ? 'Vídeo' : product.content_type === 'link' ? 'Link' : 'Arquivo'
   const buyTarget = product.buy_url
     ?? `https://wa.me/5561991900589?text=${encodeURIComponent(`Olá! Tenho interesse em: ${product.title}`)}`
 
@@ -346,6 +347,8 @@ function ProductPreview({ product, isCourse, lessonCount, isExpired }: { product
               <svg className="w-16 h-16 opacity-40" style={{ color: 'var(--brand)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 {product.content_type === 'video' ? (
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-2.72a.75.75 0 011.28.53v7.38a.75.75 0 01-1.28.53l-4.72-2.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-7.5A2.25 2.25 0 0013.5 6.75h-9A2.25 2.25 0 002.25 9v7.5a2.25 2.25 0 002.25 2.25z" />
+                ) : product.content_type === 'link' ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
                 ) : (
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                 )}
@@ -405,17 +408,20 @@ function SimpleProductView({
 }) {
   return (
     <div className="space-y-4">
-      {/* Conteúdo principal */}
-      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
-        {product.content_type === 'video' ? (
-          <LessonVideoPlayer url={product.content_url} />
-        ) : (
+      {/* Conteúdo principal: mídia + título/descrição -- uma única unidade visual */}
+      {product.content_type === 'video' ? (
+        <LessonVideoPlayer url={product.content_url} />
+      ) : product.content_type === 'link' ? (
+        <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
+          <LinkContent url={product.content_url} title={product.title} />
+        </div>
+      ) : (
+        <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
           <FileContent productId={product.id} title={product.title} />
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Título e descrição — abaixo do vídeo */}
-      <div>
+      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6 sm:p-8">
         <h1 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h1>
         {description && <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{description}</p>}
       </div>
@@ -427,8 +433,8 @@ function SimpleProductView({
         onIncomplete={unmarkProductComplete.bind(null, productId)}
       />
 
-      {/* Comentários */}
-      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
+      {/* Comentários + Avaliação -- conteúdo social/complementar, sem peso de card */}
+      <div className="border-t border-gray-100 dark:border-[#1e2030] pt-6">
         <CommentThread
           currentUserId={userId}
           isAdmin={isAdmin}
@@ -438,12 +444,10 @@ function SimpleProductView({
           onSubmit={addProductComment.bind(null, productId)}
           onDelete={deleteProductComment.bind(null, productId)}
         />
-      </div>
-
-      {/* Avaliação */}
-      <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5">
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Avaliação</p>
-        <StarRating initialRating={myRating} onRate={rateProduct.bind(null, productId)} />
+        <div className="mt-8 pt-6 border-t border-gray-100 dark:border-[#1e2030]">
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Avaliação</p>
+          <StarRating initialRating={myRating} onRate={rateProduct.bind(null, productId)} />
+        </div>
       </div>
     </div>
   )

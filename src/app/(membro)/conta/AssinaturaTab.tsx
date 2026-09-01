@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import { Button } from '@/components/Button'
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -102,12 +103,9 @@ export async function AssinaturaTab({ userId }: { userId: string }) {
                   <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${item.statusColor}`}>
                     {item.statusLabel}
                   </span>
-                  <Link
-                    href={`/produto/${item.productId}`}
-                    className="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-                  >
+                  <Button href={`/produto/${item.productId}`} variant="secondary" size="sm">
                     Acessar
-                  </Link>
+                  </Button>
                 </div>
               </div>
             ))}
@@ -133,15 +131,9 @@ export async function AssinaturaTab({ userId }: { userId: string }) {
                     {item.statusLabel}
                   </span>
                   {item.buyUrl && (
-                    <a
-                      href={item.buyUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white transition hover:opacity-90"
-                      style={{ backgroundColor: 'var(--brand)' }}
-                    >
+                    <Button href={item.buyUrl} size="sm">
                       Renovar
-                    </a>
+                    </Button>
                   )}
                 </div>
               </div>

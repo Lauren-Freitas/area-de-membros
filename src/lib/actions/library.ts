@@ -6,6 +6,7 @@ import {
   queryLibraryItems,
   getAccessMap,
   getCompletedLessonIds,
+  getCategoryTitlesForItems,
   type LibraryFilters,
 } from '@/lib/core/library'
 import { LibraryItem } from '@/types'
@@ -15,9 +16,10 @@ export interface LoadMoreResult {
   hasMore: boolean
   accessByProduct: Record<string, { hasAccess: boolean; isExpired: boolean; isCompleted: boolean }>
   completedLessonIds: string[]
+  categoryTitlesByContentId: Record<string, string[]>
 }
 
-/** Próxima página de itens da Biblioteca, já com acesso/conclusão calculados pro membro atual. */
+/** Próxima página de itens da Biblioteca, já com acesso/conclusão/categoria calculados pro membro atual. */
 export async function loadMoreLibraryItems(filters: LibraryFilters, offset: number): Promise<LoadMoreResult> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -27,9 +29,10 @@ export async function loadMoreLibraryItems(filters: LibraryFilters, offset: numb
   const productIds = items.map(i => i.product_id)
   const lessonIds = items.filter(i => i.kind === 'lesson').map(i => i.content_id)
 
-  const [accessByProduct, completedLessonSet] = await Promise.all([
+  const [accessByProduct, completedLessonSet, categoryTitlesByContentId] = await Promise.all([
     getAccessMap(supabase, user.id, productIds),
     getCompletedLessonIds(supabase, user.id, lessonIds),
+    getCategoryTitlesForItems(supabase, items),
   ])
 
   return {
@@ -37,5 +40,6 @@ export async function loadMoreLibraryItems(filters: LibraryFilters, offset: numb
     hasMore,
     accessByProduct,
     completedLessonIds: [...completedLessonSet],
+    categoryTitlesByContentId,
   }
 }

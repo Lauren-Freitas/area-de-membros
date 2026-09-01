@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { timeAgo } from '@/lib/time'
+import { Button } from '@/components/Button'
 
 export interface CommentRow {
   id: string
@@ -17,7 +18,7 @@ interface Props {
   isAdmin: boolean
   userInitials?: string
   userAvatarUrl?: string | null
-  onSubmit: (content: string) => Promise<unknown>
+  onSubmit: (content: string) => Promise<{ id?: string; error?: string } | undefined>
   onDelete: (commentId: string) => Promise<{ error?: string } | unknown>
 }
 
@@ -30,13 +31,16 @@ export function CommentThread({ initialComments, currentUserId, isAdmin, userIni
   const [comments, setComments] = useState(initialComments)
   const [text, setText] = useState('')
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [postError, setPostError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   function handlePost() {
     const content = text.trim()
     if (!content) return
+    setPostError(null)
+    const tempId = crypto.randomUUID()
     const optimistic: CommentRow = {
-      id: crypto.randomUUID(),
+      id: tempId,
       content,
       created_at: new Date().toISOString(),
       user_id: currentUserId,
@@ -44,7 +48,20 @@ export function CommentThread({ initialComments, currentUserId, isAdmin, userIni
     }
     setComments(prev => [...prev, optimistic])
     setText('')
-    startTransition(async () => { await onSubmit(content) })
+    startTransition(async () => {
+      const result = await onSubmit(content)
+      if (result?.id) {
+        // Troca o ID otimista pelo ID real do banco -- sem isso, excluir
+        // esse comentário na mesma sessão (sem reload) sempre falharia,
+        // porque o ID otimista não existe na tabela.
+        setComments(prev => prev.map(c => (c.id === tempId ? { ...c, id: result.id! } : c)))
+      } else if (result?.error) {
+        // Insert falhou de verdade -- tira o comentário fantasma da tela
+        // em vez de deixá-lo lá pra sempre.
+        setComments(prev => prev.filter(c => c.id !== tempId))
+        setPostError(result.error!)
+      }
+    })
   }
 
   function handleDelete(commentId: string) {
@@ -76,6 +93,9 @@ export function CommentThread({ initialComments, currentUserId, isAdmin, userIni
       {deleteError && (
         <p className="text-xs text-red-500 mb-3">Não foi possível excluir: {deleteError}</p>
       )}
+      {postError && (
+        <p className="text-xs text-red-500 mb-3">Não foi possível publicar: {postError}</p>
+      )}
 
       {/* Form */}
       <div className="flex gap-3 mb-6">
@@ -100,14 +120,9 @@ export function CommentThread({ initialComments, currentUserId, isAdmin, userIni
           />
           <div className="flex items-center justify-between mt-2">
             <span className="text-xs text-gray-400">{text.length}/1000</span>
-            <button
-              onClick={handlePost}
-              disabled={!text.trim() || isPending}
-              className="px-4 py-1.5 text-sm font-semibold text-white rounded-lg transition disabled:opacity-40 hover:opacity-90"
-              style={{ backgroundColor: 'var(--brand)' }}
-            >
+            <Button type="button" size="sm" onClick={handlePost} disabled={!text.trim() || isPending}>
               Publicar
-            </button>
+            </Button>
           </div>
         </div>
       </div>

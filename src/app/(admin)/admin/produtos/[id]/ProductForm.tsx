@@ -64,7 +64,7 @@ export function ProductForm({
 }) {
   const [state, action, isPending] = useActionState(saveProduct, undefined)
   const buyUrlInputRef = useRef<HTMLInputElement>(null)
-  const [contentType, setContentType] = useState(product?.content_type ?? 'file')
+  const [contentType, setContentType] = useState<'file' | 'video' | 'link'>(product?.content_type ?? 'file')
   const [isActive, setIsActive] = useState(product?.is_active ?? true)
   const [isPack, setIsPack] = useState(product?.is_pack ?? false)
   const [isFeatured, setIsFeatured] = useState(product?.is_featured ?? false)
@@ -135,10 +135,11 @@ export function ProductForm({
           <Select
             name="content_type"
             value={contentType}
-            onChange={e => setContentType(e.target.value as 'file' | 'video')}
+            onChange={e => setContentType(e.target.value as 'file' | 'video' | 'link')}
           >
             <option value="file">Arquivo</option>
             <option value="video">Vídeo</option>
+            <option value="link">Link externo</option>
           </Select>
         </div>
         {contentType === 'video' && (
@@ -148,6 +149,16 @@ export function ProductForm({
               name="content_url"
               defaultValue={product?.content_url ?? ''}
               placeholder="https://youtube.com/watch?v=... ou https://vimeo.com/..."
+            />
+          </div>
+        )}
+        {contentType === 'link' && (
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Link</label>
+            <Input
+              name="content_url"
+              defaultValue={product?.content_url ?? ''}
+              placeholder="https://..."
             />
           </div>
         )}

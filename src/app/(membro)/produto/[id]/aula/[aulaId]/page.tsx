@@ -9,6 +9,7 @@ import { Button } from '@/components/Button'
 import { CommentThread } from '@/components/CommentThread'
 import { LessonSidebar } from '@/components/LessonSidebar'
 import { LessonVideoPlayer } from '@/components/LessonVideoPlayer'
+import { LinkContent } from '@/components/LinkContent'
 import { LessonCompletionActions } from '@/components/LessonCompletionActions'
 import { StarRating } from '@/components/StarRating'
 import { rateLesson } from '@/lib/actions/ratings'
@@ -162,44 +163,50 @@ export default async function AulaPage({
           {l.lesson_type === 'file' || l.lesson_type === 'link' ? (
             <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
               {l.lesson_type === 'file' && <FileLesson url={l.content_url} title={l.title} />}
-              {l.lesson_type === 'link' && <LinkLesson url={l.content_url} title={l.title} />}
+              {l.lesson_type === 'link' && <LinkContent url={l.content_url} title={l.title} />}
             </div>
           ) : (
             l.content_url && <LessonVideoPlayer url={l.content_url} />
           )}
 
-          {/* Título e descrição da aula */}
-          <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{l.modules?.title}</p>
-            <div className="flex items-start gap-3">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white flex-1">{l.title}</h1>
-              {isCompleted && (
-                <span className="mt-1 shrink-0 w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: '#22c55e' }}>
-                  <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </span>
-              )}
+          {/* Conteúdo principal: título, descrição, texto da aula e anexos -- uma única unidade visual */}
+          <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
+            <div className="p-6 sm:p-8">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{l.modules?.title}</p>
+              <div className="flex items-start gap-3">
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white flex-1">{l.title}</h1>
+                {isCompleted && (
+                  <span className="mt-1 shrink-0 w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: '#22c55e' }}>
+                    <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                )}
+              </div>
+              {l.description && <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{l.description}</p>}
             </div>
-            {l.description && <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{l.description}</p>}
+
+            {/* Conteúdo em texto da aula, quando houver */}
+            {l.lesson_type !== 'file' && l.lesson_type !== 'link' && (l.content_html || l.content_text) && (
+              <div className="border-t border-gray-100 dark:border-[#1e2030]">
+                {l.content_html ? <RichTextContent html={l.content_html} /> : <TextLesson content={l.content_text} />}
+              </div>
+            )}
+            {l.lesson_type !== 'file' && l.lesson_type !== 'link' && !l.content_url && !l.content_html && !l.content_text && (
+              <div className="border-t border-gray-100 dark:border-[#1e2030] p-8 text-center text-gray-400">
+                Conteúdo não disponível.
+              </div>
+            )}
+
+            {/* Arquivos da aula */}
+            {attachments.length > 0 && (
+              <div className="border-t border-gray-100 dark:border-[#1e2030]">
+                <AttachmentsList attachments={attachments} />
+              </div>
+            )}
           </div>
 
-          {/* Conteúdo em texto da aula, quando houver */}
-          {l.lesson_type !== 'file' && l.lesson_type !== 'link' && (l.content_html || l.content_text) && (
-            <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] overflow-hidden">
-              {l.content_html ? <RichTextContent html={l.content_html} /> : <TextLesson content={l.content_text} />}
-            </div>
-          )}
-          {l.lesson_type !== 'file' && l.lesson_type !== 'link' && !l.content_url && !l.content_html && !l.content_text && (
-            <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-8 text-center text-gray-400">
-              Conteúdo não disponível.
-            </div>
-          )}
-
-          {/* Arquivos da aula */}
-          {attachments.length > 0 && <AttachmentsList attachments={attachments} />}
-
-          {/* Conclusão + continuidade -- a principal ação pós-consumo, logo após o conteúdo */}
+          {/* Conclusão + continuidade -- ação leve, logo após o conteúdo */}
           <LessonCompletionActions
             completed={isCompleted}
             onComplete={toggleLessonComplete.bind(null, aulaId, id, false)}
@@ -211,18 +218,19 @@ export default async function AulaPage({
             courseFallbackHref={`/produto/${id}`}
           />
 
-          {/* Sidebar no mobile */}
+          {/* Sidebar no mobile -- tratamento mais leve pra não competir com o conteúdo principal */}
           <div id="lesson-sidebar" className="lg:hidden">
             <LessonSidebar
               productId={id}
               moduleTitle={l.modules?.title ?? 'Módulo'}
               lessons={sidebarLessons}
               currentLessonId={aulaId}
+              compact
             />
           </div>
 
-          {/* Comentários */}
-          <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-6">
+          {/* Comentários + Avaliação -- conteúdo social/complementar, sem peso de card */}
+          <div className="border-t border-gray-100 dark:border-[#1e2030] pt-6">
             <CommentThread
               currentUserId={user.id}
               isAdmin={isAdmin}
@@ -232,12 +240,10 @@ export default async function AulaPage({
               onSubmit={postComment.bind(null, aulaId, id)}
               onDelete={deleteComment.bind(null, aulaId, id)}
             />
-          </div>
-
-          {/* Avaliação */}
-          <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Avaliação</p>
-            <StarRating size="sm" showLabel initialRating={myRating} onRate={rateLesson.bind(null, aulaId, id)} />
+            <div className="mt-8 pt-6 border-t border-gray-100 dark:border-[#1e2030]">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Avaliação</p>
+              <StarRating size="sm" showLabel initialRating={myRating} onRate={rateLesson.bind(null, aulaId, id)} />
+            </div>
           </div>
         </div>
 
@@ -304,7 +310,7 @@ function AttachmentsList({ attachments }: { attachments: (LessonAttachment & { u
     return FILE_TYPE_BY_EXT[ext] ?? FILE_TYPE_DEFAULT
   }
   return (
-    <div className="bg-card rounded-2xl border border-gray-100 dark:border-[#1e2030] p-5">
+    <div className="p-5">
       <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Arquivos da aula</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {attachments.map(a => {
@@ -368,22 +374,3 @@ function FileLesson({ url, title }: { url: string | null; title: string }) {
   )
 }
 
-function LinkLesson({ url, title }: { url: string | null; title: string }) {
-  if (!url) return <div className="p-8 text-gray-400 text-center">Link não disponível.</div>
-  return (
-    <div className="p-8 flex flex-col items-center text-center gap-4">
-      <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--brand-bg)' }}>
-        <svg className="w-8 h-8" style={{ color: 'var(--brand)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
-        </svg>
-      </div>
-      <div>
-        <p className="font-semibold text-gray-900 dark:text-white">{title}</p>
-        <p className="text-sm text-gray-500 mt-1 break-all">{url}</p>
-      </div>
-      <Button href={url}>
-        Acessar link
-      </Button>
-    </div>
-  )
-}

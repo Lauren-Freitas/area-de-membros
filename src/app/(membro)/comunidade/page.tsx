@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { Button } from '@/components/Button'
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime()
@@ -25,10 +26,21 @@ export default async function ComunidadePage() {
 
   const { data: posts } = await supabase
     .from('community_posts')
-    .select('id, title, body, pinned, created_at, profiles(name), community_replies(count)')
+    .select('id, user_id, title, body, pinned, created_at, community_replies(count)')
     .order('pinned', { ascending: false })
     .order('created_at', { ascending: false })
     .limit(50)
+
+  // Autoria pra terceiros: RLS de profiles só permite ler a própria linha, então
+  // um embed profiles(name) direto resolveria null pro autor de qualquer outro
+  // post. get_profile_names (SECURITY DEFINER, só id+name -- Etapa 8) resolve
+  // isso sem abrir SELECT amplo na tabela.
+  const authorIds = [...new Set((posts ?? []).map(p => p.user_id))]
+  const authorsResult = authorIds.length
+    ? await supabase.rpc('get_profile_names', { profile_ids: authorIds })
+    : { data: [] }
+  const authors = (authorsResult.data ?? []) as { id: string; name: string }[]
+  const nameByAuthorId = new Map(authors.map(a => [a.id, a.name]))
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -37,13 +49,9 @@ export default async function ComunidadePage() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Comunidade</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Tire dúvidas, compartilhe e conecte com outros membros.</p>
         </div>
-        <Link
-          href="/comunidade/nova"
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-          style={{ backgroundColor: 'var(--brand)' }}
-        >
+        <Button href="/comunidade/nova">
           + Publicar
-        </Link>
+        </Button>
       </div>
 
       {!posts?.length ? (
@@ -55,7 +63,7 @@ export default async function ComunidadePage() {
       ) : (
         <div className="space-y-3">
           {posts.map((post) => {
-            const author = Array.isArray(post.profiles) ? post.profiles[0] : post.profiles
+            const authorName = nameByAuthorId.get(post.user_id)
             const replyCount = Array.isArray(post.community_replies)
               ? post.community_replies.reduce((acc: number, r: { count: number }) => acc + (r.count ?? 0), 0)
               : 0
@@ -71,7 +79,7 @@ export default async function ComunidadePage() {
                     className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5"
                     style={{ backgroundColor: 'var(--brand-bg)', color: 'var(--brand-text)' }}
                   >
-                    {initials(author?.name ?? '?')}
+                    {initials(authorName ?? '?')}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
@@ -82,7 +90,7 @@ export default async function ComunidadePage() {
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-2">{post.body}</p>
                     <div className="flex items-center gap-3 text-xs text-gray-400">
-                      <span>{author?.name ?? 'Membro'}</span>
+                      <span>{authorName ?? 'Membro'}</span>
                       <span>·</span>
                       <span>{timeAgo(post.created_at)}</span>
                       <span>·</span>

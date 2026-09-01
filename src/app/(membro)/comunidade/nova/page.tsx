@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { createPost } from '@/lib/actions/community'
 import { Input } from '@/components/Input'
 import { Textarea } from '@/components/Textarea'
+import { Button } from '@/components/Button'
 
 export default async function NovaPublicacaoPage() {
   const supabase = await createClient()
@@ -40,16 +41,12 @@ export default async function NovaPublicacaoPage() {
           />
         </div>
         <div className="flex items-center gap-3 pt-1">
-          <button
-            type="submit"
-            className="px-5 py-2 text-white text-sm font-semibold rounded-lg transition hover:opacity-90"
-            style={{ backgroundColor: 'var(--brand)' }}
-          >
+          <Button type="submit">
             Publicar
-          </button>
-          <Link href="/comunidade" className="px-5 py-2 text-sm font-medium text-gray-500 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+          </Button>
+          <Button href="/comunidade" variant="secondary">
             Cancelar
-          </Link>
+          </Button>
         </div>
       </form>
     </div>

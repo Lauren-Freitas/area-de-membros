@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react'
 import { updateMemberPassword } from '@/lib/actions/member'
 import { Input } from '@/components/Input'
+import { Button } from '@/components/Button'
 
 export function SenhaForm() {
   const [passwordState, passwordAction, passwordPending] = useActionState(updateMemberPassword, undefined)
@@ -69,21 +70,12 @@ export function SenhaForm() {
           </div>
 
           <div className="flex items-center gap-3 pt-1">
-            <button
-              type="submit"
-              disabled={passwordPending}
-              className="px-5 py-2.5 text-sm font-semibold text-white rounded-lg transition hover:opacity-90 disabled:opacity-60"
-              style={{ backgroundColor: 'var(--brand)' }}
-            >
+            <Button type="submit" disabled={passwordPending}>
               {passwordPending ? 'Alterando...' : 'Atualizar senha'}
-            </button>
-            <button
-              type="button"
-              onClick={handlePasswordCancel}
-              className="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition focus:outline-none"
-            >
+            </Button>
+            <Button type="button" variant="secondary" onClick={handlePasswordCancel}>
               Cancelar
-            </button>
+            </Button>
           </div>
         </form>
       </div>
