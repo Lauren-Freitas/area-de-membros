@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { LibraryItem } from '@/types'
-import { LibraryFilters, LibraryAccessInfo, FacetCount } from '@/lib/core/library'
+import { LibraryFilters, LibraryAccessInfo } from '@/lib/core/library'
 import { loadMoreLibraryItems } from '@/lib/actions/library'
 import { LibraryItemRow } from './LibraryItemRow'
 
@@ -10,17 +10,14 @@ interface Props {
   initialItems: LibraryItem[]
   initialHasMore: boolean
   filters: LibraryFilters
-  categories: FacetCount[]
   categoryTitlesByContentId: Record<string, string[]>
   buyUrlByProduct: Record<string, string | null>
   initialAccessByProduct: Record<string, LibraryAccessInfo>
   initialCompletedLessonIds: string[]
 }
 
-const SEM_CATEGORIA = 'Sem categoria'
-
 export function LibraryResults({
-  initialItems, initialHasMore, filters, categories, categoryTitlesByContentId, buyUrlByProduct,
+  initialItems, initialHasMore, filters, categoryTitlesByContentId, buyUrlByProduct,
   initialAccessByProduct, initialCompletedLessonIds,
 }: Props) {
   const [items, setItems] = useState(initialItems)
@@ -68,55 +65,15 @@ export function LibraryResults({
     )
   }
 
-  // "Todos" (sem filtro de categoria): agrupa por categoria pra facilitar a
-  // leitura do acervo inteiro. Um material com 2 categorias aparece nas duas
-  // seções -- reflete a mesma associação N:N que filtrar por categoria usa.
-  // Com um filtro de categoria ativo, a lista já vem pré-filtrada -- não
-  // precisa de seções.
-  const showGrouped = !filters.categoria
-
-  if (!showGrouped) {
-    return (
-      <div>
-        <div className="space-y-2.5">
-          {items.map(renderItem)}
-        </div>
-        <LoadMoreButton hasMore={hasMore} isPending={isPending} onClick={handleLoadMore} />
-      </div>
-    )
-  }
-
-  const groups = new Map<string, LibraryItem[]>(categories.map(c => [c.title, []]))
-  const uncategorized: LibraryItem[] = []
-  for (const item of items) {
-    const titles = categoryTitles[item.content_id] ?? []
-    if (titles.length === 0) {
-      uncategorized.push(item)
-      continue
-    }
-    for (const title of titles) {
-      groups.get(title)?.push(item)
-    }
-  }
-
+  // Lista plana sempre -- em "Todos" cada material aparece uma única vez
+  // (o array já vem deduplicado da view); a linha mostra todas as categorias
+  // que o material tem via categoryTitles. Com uma categoria ativa, os itens
+  // já vêm pré-filtrados pra ela.
   return (
     <div>
-      {categories.map(c => {
-        const groupItems = groups.get(c.title) ?? []
-        if (groupItems.length === 0) return null
-        return (
-          <div key={c.id} className="mb-6 last:mb-0">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2.5">{c.title}</p>
-            <div className="space-y-2.5">{groupItems.map(renderItem)}</div>
-          </div>
-        )
-      })}
-      {uncategorized.length > 0 && (
-        <div className="mb-6 last:mb-0">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2.5">{SEM_CATEGORIA}</p>
-          <div className="space-y-2.5">{uncategorized.map(renderItem)}</div>
-        </div>
-      )}
+      <div className="space-y-2.5">
+        {items.map(renderItem)}
+      </div>
       <LoadMoreButton hasMore={hasMore} isPending={isPending} onClick={handleLoadMore} />
     </div>
   )

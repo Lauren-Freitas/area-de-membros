@@ -67,7 +67,6 @@ export default async function BibliotecaPage({
         initialItems={items}
         initialHasMore={hasMore}
         filters={filters}
-        categories={categories}
         categoryTitlesByContentId={categoryTitlesByContentId}
         buyUrlByProduct={buyUrlByProduct}
         initialAccessByProduct={accessByProduct}
