@@ -5,6 +5,7 @@ import { MemberSidebar } from '@/components/MemberSidebar'
 
 interface Props {
   platformName: string
+  platformTagline: string
   userName: string
   avatarUrl: string | null
   unreadCount: number
@@ -53,7 +54,7 @@ function setCollapsedPreference(value: boolean) {
  * conteúdo (header utilitário + main) continua renderizado no server e só
  * passa por aqui como children.
  */
-export function MemberShell({ platformName, userName, avatarUrl, unreadCount, isViewingAs, bannerOffset, children }: Props) {
+export function MemberShell({ platformName, platformTagline, userName, avatarUrl, unreadCount, isViewingAs, bannerOffset, children }: Props) {
   const collapsed = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 
   function toggle() {
@@ -64,6 +65,7 @@ export function MemberShell({ platformName, userName, avatarUrl, unreadCount, is
     <>
       <MemberSidebar
         platformName={platformName}
+        platformTagline={platformTagline}
         userName={userName}
         avatarUrl={avatarUrl}
         unreadCount={unreadCount}

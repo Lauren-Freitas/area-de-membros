@@ -4,6 +4,7 @@ import { Suspense, useActionState, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { login } from '@/lib/actions/auth'
 import { BrandLogo } from '@/components/BrandLogo'
+import { useBrand } from '@/components/BrandProvider'
 import Link from 'next/link'
 
 const URL_ERROR_MESSAGES: Record<string, string> = {
@@ -24,6 +25,7 @@ function LoginForm() {
   const searchParams = useSearchParams()
   const urlError = searchParams.get('erro')
   const urlErrorMessage = urlError ? URL_ERROR_MESSAGES[urlError] ?? null : null
+  const { platformName, platformTagline, supportWhatsapp, supportEmail } = useBrand()
 
   return (
     <div className="w-full max-w-md">
@@ -31,8 +33,8 @@ function LoginForm() {
         <div className="flex justify-center mb-4">
           <BrandLogo size={80} />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Thiago Cantalovo</h1>
-        <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Nutricionista</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{platformName}</h1>
+        {platformTagline && <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{platformTagline}</p>}
       </div>
 
       <div className="bg-card rounded-2xl shadow-sm border border-gray-100 dark:border-[#1e2030] p-8">
@@ -99,16 +101,22 @@ function LoginForm() {
         </form>
       </div>
 
-      <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-6">
-        Problemas para acessar?{' '}
-        <a href="https://wa.me/5561991900589" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600 dark:hover:text-gray-300 transition">
-          WhatsApp
-        </a>
-        {' '}ou{' '}
-        <a href="mailto:nutri@thiagocantalovo.com" className="underline hover:text-gray-600 dark:hover:text-gray-300 transition">
-          nutri@thiagocantalovo.com
-        </a>
-      </p>
+      {(supportWhatsapp || supportEmail) && (
+        <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-6">
+          Problemas para acessar?{' '}
+          {supportWhatsapp && (
+            <a href={`https://wa.me/${supportWhatsapp}`} target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600 dark:hover:text-gray-300 transition">
+              WhatsApp
+            </a>
+          )}
+          {supportWhatsapp && supportEmail && <>{' '}ou{' '}</>}
+          {supportEmail && (
+            <a href={`mailto:${supportEmail}`} className="underline hover:text-gray-600 dark:hover:text-gray-300 transition">
+              {supportEmail}
+            </a>
+          )}
+        </p>
+      )}
     </div>
   )
 }

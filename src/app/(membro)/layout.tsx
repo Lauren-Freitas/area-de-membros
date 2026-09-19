@@ -65,7 +65,8 @@ export default async function MemberLayout({ children }: { children: React.React
   const userName = profile?.name ?? 'Usuário'
   const avatarUrl = (profile as { avatar_url?: string | null } | null)?.avatar_url ?? null
   const isAdminOrEquipe = profile?.role === 'admin' || profile?.role === 'equipe'
-  const platformName = siteConfig.platform_name || 'Thiago Cantalovo'
+  const platformName = siteConfig.platform_name || 'Área de Membros'
+  const platformTagline = siteConfig.platform_tagline || ''
 
   // Último acesso — atualiza no máximo a cada 5 minutos pra não gravar a cada navegação,
   // e nunca em modo "ver como membro" (não é um acesso de verdade do membro).
@@ -113,6 +114,7 @@ export default async function MemberLayout({ children }: { children: React.React
       {/* Sidebar desktop-only, fixa e recolhível -- estado/persistência em MemberShell (client) */}
       <MemberShell
         platformName={platformName}
+        platformTagline={platformTagline}
         userName={userName}
         avatarUrl={avatarUrl}
         unreadCount={unreadCount}

@@ -13,7 +13,7 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://membros.thiagocantal
 
 export async function generateMetadata(): Promise<Metadata> {
   const cfg = await getSiteConfig()
-  const platformName = cfg.platform_name || 'Thiago Cantalovo'
+  const platformName = cfg.platform_name || 'Área de Membros'
   const title = `Área de Membros · ${platformName}`
   const description = cfg.welcome_message || 'Acesse seus conteúdos exclusivos.'
   const ogImage = cfg.logo_url || '/iav_1024.png'
@@ -50,6 +50,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const cfg = await getSiteConfig()
   const logoUrl = cfg.logo_url || null
   const customCss = buildBrandCss(cfg)
+  const platformName = cfg.platform_name || 'Área de Membros'
+  const platformTagline = cfg.platform_tagline || ''
+  const supportWhatsapp = cfg.support_whatsapp || ''
+  const supportEmail = cfg.support_email || ''
 
   return (
     <html lang="pt-BR" className={`${geist.variable} h-full`} suppressHydrationWarning>
@@ -61,7 +65,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {customCss && <style dangerouslySetInnerHTML={{ __html: customCss }} />}
       </head>
       <body className="min-h-full">
-        <BrandProvider logoUrl={logoUrl}>{children}</BrandProvider>
+        <BrandProvider
+          logoUrl={logoUrl}
+          platformName={platformName}
+          platformTagline={platformTagline}
+          supportWhatsapp={supportWhatsapp}
+          supportEmail={supportEmail}
+        >
+          {children}
+        </BrandProvider>
       </body>
     </html>
   )

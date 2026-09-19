@@ -1,11 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { BrandLogo } from '@/components/BrandLogo'
+import { getSiteConfig } from '@/lib/branding'
 import { PrintButton } from './PrintButton'
 
 export default async function CertificadoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
+  const cfg = await getSiteConfig()
+  const platformName = cfg.platform_name || 'Área de Membros'
+  const issuerTitle = cfg.platform_tagline || ''
+  const issuerCredential = cfg.cert_issuer_credential || ''
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -73,7 +78,7 @@ export default async function CertificadoPage({ params }: { params: Promise<{ id
 
           {/* Título */}
           <p className="text-xs font-bold tracking-[0.3em] uppercase mb-2" style={{ color: 'var(--brand)' }}>
-            Thiago Cantalovo · Nutricionista
+            {platformName}{issuerTitle ? ` · ${issuerTitle}` : ''}
           </p>
           <h1 className="text-3xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Georgia, serif' }}>
             Certificado de Conclusão
@@ -99,11 +104,13 @@ export default async function CertificadoPage({ params }: { params: Promise<{ id
             <div className="text-center">
               {/* Assinatura cursiva */}
               <p className="text-3xl mb-1" style={{ fontFamily: "'Dancing Script', cursive", color: 'var(--brand)', lineHeight: 1.2 }}>
-                Thiago Cantalovo
+                {platformName}
               </p>
               <div className="w-48 h-px bg-gray-300 mb-2 mx-auto" />
-              <p className="text-sm font-semibold text-gray-700">Thiago Cantalovo</p>
-              <p className="text-xs text-gray-400">Nutricionista · CRN-1 7985</p>
+              <p className="text-sm font-semibold text-gray-700">{platformName}</p>
+              {issuerTitle && (
+                <p className="text-xs text-gray-400">{issuerTitle}{issuerCredential ? ` · ${issuerCredential}` : ''}</p>
+              )}
             </div>
           </div>
 

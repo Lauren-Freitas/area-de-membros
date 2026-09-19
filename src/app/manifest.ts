@@ -3,7 +3,7 @@ import { getSiteConfig } from '@/lib/branding'
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const cfg = await getSiteConfig()
-  const platformName = cfg.platform_name || 'Thiago Cantalovo'
+  const platformName = cfg.platform_name || 'Área de Membros'
   const themeColor = cfg.primary_color || '#b48840'
 
   return {

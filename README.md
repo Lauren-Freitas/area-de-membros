@@ -1,6 +1,6 @@
 # Área de Membros — Thiago Cantalovo Nutricionista
 
-Plataforma de ensino online completa, desenvolvida do zero, com painel administrativo, área de membros, assistente de IA e integrações com gateway de pagamento.
+Plataforma de ensino online completa, desenvolvida do zero, com painel administrativo, área de membros e integrações com gateway de pagamento.
 
 > Projeto desenvolvido como solução **white-label** para profissionais de saúde e educação, com foco em nutrição.
 
@@ -14,7 +14,6 @@ Uma plataforma SaaS de membros com:
 - Área de membros com cursos, módulos e aulas
 - Sistema de gamificação (XP, rankings, badges, certificados)
 - Comunidade integrada (fórum, comentários, avaliações)
-- Assistente de IA especializado em nutrição (Proteíno, powered by Claude)
 - Painel administrativo completo com relatórios, gestão de conteúdo e vendas
 - Webhooks de saída para automações (n8n, Make, Zapier)
 - API REST para integrações externas
@@ -30,7 +29,6 @@ Uma plataforma SaaS de membros com:
 | **Linguagem** | TypeScript 5 |
 | **Banco de dados** | Supabase (PostgreSQL + Auth + Storage) |
 | **Estilização** | Tailwind CSS v4 |
-| **IA** | Anthropic Claude Haiku (streaming) |
 | **E-mail** | Resend |
 | **Pagamentos** | Asaas (webhook inbound) |
 | **Deploy** | Vercel |
@@ -46,8 +44,7 @@ Uma plataforma SaaS de membros com:
 - Sistema de XP e ranking global entre membros
 - Badges de conquista (primeira aula, primeiro comentário, etc.)
 - Comunidade: fórum com posts, respostas e notificações
-- Assistente de IA **Proteíno**: chatbot nutricional personalizado com histórico de conversas e suporte a imagens/PDFs
-- Perfil editável com avatar, bio e preferência de tom do assistente
+- Perfil editável com avatar e bio
 - Modo claro/escuro
 
 ### Para o Administrador
@@ -75,7 +72,6 @@ src/
 │   ├── (membro)/        # Área dos membros (autenticada)
 │   │   ├── dashboard/
 │   │   ├── produto/[id]/
-│   │   ├── assistente/
 │   │   ├── comunidade/
 │   │   ├── perfil/
 │   │   └── ranking/
@@ -88,7 +84,6 @@ src/
 │   │   └── ...
 │   └── api/             # API REST
 │       ├── admin/       # Endpoints autenticados por API Key
-│       ├── assistente/  # Chat IA (streaming)
 │       ├── webhook/     # Recebe eventos do Asaas
 │       └── appearance/  # Configurações visuais
 ├── lib/
@@ -106,7 +101,7 @@ Gerenciado pelo Supabase (PostgreSQL) com Row-Level Security (RLS).
 
 | Tabela | Descrição |
 |---|---|
-| `profiles` | Dados dos usuários (nome, avatar, role, preferências de IA) |
+| `profiles` | Dados dos usuários (nome, avatar, role) |
 | `products` | Cursos e produtos |
 | `modules` | Módulos de cada produto |
 | `lessons` | Aulas individuais |
@@ -118,8 +113,8 @@ Gerenciado pelo Supabase (PostgreSQL) com Row-Level Security (RLS).
 | `user_badges` | Badges conquistadas |
 | `community_posts` | Posts do fórum |
 | `community_replies` | Respostas nos posts |
-| `ai_conversations` | Sessões de chat com o assistente |
-| `ai_messages` | Mensagens do chat |
+| `ai_conversations` | Reservada para um futuro assistente de IA — schema pronto, feature ainda não implementada |
+| `ai_messages` | Reservada para um futuro assistente de IA — schema pronto, feature ainda não implementada |
 | `banners` | Banners promocionais |
 | `offers` | Ofertas flash |
 | `cohorts` | Turmas |
@@ -128,6 +123,8 @@ Gerenciado pelo Supabase (PostgreSQL) com Row-Level Security (RLS).
 | `outbound_webhooks` | Destinos de webhook para automações |
 | `webhook_logs` | Auditoria de webhooks recebidos |
 | `site_config` | Configurações visuais da plataforma |
+
+> `ai_conversations`, `ai_messages` e `profiles.ai_tone` são schema reservado para um futuro assistente de IA. O pacote `@anthropic-ai/sdk` já está instalado e `ANTHROPIC_API_KEY` já existe como variável de ambiente, mas não há rota, UI ou chamada à API implementada ainda — é só a fundação, pronta pra quando a feature entrar em pauta.
 
 ---
 
@@ -138,9 +135,6 @@ Recebe eventos via webhook. Ao confirmar pagamento: cria o usuário, concede ace
 
 ### Resend (E-mail)
 E-mails transacionais: boas-vindas, acesso concedido e convite de colaborador.
-
-### Anthropic Claude (IA)
-Modelo Claude Haiku com streaming para o assistente Proteíno. Contexto personalizado por usuário, histórico persistido, suporte a imagens e PDFs.
 
 ### n8n / Make / Zapier
 Webhooks de saída configuráveis em eventos de venda e acesso. Payload padronizado com dados do usuário e produto.

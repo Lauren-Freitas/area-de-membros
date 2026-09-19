@@ -20,7 +20,6 @@ O app tem três grupos de rotas: **auth** (público, não logado), **membro** (a
 | `/perfil` | Perfil público-ish: nível, XP, badges, progresso |
 | `/ranking` | Ranking de XP entre membros |
 | `/comunidade`, `/comunidade/nova`, `/comunidade/[postId]` | Fórum simples: posts + respostas |
-| `/assistente`, `/assistente/[id]` | Chat com IA ("Proteíno", assistente do app) — conversas + mensagens |
 | `/atendimento` | Abrir chamado de suporte |
 | `/assinatura` | Status da assinatura (Asaas) |
 | `/busca` | Busca global de conteúdo |
@@ -116,8 +115,8 @@ Níveis são calculados em código (não no banco), 10 níveis de 0 a 25.000 XP 
 **`community_posts`** — `id, user_id, title, body, pinned, created_at`
 **`community_replies`** — `id, post_id → community_posts.id, user_id, body, created_at`
 **`support_tickets`** — `id, user_id, subject, product_id (nullable), message, created_at`
-**`ai_conversations`** — `id, user_id, title, created_at`
-**`ai_messages`** — `id, conversation_id → ai_conversations.id, role ('user'|'assistant'), content, created_at`
+**`ai_conversations`** — `id, user_id, title, created_at` — *schema reservado para um futuro assistente de IA; sem rota, UI ou implementação hoje*
+**`ai_messages`** — `id, conversation_id → ai_conversations.id, role ('user'|'assistant'), content, created_at` — *idem*
 
 ### Admin / plataforma
 
@@ -141,7 +140,7 @@ profiles ──┬── user_products ──── products ──┬── mod
            ├── cohort_members ── cohorts ── products (nullable)
            ├── xp_transactions ── user_xp_totals / user_badges
            ├── community_posts ── community_replies
-           ├── ai_conversations ── ai_messages
+           ├── ai_conversations ── ai_messages (reservado, não implementado)
            ├── support_tickets ── products (nullable)
            └── activity_logs
 
@@ -239,7 +238,7 @@ Não há dark mode nativo em e-mails transacionais (Resend) nem no PWA manifest 
 | Editor de texto rico | Tiptap (`@tiptap/react` + `starter-kit` + extensões de link/imagem) + `sanitize-html` no servidor antes de renderizar HTML gerado pelo usuário |
 | Drag-and-drop | `@dnd-kit/core` + `sortable` + `utilities` (reordenar módulos/aulas) |
 | E-mail transacional | Resend (`resend` SDK) — convites, boas-vindas, acesso concedido |
-| IA (assistente "Proteíno") | `@anthropic-ai/sdk` |
+| IA (reservado, não implementado) | `@anthropic-ai/sdk` instalado + schema (`ai_conversations`, `ai_messages`, `profiles.ai_tone`) pronto; sem rota/UI |
 | Pagamento | Asaas (assinatura recorrente da plataforma) + Kiwify (produtos individuais), via webhooks próprios |
 | Deploy | Vercel (`vercel deploy --prod`), repo no GitHub |
 

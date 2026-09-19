@@ -3,9 +3,11 @@
 import { useActionState } from 'react'
 import { setPassword } from '@/lib/actions/auth'
 import { BrandLogo } from '@/components/BrandLogo'
+import { useBrand } from '@/components/BrandProvider'
 
 export default function NovaSenhaPage() {
   const [state, action, isPending] = useActionState(setPassword, undefined)
+  const { platformName, platformTagline } = useBrand()
 
   return (
     <div className="w-full max-w-md">
@@ -13,8 +15,8 @@ export default function NovaSenhaPage() {
         <div className="flex justify-center mb-4">
           <BrandLogo size={80} />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Thiago Cantalovo</h1>
-        <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Nutricionista</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{platformName}</h1>
+        {platformTagline && <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{platformTagline}</p>}
       </div>
 
       <div className="bg-card rounded-2xl shadow-sm border border-gray-100 dark:border-[#1e2030] p-8">

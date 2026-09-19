@@ -300,6 +300,15 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
             />
           </div>
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Subtítulo / profissão</label>
+            <Input
+              value={values.platform_tagline ?? ''}
+              onChange={e => set('platform_tagline', e.target.value)}
+              placeholder="Ex: Nutricionista"
+            />
+            <p className="text-xs text-gray-400 mt-1">Aparece no login, no menu e no certificado, junto ao nome da plataforma.</p>
+          </div>
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Mensagem de boas-vindas</label>
             <Textarea
               rows={2}
@@ -343,6 +352,22 @@ export function AparenciaForm({ config }: { config: Record<string, string> }) {
               onChange={e => set('support_email', e.target.value)}
             />
           </div>
+        </div>
+      </Section>
+
+      {/* Certificado */}
+      <Section
+        title="Certificado"
+        description="Credencial exibida junto à assinatura no certificado de conclusão dos membros."
+      >
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Credencial (opcional)</label>
+          <Input
+            value={values.cert_issuer_credential ?? ''}
+            onChange={e => set('cert_issuer_credential', e.target.value)}
+            placeholder="Ex: CRN-1 7985"
+          />
+          <p className="text-xs text-gray-400 mt-1">Aparece só se o subtítulo/profissão (em Textos) estiver preenchido.</p>
         </div>
       </Section>
 

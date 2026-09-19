@@ -1,5 +1,12 @@
 import type { NextConfig } from "next";
 
+// Deriva do próprio projeto Supabase configurado no ambiente, em vez de fixar
+// o hostname de um projeto específico -- assim um clone da plataforma para
+// outro cliente/projeto Supabase não precisa editar este arquivo.
+const supabaseHostname = process.env.NEXT_PUBLIC_SUPABASE_URL
+  ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
+  : undefined;
+
 const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
@@ -22,13 +29,15 @@ const nextConfig: NextConfig = {
     ]
   },
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'yakncmxiastulmmzodgp.supabase.co',
-        pathname: '/storage/v1/object/public/**',
-      },
-    ],
+    remotePatterns: supabaseHostname
+      ? [
+          {
+            protocol: 'https',
+            hostname: supabaseHostname,
+            pathname: '/storage/v1/object/public/**',
+          },
+        ]
+      : [],
   },
 };
 

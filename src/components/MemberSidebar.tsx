@@ -8,6 +8,7 @@ import { ProfileMenu } from '@/components/ProfileMenu'
 
 interface Props {
   platformName: string
+  platformTagline: string
   userName: string
   avatarUrl: string | null
   unreadCount: number
@@ -36,7 +37,7 @@ function CollapsedTooltip({ label }: { label: string }) {
  * Estado e toggle vêm de fora (MemberShell), persistidos em localStorage.
  * Conta fica no rodapé.
  */
-export function MemberSidebar({ platformName, userName, avatarUrl, unreadCount, isViewingAs, collapsed, onToggle }: Props) {
+export function MemberSidebar({ platformName, platformTagline, userName, avatarUrl, unreadCount, isViewingAs, collapsed, onToggle }: Props) {
   const pathname = usePathname()
 
   return (
@@ -52,7 +53,7 @@ export function MemberSidebar({ platformName, userName, avatarUrl, unreadCount, 
             <BrandLogo size={30} className="shrink-0" />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-gray-900 dark:text-white leading-tight truncate">{platformName}</p>
-              <p className="text-xs text-gray-400 leading-tight">Nutricionista</p>
+              {platformTagline && <p className="text-xs text-gray-400 leading-tight">{platformTagline}</p>}
             </div>
           </>
         )}

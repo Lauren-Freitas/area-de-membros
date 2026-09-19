@@ -1,7 +1,19 @@
 import { Resend } from 'resend'
+import { getSiteConfig } from '@/lib/branding'
 
 function getResend() {
   return new Resend(process.env.RESEND_API_KEY!)
+}
+
+async function getEmailBrand() {
+  const cfg = await getSiteConfig()
+  const platformName = cfg.platform_name || 'Área de Membros'
+  const platformTagline = cfg.platform_tagline || ''
+  return {
+    platformName,
+    kicker: platformTagline ? `${platformName} · ${platformTagline}` : platformName,
+    footer: platformTagline ? `${platformName} ${platformTagline}` : platformName,
+  }
 }
 
 export async function sendWelcomeEmail({
@@ -18,6 +30,7 @@ export async function sendWelcomeEmail({
   const firstName = name.split(' ')[0]
   const from = process.env.RESEND_FROM_EMAIL!
   const appUrl = process.env.NEXT_PUBLIC_APP_URL!
+  const brand = await getEmailBrand()
 
   await getResend().emails.send({
     from,
@@ -32,7 +45,7 @@ export async function sendWelcomeEmail({
       <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;max-width:600px;width:100%">
         <tr>
           <td style="background:#b48840;padding:32px 40px;text-align:center">
-            <p style="margin:0;color:#f5efe3;font-size:13px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase">Thiago Cantalovo · Nutricionista</p>
+            <p style="margin:0;color:#f5efe3;font-size:13px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase">${brand.kicker}</p>
             <h1 style="margin:8px 0 0;color:#fff;font-size:24px;font-weight:700">Seu acesso foi liberado!</h1>
           </td>
         </tr>
@@ -65,7 +78,7 @@ export async function sendWelcomeEmail({
         <tr>
           <td style="padding:20px 40px 32px;border-top:1px solid #f3f4f6;text-align:center">
             <p style="margin:0;font-size:12px;color:#9ca3af">
-              Thiago Cantalovo Nutricionista · <a href="${appUrl}" style="color:#b48840;text-decoration:none">${appUrl.replace(/^https?:\/\//, '')}</a>
+              ${brand.footer} · <a href="${appUrl}" style="color:#b48840;text-decoration:none">${appUrl.replace(/^https?:\/\//, '')}</a>
             </p>
           </td>
         </tr>
@@ -89,11 +102,12 @@ export async function sendCollaboratorInviteEmail({
   const firstName = name.split(' ')[0]
   const from = process.env.RESEND_FROM_EMAIL!
   const appUrl = process.env.NEXT_PUBLIC_APP_URL!
+  const brand = await getEmailBrand()
 
   await getResend().emails.send({
     from,
     to: email,
-    subject: `Você foi adicionado à equipe de Thiago Cantalovo!`,
+    subject: `Você foi adicionado à equipe de ${brand.platformName}!`,
     html: `<!DOCTYPE html>
 <html lang="pt-BR">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -103,7 +117,7 @@ export async function sendCollaboratorInviteEmail({
       <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;max-width:600px;width:100%">
         <tr>
           <td style="background:#b48840;padding:32px 40px;text-align:center">
-            <p style="margin:0;color:#f5efe3;font-size:13px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase">Thiago Cantalovo · Nutricionista</p>
+            <p style="margin:0;color:#f5efe3;font-size:13px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase">${brand.kicker}</p>
             <h1 style="margin:8px 0 0;color:#fff;font-size:24px;font-weight:700">Seu acesso foi liberado!</h1>
           </td>
         </tr>
@@ -136,7 +150,7 @@ export async function sendCollaboratorInviteEmail({
         <tr>
           <td style="padding:20px 40px 32px;border-top:1px solid #f3f4f6;text-align:center">
             <p style="margin:0;font-size:12px;color:#9ca3af">
-              Thiago Cantalovo Nutricionista · <a href="${appUrl}" style="color:#b48840;text-decoration:none">${appUrl.replace(/^https?:\/\//, '')}</a>
+              ${brand.footer} · <a href="${appUrl}" style="color:#b48840;text-decoration:none">${appUrl.replace(/^https?:\/\//, '')}</a>
             </p>
           </td>
         </tr>
@@ -160,6 +174,7 @@ export async function sendAccessGrantedEmail({
   const firstName = name.split(' ')[0]
   const from = process.env.RESEND_FROM_EMAIL!
   const appUrl = process.env.NEXT_PUBLIC_APP_URL!
+  const brand = await getEmailBrand()
 
   await getResend().emails.send({
     from,
@@ -174,7 +189,7 @@ export async function sendAccessGrantedEmail({
       <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;max-width:600px;width:100%">
         <tr>
           <td style="background:#b48840;padding:32px 40px;text-align:center">
-            <p style="margin:0;color:#f5efe3;font-size:13px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase">Thiago Cantalovo · Nutricionista</p>
+            <p style="margin:0;color:#f5efe3;font-size:13px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase">${brand.kicker}</p>
             <h1 style="margin:8px 0 0;color:#fff;font-size:24px;font-weight:700">Novo conteúdo liberado!</h1>
           </td>
         </tr>
@@ -197,7 +212,7 @@ export async function sendAccessGrantedEmail({
         <tr>
           <td style="padding:20px 40px 32px;border-top:1px solid #f3f4f6;text-align:center">
             <p style="margin:0;font-size:12px;color:#9ca3af">
-              Thiago Cantalovo Nutricionista · <a href="${appUrl}" style="color:#b48840;text-decoration:none">${appUrl.replace(/^https?:\/\//, '')}</a>
+              ${brand.footer} · <a href="${appUrl}" style="color:#b48840;text-decoration:none">${appUrl.replace(/^https?:\/\//, '')}</a>
             </p>
           </td>
         </tr>
